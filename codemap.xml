@@ -1,0 +1,109 @@
+<ProjectMap>
+  <Folder name="src">
+    <File path="src/main.cpp">
+      <Description>Main application entry point. Initializes World, SimClock, EventBus, and registers all Systems. Creates initial entities (e.g. a drone via DroneBuilder). Contains the main simulation loop with fixed timestep coordination.</Description>
+      <Constructors />
+      <Methods>
+        <Method name="main" returnType="int" params="" />
+      </Methods>
+    </File>
+    <Folder name="core">
+      <File path="src/core/IEvent.h">
+        <Description>Base interface for all system events (e.g., BatteryLowEvent, CollisionEvent).</Description>
+        <Constructors />
+        <Methods>
+          <Method name="getType" returnType="EventType" params="" />
+        </Methods>
+      </File>
+      <File path="src/core/EventBus.h">
+        <Description>Event-based communication (Observer pattern).</Description>
+        <Constructors>
+          <Constructor name="EventBus" params="" />
+        </Constructors>
+        <Methods>
+          <Method name="subscribe" returnType="void" params="EventType type, std::function&lt;void(const IEvent&amp;)&gt; handler" />
+          <Method name="publish" returnType="void" params="const IEvent&amp; event" />
+        </Methods>
+      </File>
+      <File path="src/core/EventBus.cpp">
+        <Description>Implementation of EventBus class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/core/IComponent.h">
+        <Description>Base interface for ECS components. Pure data structures.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/core/Entity.h">
+        <Description>Represents a simulation object (drone, building, etc.).</Description>
+        <Constructors>
+          <Constructor name="Entity" params="unsigned int id" />
+        </Constructors>
+        <Methods>
+          <Method name="addComponent" returnType="" params="" />
+          <Method name="getComponent" returnType="" params="" />
+        </Methods>
+      </File>
+      <File path="src/core/ISystem.h">
+        <Description>Base interface for ECS systems.</Description>
+        <Constructors />
+        <Methods>
+          <Method name="update" returnType="void" params="World&amp; world, float dt" />
+        </Methods>
+      </File>
+      <File path="src/core/World.h">
+        <Description>Manages all entities and systems. Orchestrates simulation loop.</Description>
+        <Constructors>
+          <Constructor name="World" params="EventBus&amp; eventBus" />
+        </Constructors>
+        <Methods>
+          <Method name="addEntity" returnType="void" params="std::unique_ptr&lt;Entity&gt; entity" />
+          <Method name="addSystem" returnType="void" params="std::unique_ptr&lt;ISystem&gt; system" />
+          <Method name="update" returnType="void" params="float dt" />
+        </Methods>
+      </File>
+      <File path="src/core/World.cpp">
+        <Description>Implementation of World class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/core/SimClock.h">
+        <Description>Handles simulation time and fixed timestep logic.</Description>
+        <Constructors>
+          <Constructor name="SimClock" params="float fixedTimestep" />
+        </Constructors>
+        <Methods>
+          <Method name="tick" returnType="void" params="float deltaTime" />
+          <Method name="shouldStepPhysics" returnType="bool" params="" />
+          <Method name="getFixedTimestep" returnType="float" params="" />
+        </Methods>
+      </File>
+      <File path="src/core/SimClock.cpp">
+        <Description>Implementation of SimClock class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+    </Folder>
+    <Folder name="components">
+    </Folder>
+    <Folder name="systems">
+    </Folder>
+    <Folder name="physics">
+    </Folder>
+    <Folder name="vehicles">
+    </Folder>
+    <Folder name="utils">
+    </Folder>
+    <Folder name="platform">
+    </Folder>
+  </Folder>
+  <Folder name="packages">
+    <Folder name="schemas">
+    </Folder>
+    <Folder name="assets">
+    </Folder>
+  </Folder>
+  <Folder name="configs">
+  </Folder>
+</ProjectMap>
