@@ -1,4 +1,44 @@
 <ProjectMap>
+  <File path="CMakeLists.txt">
+    <Description>CMake build configuration file for the C++ project, setting up compilation and linking with SDL2 and OpenGL.</Description>
+    <Constructors />
+    <Methods />
+  </File>
+  <File path="README.md">
+    <Description>Project README file containing build instructions, toolchain setup, and project overview.</Description>
+    <Constructors />
+    <Methods />
+  </File>
+  <File path="toolchain-arm64.cmake">
+    <Description>CMake toolchain file for cross-compilation to ARM64 Linux platform.</Description>
+    <Constructors />
+    <Methods />
+  </File>
+  <File path=".gitignore">
+    <Description>Git ignore file for excluding build artifacts, temporary files, and IDE-specific files from version control.</Description>
+    <Constructors />
+    <Methods />
+  </File>
+  <File path="build.ps1">
+    <Description>PowerShell script to build the project in debug or release mode based on -r flag.</Description>
+    <Constructors />
+    <Methods />
+  </File>
+  <File path="build.sh">
+    <Description>Bash script to build the project in debug or release mode based on -r flag.</Description>
+    <Constructors />
+    <Methods />
+  </File>
+  <File path="run.ps1">
+    <Description>PowerShell script to run the built executable in debug or release mode based on -r flag.</Description>
+    <Constructors />
+    <Methods />
+  </File>
+  <File path="run.sh">
+    <Description>Bash script to run the built executable in debug or release mode based on -r flag.</Description>
+    <Constructors />
+    <Methods />
+  </File>
   <Folder name="src">
     <File path="src/main.cpp">
       <Description>Main application entry point. Initializes World, SimClock, EventBus, and registers all Systems. Creates initial entities (e.g. a drone via DroneBuilder). Contains the main simulation loop with fixed timestep coordination.</Description>

@@ -1,22 +1,21 @@
 #include "World.h"
 
-World::World(EventBus &amp; eventBus) : eventBus_(eventBus) {}
+World::World(EventBus &eventBus) : eventBus_(eventBus) {}
 
-void World::addEntity(std::unique_ptr &lt; Entity & gt; entity)
+void World::addEntity(std::unique_ptr<Entity> entity)
 {
     entities_.push_back(std::move(entity));
 }
 
-void World::addSystem(std::unique_ptr &lt; ISystem & gt; system)
+void World::addSystem(std::unique_ptr<ISystem> system)
 {
     systems_.push_back(std::move(system));
 }
 
 void World::update(float dt)
 {
-    for (auto &amp; system : systems_)
+    for (auto &system : systems_)
     {
-        system - &gt;
-        update(*this, dt);
+        system->update(*this, dt);
     }
 }

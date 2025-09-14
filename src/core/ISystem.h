@@ -7,7 +7,7 @@ class ISystem
 {
 public:
     virtual ~ISystem() = default;
-    virtual void update(World &amp; world, float dt) = 0;
+    virtual void update(World &world, float dt) = 0;
 };
 
 #endif

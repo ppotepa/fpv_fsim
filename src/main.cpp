@@ -3,8 +3,8 @@
 #include "core/SimClock.h"
 // #include other headers as implemented
 
-#include &lt; iostream & gt;
-#include &lt; chrono & gt;
+#include <iostream>
+#include <chrono>
 
 int main()
 {
@@ -31,9 +31,7 @@ int main()
     while (true)
     { // exit condition
         auto currentFrameTime = std::chrono::high_resolution_clock::now();
-        std::chrono::duration &lt;
-        float &gt;
-        frameDeltaTime = currentFrameTime - lastFrameTime;
+        std::chrono::duration<float> frameDeltaTime = currentFrameTime - lastFrameTime;
         lastFrameTime = currentFrameTime;
 
         simClock.tick(frameDeltaTime.count());
@@ -43,11 +41,7 @@ int main()
         }
 
         // Optional: rendering on Windows, state interpolation
-        std::cout &lt;
-        &lt;
-        "Simulation step" & lt;
-        &lt;
-        std::endl;
+        std::cout << "Simulation step" << std::endl;
         // For demo, break after one step
         break;
     }

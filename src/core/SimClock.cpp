@@ -9,7 +9,7 @@ void SimClock::tick(float deltaTime)
 
 bool SimClock::shouldStepPhysics()
 {
-    if (accumulator_ &gt; = fixedTimestep_)
+    if (accumulator_ >= fixedTimestep_)
     {
         accumulator_ -= fixedTimestep_;
         return true;

@@ -2,28 +2,22 @@
 #define ENTITY_H
 
 #include "IComponent.h"
-#include &lt; memory & gt;
-#include &lt; unordered_map & gt;
-#include &lt; typeindex & gt;
+#include <memory>
+#include <unordered_map>
+#include <typeindex>
 
 class Entity
 {
 public:
     Entity(unsigned int id);
-    template &lt;
-    typename T &gt;
-    void addComponent(std::unique_ptr &lt; T & gt; component);
-    template &lt;
-    typename T &gt;
+    template <typename T>
+    void addComponent(std::unique_ptr<T> component);
+    template <typename T>
     T *getComponent();
 
 private:
     unsigned int id_;
-    std::unordered_map &lt;
-    std::type_index, std::unique_ptr &lt;
-    IComponent &gt;
-    &gt;
-    components_;
+    std::unordered_map<std::type_index, std::unique_ptr<IComponent>> components_;
 };
 
 #endif

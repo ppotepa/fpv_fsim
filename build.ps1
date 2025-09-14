@@ -3,7 +3,8 @@ param([switch]$r)
 if ($r) {
     $buildType = "Release"
     $buildDir = "build-release"
-} else {
+}
+else {
     $buildType = "Debug"
     $buildDir = "build-debug"
 }

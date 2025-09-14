@@ -4,30 +4,21 @@
 #include "EventBus.h"
 #include "ISystem.h"
 #include "Entity.h"
-#include &lt; vector & gt;
-#include &lt; memory & gt;
+#include <vector>
+#include <memory>
 
 class World
 {
 public:
-    World(EventBus &amp; eventBus);
-    void addEntity(std::unique_ptr &lt; Entity & gt; entity);
-    void addSystem(std::unique_ptr &lt; ISystem & gt; system);
+    World(EventBus &eventBus);
+    void addEntity(std::unique_ptr<Entity> entity);
+    void addSystem(std::unique_ptr<ISystem> system);
     void update(float dt);
 
 private:
-    EventBus &amp;
-    eventBus_;
-    std::vector &lt;
-    std::unique_ptr &lt;
-    Entity &gt;
-    &gt;
-    entities_;
-    std::vector &lt;
-    std::unique_ptr &lt;
-    ISystem &gt;
-    &gt;
-    systems_;
+    EventBus &eventBus_;
+    std::vector<std::unique_ptr<Entity>> entities_;
+    std::vector<std::unique_ptr<ISystem>> systems_;
 };
 
 #endif
