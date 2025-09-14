@@ -39,6 +39,28 @@
     <Constructors />
     <Methods />
   </File>
+  <Folder name="docs">
+    <File path="docs/1.0-structure.md">
+      <Description>Documentation outlining the proposed C++ project structure for vehicle simulation.</Description>
+      <Constructors />
+      <Methods />
+    </File>
+    <File path="docs/1.1-toolchain.md">
+      <Description>Documentation on the minimal toolchain for C++ development and cross-compilation.</Description>
+      <Constructors />
+      <Methods />
+    </File>
+    <File path="docs/1.2-IoC.md">
+      <Description>Documentation on Inversion of Control implementation in the project.</Description>
+      <Constructors />
+      <Methods />
+    </File>
+    <File path="docs/prompt.md">
+      <Description>Prompt file for generating the project code map.</Description>
+      <Constructors />
+      <Methods />
+    </File>
+  </Folder>
   <Folder name="src">
     <File path="src/main.cpp">
       <Description>Main application entry point. Initializes World, SimClock, EventBus, and registers all Systems. Creates initial entities (e.g. a drone via DroneBuilder). Contains the main simulation loop with fixed timestep coordination.</Description>
