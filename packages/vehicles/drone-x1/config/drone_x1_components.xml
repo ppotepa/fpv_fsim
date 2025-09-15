@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VehicleComponents vehicleType="DroneX1">
+    <PropulsionUnit id="motor_fr" type="vertical_propeller">
+        <LocationOffset x="0.15" y="0.0" z="0.15" />
+        <ThrustAxis x="0" y="1" z="0" />
+        <ThrustCoefficient value="5.0e-5" />
+        <TorqueCoefficient value="5.0e-7" />
+        <SpinDirection value="1" />
+        <MotorResponseTimeConstant value="0.02" />
+    </PropulsionUnit>
+    <PropulsionUnit id="motor_fl" type="vertical_propeller">
+        <LocationOffset x="-0.15" y="0.0" z="0.15" />
+        <ThrustAxis x="0" y="1" z="0" />
+        <ThrustCoefficient value="5.0e-5" />
+        <TorqueCoefficient value="5.0e-7" />
+        <SpinDirection value="-1" />
+        <MotorResponseTimeConstant value="0.02" />
+    </PropulsionUnit>
+    <!-- ... other motor definitions ... -->
+    <Battery id="main_battery" capacity_Ah="5.0" internal_resistance_Ohm="0.015" />
+    <Sensors>
+        <IMU noise_gyro="0.001" noise_accel="0.01" sample_rate_Hz="200" />
+        <GPS noise_pos="0.5" sample_rate_Hz="5" />
+    </Sensors>
+    <!-- ... other components like AerodynamicBodyC, LandingGearC ... -->
+</VehicleComponents>

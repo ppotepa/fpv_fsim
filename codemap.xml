@@ -317,9 +317,129 @@
     </Folder>
   </Folder>
   <Folder name="packages">
-    <Folder name="schemas">
+    <Folder name="core">
+      <File path="packages/core/CMakeLists.txt">
+        <Description>CMake build configuration for the core package.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <Folder name="src">
+      </Folder>
+      <Folder name="include">
+      </Folder>
     </Folder>
-    <Folder name="assets">
+    <Folder name="physics">
+      <File path="packages/physics/CMakeLists.txt">
+        <Description>CMake build configuration for the physics package.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <Folder name="src">
+      </Folder>
+      <Folder name="include">
+      </Folder>
+    </Folder>
+    <Folder name="vehicles">
+      <Folder name="drone-x1">
+        <File path="packages/vehicles/drone-x1/CMakeLists.txt">
+          <Description>CMake build configuration for the drone-x1 vehicle package.</Description>
+          <Constructors />
+          <Methods />
+        </File>
+        <Folder name="assets">
+          <Folder name="models">
+          </Folder>
+          <Folder name="textures">
+          </Folder>
+        </Folder>
+        <Folder name="config">
+          <File path="packages/vehicles/drone-x1/config/drone_x1_components.xml">
+            <Description>XML configuration file defining components for the drone-x1 vehicle.</Description>
+            <Constructors />
+            <Methods />
+          </File>
+        </Folder>
+        <Folder name="src">
+        </Folder>
+        <Folder name="include">
+        </Folder>
+      </Folder>
+      <Folder name="fixed-wing-alpha">
+        <File path="packages/vehicles/fixed-wing-alpha/CMakeLists.txt">
+          <Description>CMake build configuration for the fixed-wing-alpha vehicle package.</Description>
+          <Constructors />
+          <Methods />
+        </File>
+        <Folder name="assets">
+          <Folder name="models">
+          </Folder>
+        </Folder>
+        <Folder name="config">
+        </Folder>
+        <Folder name="src">
+        </Folder>
+        <Folder name="include">
+        </Folder>
+      </Folder>
+    </Folder>
+    <Folder name="environment">
+      <File path="packages/environment/CMakeLists.txt">
+        <Description>CMake build configuration for the environment package.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <Folder name="world_gen">
+        <File path="packages/environment/world_gen/CMakeLists.txt">
+          <Description>CMake build configuration for the world generation package.</Description>
+          <Constructors />
+          <Methods />
+        </File>
+        <Folder name="scenes">
+          <File path="packages/environment/world_gen/scenes/city_day_scene.xml">
+            <Description>XML scene definition for a city day environment with procedural generation parameters.</Description>
+            <Constructors />
+            <Methods />
+          </File>
+        </Folder>
+        <Folder name="furniture">
+          <File path="packages/environment/world_gen/furniture/office_table_basic.xml">
+            <Description>XML definition for a parametric office table furniture asset.</Description>
+            <Constructors />
+            <Methods />
+          </File>
+        </Folder>
+        <Folder name="textures">
+        </Folder>
+      </Folder>
+      <Folder name="assets">
+        <Folder name="models">
+        </Folder>
+        <Folder name="textures">
+        </Folder>
+        <Folder name="sounds">
+        </Folder>
+        <Folder name="shaders">
+        </Folder>
+      </Folder>
+    </Folder>
+    <Folder name="ui">
+      <File path="packages/ui/CMakeLists.txt">
+        <Description>CMake build configuration for the UI package.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <Folder name="assets">
+        <Folder name="sounds">
+        </Folder>
+        <Folder name="images">
+        </Folder>
+      </Folder>
+      <Folder name="config">
+      </Folder>
+      <Folder name="src">
+      </Folder>
+      <Folder name="include">
+      </Folder>
     </Folder>
   </Folder>
   <Folder name="configs">

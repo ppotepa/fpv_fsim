@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FurnitureAsset id="office_table_basic" type="Table">
+    <Parameters>
+        <TopSize width="1.6" depth="0.8" />
+        <TopThickness value="0.04" />
+        <LegThickness value="0.05" />
+        <Height value="0.75" />
+    </Parameters>
+    <Material>
+        <Color r="0.4" g="0.3" b="0.2" a="1.0" />
+        <Roughness value="0.8" />
+    </Material>
+    <PlacementRules>
+        <ClearanceInset value="0.3" />
+        <MinSpacing value="1.5" />
+    </PlacementRules>
+</FurnitureAsset>
