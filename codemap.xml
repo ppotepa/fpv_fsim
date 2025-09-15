@@ -55,6 +55,11 @@
       <Constructors />
       <Methods />
     </File>
+    <File path="docs/2.0-assets-and-packages.md">
+      <Description>Documentation on assets, packages, and configuration for the C++ vehicle simulation.</Description>
+      <Constructors />
+      <Methods />
+    </File>
     <File path="docs/prompt.md">
       <Description>Prompt file for generating the project code map.</Description>
       <Constructors />
