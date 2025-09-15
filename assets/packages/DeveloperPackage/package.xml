@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Developer Package XML Configuration
-    This XML defines the core assets and configurations for the developer debug environment,
-    including the debug console, a default "Earth-like" sphere world scene, and input bindings.
-    It adheres to the "strings only at the edges" principle: this XML is processed by the
-    asset compiler (or hot-reloaded in debug) into compact binary formats and numeric IDs for runtime.
-
+    Developer Package XML Configuration — EXTENDED
+    Adds a lightweight cel-shaded (no outline) voxel/low-poly "Universal-style" busy-indicator scene:
+    - Low-poly globe with procedural land bumps
+    - Six randomly generated 32×32 textures (water, land, rock, cloud, fuselage red, wings grey)
+    - Single distant sun (directional light)
+    - Fixed cinematic camera
+    - Low-poly aircraft orbiting on an inclined slightly-elliptic path, optional contrail
+    - Voxel cloud groups that orbit + fade (vapourise) with lifecycle
+    - ~1 MiB target memory footprint (tiny meshes, tiny textures, procedural animation)
 -->
-<package name="DeveloperPackage" version="1.0" description="Core developer debug assets and default scene.">
+<package name="DeveloperPackage" version="1.1" description="Core developer debug assets, default scene, and voxel busy indicator.">
 
     <!--
         Dependencies:
@@ -15,7 +18,7 @@
         For simplicity, we assume basic engine systems and a standard shader library are already built into the runtime.
     -->
     <dependencies>
-        <!-- No explicit package dependencies are typically required for this foundational dev package itself. -->
+        <!-- No additional deps; assumes core shader library + ECS components exist. -->
     </dependencies>
 
     <!--
@@ -26,6 +29,7 @@
 
     -->
     <assets>
+        <!-- ==== EXISTING ASSETS (unchanged) =================================================== -->
         <!-- Console UI Assets [user request, previous conversation] -->
         <asset type="font" id="ConsoleFont">
             <path>console/console_font.ttf</path>
@@ -94,6 +98,119 @@
                 <param name="density_threshold_param" type="float" default_value="0.5" />
             </params>
         </asset>
+
+        <!-- ==== NEW: CEL SHADER + RANDOM 32×32 TEXTURES ======================================= -->
+
+        <!-- Minimal cel band shader (no outlines) -->
+        <asset type="shader" id="CelBandShader">
+            <path>shaders/cel_band_no_outline.shader</path>
+            <params>
+                <bands value="4"/>
+                <outline_enabled value="false"/>
+                <specular_mode value="off"/>
+            </params>
+        </asset>
+
+        <!-- Six tiny textures generated at build/load (seed auto/random) -->
+        <asset type="texture_generator" id="RndTex_Water32">
+            <generator>FlatNoiseTextureGen</generator>
+            <params width="32" height="32" base="#2B6FEA" noise_amp="0.05" seed="auto"/>
+        </asset>
+        <asset type="texture_generator" id="RndTex_Land32">
+            <generator>FlatNoiseTextureGen</generator>
+            <params width="32" height="32" base="#3BA15A" noise_amp="0.06" seed="auto"/>
+        </asset>
+        <asset type="texture_generator" id="RndTex_Rock32">
+            <generator>SpeckleTextureGen</generator>
+            <params width="32" height="32" base="#7C5B3A" speckle="#5F4A32" density="0.15" seed="auto"/>
+        </asset>
+        <asset type="texture_generator" id="RndTex_Cloud32">
+            <generator>DitherTextureGen</generator>
+            <params width="32" height="32" base="#F2F2F2" dither="0.04" seed="auto"/>
+        </asset>
+        <asset type="texture_generator" id="RndTex_Fuselage32">
+            <generator>FlatNoiseTextureGen</generator>
+            <params width="32" height="32" base="#E11D2E" noise_amp="0.03" seed="auto"/>
+        </asset>
+        <asset type="texture_generator" id="RndTex_Wings32">
+            <generator>FlatNoiseTextureGen</generator>
+            <params width="32" height="32" base="#B3B3B3" noise_amp="0.02" seed="auto"/>
+        </asset>
+
+        <!-- Cel materials that bind the tiny textures -->
+        <asset type="material" id="Mat_Cel_Water">
+            <shader_id>CelBandShader</shader_id>
+            <params><albedo_texture>RndTex_Water32</albedo_texture></params>
+        </asset>
+        <asset type="material" id="Mat_Cel_Land">
+            <shader_id>CelBandShader</shader_id>
+            <params><albedo_texture>RndTex_Land32</albedo_texture></params>
+        </asset>
+        <asset type="material" id="Mat_Cel_Rock">
+            <shader_id>CelBandShader</shader_id>
+            <params><albedo_texture>RndTex_Rock32</albedo_texture></params>
+        </asset>
+        <asset type="material" id="Mat_Cel_Cloud">
+            <shader_id>CelBandShader</shader_id>
+            <params>
+                <albedo_texture>RndTex_Cloud32</albedo_texture>
+                <alpha_mode>Premultiplied</alpha_mode>
+            </params>
+        </asset>
+        <asset type="material" id="Mat_Cel_Fuselage">
+            <shader_id>CelBandShader</shader_id>
+            <params><albedo_texture>RndTex_Fuselage32</albedo_texture></params>
+        </asset>
+        <asset type="material" id="Mat_Cel_Wings">
+            <shader_id>CelBandShader</shader_id>
+            <params><albedo_texture>RndTex_Wings32</albedo_texture></params>
+        </asset>
+
+        <!-- ==== NEW: TINY MESH RECIPES (low memory) ========================================== -->
+
+        <!-- Low-poly globe (icosphere/cubesphere) -->
+        <asset type="mesh_recipe" id="LowPolyGlobeRecipe">
+            <generator>IcoSphereGenerator</generator>
+            <params>
+                <param name="radius" type="float" default_value="1.0" />
+                <param name="subdiv" type="int" default_value="2" /> <!-- ~320 tris -->
+                <param name="flat_shading" type="bool" default_value="true" />
+            </params>
+        </asset>
+
+        <!-- Unit cube reused for voxel clouds & contrail -->
+        <asset type="mesh_recipe" id="UnitCubeRecipe">
+            <generator>CubeGenerator</generator>
+            <params>
+                <param name="size" type="float" default_value="1.0"/>
+            </params>
+        </asset>
+
+        <!-- Low-poly aircraft (simple fuselage + wings + tail) -->
+        <asset type="mesh_recipe" id="LowPolyAircraftRecipe">
+            <generator>ProceduralAircraftGenerator</generator>
+            <params>
+                <param name="length" type="float" default_value="0.25" />
+                <param name="fuselage_segments" type="int" default_value="6" />
+                <param name="wing_span" type="float" default_value="0.22" />
+                <param name="tail_span" type="float" default_value="0.12" />
+                <param name="flat_shading" type="bool" default_value="true" />
+            </params>
+        </asset>
+
+        <!-- Optional: procedural "land bumps" overlay using the same globe mesh with jitter mask -->
+        <asset type="mesh_recipe" id="GlobeLandBumpsRecipe">
+            <generator>SphericalPatchDisplaceGenerator</generator>
+            <params>
+                <param name="base_radius" type="float" default_value="1.0" />
+                <param name="subdiv" type="int" default_value="2" />
+                <param name="patch_count" type="int" default_value="24" />
+                <param name="min_height" type="float" default_value="0.03" />
+                <param name="max_height" type="float" default_value="0.06" />
+                <param name="seed" type="int" default_value="-1" /> <!-- -1 = random -->
+            </params>
+        </asset>
+
         <!-- Paper Plane Materials & Mesh Recipe -->
         <asset type="material" id="PlaneFuselageMaterial">
             <shader_id>CelFlatShader</shader_id>
@@ -127,6 +244,7 @@
         In release builds, these are prebaked into the .pak's PARAMS section.
     -->
     <configurations>
+        <!-- ==== EXISTING CONFIGURATION (unchanged) =========================================== -->
         <!--
             Default Scene Configuration: The "Earth-like" sphere world.
             This SceneConfig would be provided to the WorldGenSystem if no other packages are found
@@ -230,6 +348,443 @@
                     <velocity x="5.0" y="0.0" z="0.0" /> <!-- Gentle constant wind in X direction -->
                 </wind_model>
             </env_physics_params>
+        </scene_config>
+
+        <!-- ==== NEW: VOXEL BUSY INDICATOR SCENE CONFIGURATION ============================== -->
+        <!--
+            Compact busy indicator scene featuring low-poly voxel globe with cel-shaded 32×32 textures,
+            orbital aircraft groups with procedural contrails, and voxel cloud patches.
+            Memory budget: ~1MB total (texture + mesh + misc).
+        -->
+        <scene_config id="VoxelBusyIndicatorScene" type="voxel_busy_indicator">
+            <description>Low-poly voxel busy indicator with orbiting aircraft and clouds</description>
+            
+            <!-- Performance constraints for busy indicator use case -->
+            <memory_budget max_mb="1.0"/>
+            <performance_targets>
+                <max_draw_calls>25</max_draw_calls>
+                <max_triangles>2000</max_triangles>
+                <target_fps>60</target_fps>
+            </performance_targets>
+
+            <!-- ==== CORE GLOBE ENTITIES ================================================= -->
+            <!-- Primary globe: water regions (base layer) -->
+            <entity name="GlobeWater" entity_id="GlobeWaterEntityId">
+                <component type="TransformC">
+                    <position x="0.0" y="0.0" z="0.0" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="LowPolyGlobeRecipe">
+                        <param name="radius" value="1.0" />
+                        <param name="subdiv" value="2" /> <!-- ~320 triangles -->
+                        <param name="flat_shading" value="true" />
+                    </mesh_recipe_ref>
+                    <material_ref id="Mat_Cel_Water" />
+                </component>
+                <component type="VoxelRegionC">
+                    <param name="type" value="water" />
+                    <param name="coverage" value="0.65" />
+                </component>
+            </entity>
+
+            <!-- Land overlay: procedural land patches -->
+            <entity name="GlobeLand" entity_id="GlobeLandEntityId">
+                <component type="TransformC">
+                    <position x="0.0" y="0.0" z="0.0" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                    <scale x="1.001" y="1.001" z="1.001" /> <!-- Slight offset to avoid z-fighting -->
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="GlobeLandBumpsRecipe">
+                        <param name="base_radius" value="1.0" />
+                        <param name="subdiv" value="2" />
+                        <param name="patch_count" value="24" />
+                        <param name="min_height" value="0.03" />
+                        <param name="max_height" value="0.06" />
+                        <param name="seed" value="-1" /> <!-- Random -->
+                    </mesh_recipe_ref>
+                    <material_ref id="Mat_Cel_Land" />
+                </component>
+                <component type="VoxelRegionC">
+                    <param name="type" value="land" />
+                    <param name="coverage" value="0.30" />
+                </component>
+            </entity>
+
+            <!-- Rock/mountain patches (smaller scale) -->
+            <entity name="GlobeRocks" entity_id="GlobeRocksEntityId">
+                <component type="TransformC">
+                    <position x="0.0" y="0.0" z="0.0" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                    <scale x="1.002" y="1.002" z="1.002" /> <!-- Slightly higher layer -->
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="GlobeLandBumpsRecipe">
+                        <param name="base_radius" value="1.0" />
+                        <param name="subdiv" value="2" />
+                        <param name="patch_count" value="12" /> <!-- Fewer patches for rocks -->
+                        <param name="min_height" value="0.05" />
+                        <param name="max_height" value="0.08" />
+                        <param name="seed" value="-1" />
+                    </mesh_recipe_ref>
+                    <material_ref id="Mat_Cel_Rock" />
+                </component>
+                <component type="VoxelRegionC">
+                    <param name="type" value="rock" />
+                    <param name="coverage" value="0.05" />
+                </component>
+            </entity>
+
+            <!-- ==== ORBITAL AIRCRAFT GROUP 1 (high-speed outer orbit) ==================== -->
+            <entity name="Aircraft_Group1_A" entity_id="Aircraft_Group1_A_Id">
+                <component type="TransformC">
+                    <position x="1.8" y="0.3" z="0.0" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                    <scale x="0.6" y="0.6" z="0.6" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="LowPolyAircraftRecipe">
+                        <param name="length" value="0.25" />
+                        <param name="fuselage_segments" value="6" />
+                        <param name="wing_span" value="0.22" />
+                        <param name="tail_span" value="0.12" />
+                        <param name="flat_shading" value="true" />
+                    </mesh_recipe_ref>
+                    <material_ref id="Mat_Cel_Fuselage" />
+                </component>
+                <component type="OrbitalC">
+                    <param name="center_x" value="0.0" />
+                    <param name="center_y" value="0.0" />
+                    <param name="center_z" value="0.0" />
+                    <param name="radius" value="1.8" />
+                    <param name="speed" value="1.2" />
+                    <param name="axis_x" value="0.1" />
+                    <param name="axis_y" value="1.0" />
+                    <param name="axis_z" value="0.05" />
+                    <param name="phase_offset" value="0.0" />
+                </component>
+                <component type="ContrailC">
+                    <param name="length" value="0.4" />
+                    <param name="fade_time" value="2.0" />
+                    <param name="material_ref" value="Mat_Cel_Cloud" />
+                    <param name="cube_asset_ref" value="UnitCubeRecipe" />
+                </component>
+            </entity>
+
+            <entity name="Aircraft_Group1_B" entity_id="Aircraft_Group1_B_Id">
+                <component type="TransformC">
+                    <position x="1.8" y="0.3" z="0.0" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                    <scale x="0.55" y="0.55" z="0.55" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="LowPolyAircraftRecipe" />
+                    <material_ref id="Mat_Cel_Wings" />
+                </component>
+                <component type="OrbitalC">
+                    <param name="center_x" value="0.0" />
+                    <param name="center_y" value="0.0" />
+                    <param name="center_z" value="0.0" />
+                    <param name="radius" value="1.8" />
+                    <param name="speed" value="1.2" />
+                    <param name="axis_x" value="0.1" />
+                    <param name="axis_y" value="1.0" />
+                    <param name="axis_z" value="0.05" />
+                    <param name="phase_offset" value="0.33" />
+                </component>
+                <component type="ContrailC">
+                    <param name="length" value="0.35" />
+                    <param name="fade_time" value="1.8" />
+                    <param name="material_ref" value="Mat_Cel_Cloud" />
+                    <param name="cube_asset_ref" value="UnitCubeRecipe" />
+                </component>
+            </entity>
+
+            <entity name="Aircraft_Group1_C" entity_id="Aircraft_Group1_C_Id">
+                <component type="TransformC">
+                    <position x="1.8" y="0.3" z="0.0" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                    <scale x="0.5" y="0.5" z="0.5" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="LowPolyAircraftRecipe" />
+                    <material_ref id="Mat_Cel_Fuselage" />
+                </component>
+                <component type="OrbitalC">
+                    <param name="center_x" value="0.0" />
+                    <param name="center_y" value="0.0" />
+                    <param name="center_z" value="0.0" />
+                    <param name="radius" value="1.8" />
+                    <param name="speed" value="1.2" />
+                    <param name="axis_x" value="0.1" />
+                    <param name="axis_y" value="1.0" />
+                    <param name="axis_z" value="0.05" />
+                    <param name="phase_offset" value="0.66" />
+                </component>
+                <component type="ContrailC">
+                    <param name="length" value="0.3" />
+                    <param name="fade_time" value="1.5" />
+                    <param name="material_ref" value="Mat_Cel_Cloud" />
+                    <param name="cube_asset_ref" value="UnitCubeRecipe" />
+                </component>
+            </entity>
+
+            <!-- ==== ORBITAL AIRCRAFT GROUP 2 (mid-speed middle orbit) ===================== -->
+            <entity name="Aircraft_Group2_A" entity_id="Aircraft_Group2_A_Id">
+                <component type="TransformC">
+                    <position x="1.5" y="0.0" z="0.0" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                    <scale x="0.7" y="0.7" z="0.7" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="LowPolyAircraftRecipe" />
+                    <material_ref id="Mat_Cel_Wings" />
+                </component>
+                <component type="OrbitalC">
+                    <param name="center_x" value="0.0" />
+                    <param name="center_y" value="0.0" />
+                    <param name="center_z" value="0.0" />
+                    <param name="radius" value="1.5" />
+                    <param name="speed" value="0.8" />
+                    <param name="axis_x" value="0.05" />
+                    <param name="axis_y" value="1.0" />
+                    <param name="axis_z" value="0.2" />
+                    <param name="phase_offset" value="0.25" />
+                </component>
+                <component type="ContrailC">
+                    <param name="length" value="0.5" />
+                    <param name="fade_time" value="2.5" />
+                    <param name="material_ref" value="Mat_Cel_Cloud" />
+                    <param name="cube_asset_ref" value="UnitCubeRecipe" />
+                </component>
+            </entity>
+
+            <entity name="Aircraft_Group2_B" entity_id="Aircraft_Group2_B_Id">
+                <component type="TransformC">
+                    <position x="1.5" y="0.0" z="0.0" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                    <scale x="0.65" y="0.65" z="0.65" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="LowPolyAircraftRecipe" />
+                    <material_ref id="Mat_Cel_Fuselage" />
+                </component>
+                <component type="OrbitalC">
+                    <param name="center_x" value="0.0" />
+                    <param name="center_y" value="0.0" />
+                    <param name="center_z" value="0.0" />
+                    <param name="radius" value="1.5" />
+                    <param name="speed" value="0.8" />
+                    <param name="axis_x" value="0.05" />
+                    <param name="axis_y" value="1.0" />
+                    <param name="axis_z" value="0.2" />
+                    <param name="phase_offset" value="0.75" />
+                </component>
+                <component type="ContrailC">
+                    <param name="length" value="0.45" />
+                    <param name="fade_time" value="2.2" />
+                    <param name="material_ref" value="Mat_Cel_Cloud" />
+                    <param name="cube_asset_ref" value="UnitCubeRecipe" />
+                </component>
+            </entity>
+
+            <!-- ==== ORBITAL CLOUD GROUPS ============================================ -->
+            <!-- Sparse voxel cloud patches on various orbits -->
+            <entity name="CloudGroup_A1" entity_id="CloudGroup_A1_Id">
+                <component type="TransformC">
+                    <position x="1.3" y="0.4" z="0.2" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                    <scale x="0.15" y="0.1" z="0.15" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="UnitCubeRecipe" />
+                    <material_ref id="Mat_Cel_Cloud" />
+                </component>
+                <component type="OrbitalC">
+                    <param name="center_x" value="0.0" />
+                    <param name="center_y" value="0.0" />
+                    <param name="center_z" value="0.0" />
+                    <param name="radius" value="1.3" />
+                    <param name="speed" value="0.3" />
+                    <param name="axis_x" value="0.2" />
+                    <param name="axis_y" value="1.0" />
+                    <param name="axis_z" value="0.1" />
+                    <param name="phase_offset" value="0.1" />
+                </component>
+                <component type="VoxelCloudC">
+                    <param name="density" value="0.6" />
+                    <param name="drift_speed" value="0.02" />
+                </component>
+            </entity>
+
+            <entity name="CloudGroup_A2" entity_id="CloudGroup_A2_Id">
+                <component type="TransformC">
+                    <position x="1.3" y="0.4" z="0.2" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                    <scale x="0.12" y="0.08" z="0.12" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="UnitCubeRecipe" />
+                    <material_ref id="Mat_Cel_Cloud" />
+                </component>
+                <component type="OrbitalC">
+                    <param name="center_x" value="0.0" />
+                    <param name="center_y" value="0.0" />
+                    <param name="center_z" value="0.0" />
+                    <param name="radius" value="1.3" />
+                    <param name="speed" value="0.3" />
+                    <param name="axis_x" value="0.2" />
+                    <param name="axis_y" value="1.0" />
+                    <param name="axis_z" value="0.1" />
+                    <param name="phase_offset" value="0.4" />
+                </component>
+                <component type="VoxelCloudC">
+                    <param name="density" value="0.5" />
+                    <param name="drift_speed" value="0.015" />
+                </component>
+            </entity>
+
+            <entity name="CloudGroup_A3" entity_id="CloudGroup_A3_Id">
+                <component type="TransformC">
+                    <position x="1.3" y="0.4" z="0.2" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                    <scale x="0.18" y="0.12" z="0.18" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="UnitCubeRecipe" />
+                    <material_ref id="Mat_Cel_Cloud" />
+                </component>
+                <component type="OrbitalC">
+                    <param name="center_x" value="0.0" />
+                    <param name="center_y" value="0.0" />
+                    <param name="center_z" value="0.0" />
+                    <param name="radius" value="1.3" />
+                    <param name="speed" value="0.3" />
+                    <param name="axis_x" value="0.2" />
+                    <param name="axis_y" value="1.0" />
+                    <param name="axis_z" value="0.1" />
+                    <param name="phase_offset" value="0.7" />
+                </component>
+                <component type="VoxelCloudC">
+                    <param name="density" value="0.7" />
+                    <param name="drift_speed" value="0.025" />
+                </component>
+            </entity>
+
+            <entity name="CloudGroup_B1" entity_id="CloudGroup_B1_Id">
+                <component type="TransformC">
+                    <position x="1.6" y="-0.3" z="0.4" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                    <scale x="0.2" y="0.14" z="0.16" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="UnitCubeRecipe" />
+                    <material_ref id="Mat_Cel_Cloud" />
+                </component>
+                <component type="OrbitalC">
+                    <param name="center_x" value="0.0" />
+                    <param name="center_y" value="0.0" />
+                    <param name="center_z" value="0.0" />
+                    <param name="radius" value="1.6" />
+                    <param name="speed" value="0.45" />
+                    <param name="axis_x" value="0.15" />
+                    <param name="axis_y" value="1.0" />
+                    <param name="axis_z" value="-0.1" />
+                    <param name="phase_offset" value="0.2" />
+                </component>
+                <component type="VoxelCloudC">
+                    <param name="density" value="0.65" />
+                    <param name="drift_speed" value="0.018" />
+                </component>
+            </entity>
+
+            <entity name="CloudGroup_B2" entity_id="CloudGroup_B2_Id">
+                <component type="TransformC">
+                    <position x="1.6" y="-0.3" z="0.4" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                    <scale x="0.14" y="0.1" z="0.14" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="UnitCubeRecipe" />
+                    <material_ref id="Mat_Cel_Cloud" />
+                </component>
+                <component type="OrbitalC">
+                    <param name="center_x" value="0.0" />
+                    <param name="center_y" value="0.0" />
+                    <param name="center_z" value="0.0" />
+                    <param name="radius" value="1.6" />
+                    <param name="speed" value="0.45" />
+                    <param name="axis_x" value="0.15" />
+                    <param name="axis_y" value="1.0" />
+                    <param name="axis_z" value="-0.1" />
+                    <param name="phase_offset" value="0.6" />
+                </component>
+                <component type="VoxelCloudC">
+                    <param name="density" value="0.55" />
+                    <param name="drift_speed" value="0.012" />
+                </component>
+            </entity>
+
+            <!-- ==== CAMERA & LIGHTING ========================================== -->
+            <!-- Slightly off-center camera for dynamic perspective -->
+            <camera_config>
+                <position x="0.5" y="1.8" z="3.2" />
+                <look_at x="0.0" y="0.0" z="0.0" />
+                <fov_degrees>45</fov_degrees>
+                <near_plane>0.1</near_plane>
+                <far_plane>50.0</far_plane>
+                <!-- Optional: gentle camera sway for "floating" effect -->
+                <auto_orbit enabled="true" speed="0.08" radius="3.5" axis_x="0" axis_y="1" axis_z="0" />
+            </camera_config>
+
+            <!-- Cel-friendly lighting: strong directional + minimal ambient -->
+            <lighting_config>
+                <primary_light type="directional">
+                    <direction x="-0.6" y="-1.0" z="-0.4" />
+                    <color r="1.0" g="0.95" b="0.85" />
+                    <intensity>1.2</intensity>
+                    <cast_shadows>false</cast_shadows> <!-- Keep performance high -->
+                </primary_light>
+                <ambient_light>
+                    <color r="0.25" g="0.35" b="0.5" />
+                    <intensity>0.15</intensity>
+                </ambient_light>
+                <!-- Optional: secondary rim light for better shape definition -->
+                <rim_light type="directional">
+                    <direction x="0.8" y="0.3" z="0.5" />
+                    <color r="0.4" g="0.6" b="0.9" />
+                    <intensity>0.3</intensity>
+                </rim_light>
+            </lighting_config>
+
+            <!-- ==== RENDER ENVIRONMENT & PERFORMANCE ========================== -->
+            <render_environment>
+                <background_color r="0.08" g="0.12" b="0.18" a="1.0" />
+                <fog enabled="false" /> <!-- Minimal overhead for busy indicator -->
+                <post_processing enabled="false" /> <!-- Raw cel output -->
+                <vsync enabled="true" />
+            </render_environment>
+
+            <!-- ==== ANIMATION SYSTEM ============================================ -->
+            <!-- Global animation controller for orbital mechanics and effects -->
+            <animation_system>
+                <orbital_manager>
+                    <!-- Manages all OrbitalC components -->
+                    <global_time_scale>1.0</global_time_scale>
+                    <pause_on_background>true</pause_on_background>
+                </orbital_manager>
+                <contrail_manager>
+                    <!-- Manages all ContrailC components -->
+                    <max_contrail_segments>8</max_contrail_segments>
+                    <update_frequency_hz>30</update_frequency_hz>
+                </contrail_manager>
+                <cloud_drift_manager>
+                    <!-- Manages VoxelCloudC drift effects -->
+                    <global_wind_factor>1.0</global_wind_factor>
+                    <turbulence_scale>0.1</turbulence_scale>
+                </cloud_drift_manager>
+            </animation_system>
         </scene_config>
 
         <!--

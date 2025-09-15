@@ -1,0 +1,959 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  unified-flight-vehicle.xsd
+  Full XSD for the "unified-flight-vehicle" XML format (SI units, kebab-case IDs)
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified"
+           version="1.0">
+
+  <!-- ========= Common simple types ========= -->
+
+  <!-- kebab-case identifier -->
+  <xs:simpleType name="kebabIdType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[a-z0-9]+(?:-[a-z0-9]+)*"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- version pattern: e.g., 1.0 -->
+  <xs:simpleType name="versionString">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9]+\.[0-9]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- whitespace-separated numeric vectors -->
+  <xs:simpleType name="vector2Type">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\s*[-+0-9.eE]+\s+[-+0-9.eE]+\s*"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="vector3Type">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\s*[-+0-9.eE]+\s+[-+0-9.eE]+\s+[-+0-9.eE]+\s*"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- 3×3 matrix as three rows (each a vector3) -->
+  <xs:complexType name="matrix3Type">
+    <xs:sequence>
+      <xs:element name="row" type="vector3Type" minOccurs="3" maxOccurs="3"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ========= Enumerations ========= -->
+
+  <xs:simpleType name="vehicleTypeEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="multirotor"/>
+      <xs:enumeration value="helicopter"/>
+      <xs:enumeration value="fixed-wing"/>
+      <xs:enumeration value="vtol-tiltrotor"/>
+      <xs:enumeration value="vtol-tiltwing"/>
+      <xs:enumeration value="vtol-lift-cruise"/>
+      <xs:enumeration value="ornithopter"/>
+      <xs:enumeration value="airship"/>
+      <xs:enumeration value="rocket"/>
+      <xs:enumeration value="spaceplane"/>
+      <xs:enumeration value="glider"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="propulsionTypeEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="electric-motor"/>
+      <xs:enumeration value="piston-prop"/>
+      <xs:enumeration value="turboprop"/>
+      <xs:enumeration value="turbofan"/>
+      <xs:enumeration value="turbojet"/>
+      <xs:enumeration value="ramjet"/>
+      <xs:enumeration value="scramjet"/>
+      <xs:enumeration value="solid-rocket"/>
+      <xs:enumeration value="liquid-rocket"/>
+      <xs:enumeration value="hybrid-rocket"/>
+      <xs:enumeration value="propeller"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="effectorTypeEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="propeller"/>
+      <xs:enumeration value="rotor"/>
+      <xs:enumeration value="ducted-fan"/>
+      <xs:enumeration value="control-surface"/>
+      <xs:enumeration value="thrust-vector"/>
+      <xs:enumeration value="reaction-control-jet"/>
+      <xs:enumeration value="throttle"/>
+      <xs:enumeration value="gimbal"/>
+      <xs:enumeration value="flap"/>
+      <xs:enumeration value="slat"/>
+      <xs:enumeration value="spoiler"/>
+      <xs:enumeration value="airbrake"/>
+      <xs:enumeration value="speedbrake"/>
+      <xs:enumeration value="thrust-reverser"/>
+      <xs:enumeration value="collective"/>
+      <xs:enumeration value="swashplate"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="actuatorTypeEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="servo"/>
+      <xs:enumeration value="electric-linear"/>
+      <xs:enumeration value="hydraulic"/>
+      <xs:enumeration value="pneumatic"/>
+      <xs:enumeration value="mechanical-linkage"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="gearTypeEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="nose-wheel"/>
+      <xs:enumeration value="tail-wheel"/>
+      <xs:enumeration value="skid"/>
+      <xs:enumeration value="skate"/>
+      <xs:enumeration value="float"/>
+      <xs:enumeration value="skis"/>
+      <xs:enumeration value="retractable"/>
+      <xs:enumeration value="fixed"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="rotationDirectionEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="cw"/>
+      <xs:enumeration value="ccw"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="orientationEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="horizontal"/>
+      <xs:enumeration value="vertical"/>
+      <xs:enumeration value="forward"/>
+      <xs:enumeration value="aft"/>
+      <xs:enumeration value="left"/>
+      <xs:enumeration value="right"/>
+      <xs:enumeration value="custom-axis"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="sensorCategoryEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="accel-gyro"/>
+      <xs:enumeration value="magnetic-field"/>
+      <xs:enumeration value="gnss-time"/>
+      <xs:enumeration value="pressure-baro"/>
+      <xs:enumeration value="airspeed-diff-pressure"/>
+      <xs:enumeration value="ranging-lidar"/>
+      <xs:enumeration value="ranging-sonar"/>
+      <xs:enumeration value="ranging-radar"/>
+      <xs:enumeration value="ranging-tof"/>
+      <xs:enumeration value="imaging-rgb"/>
+      <xs:enumeration value="imaging-optical-flow"/>
+      <xs:enumeration value="imaging-event"/>
+      <xs:enumeration value="thermal-ir"/>
+      <xs:enumeration value="spectral-multispectral"/>
+      <xs:enumeration value="spectral-hyperspectral"/>
+      <xs:enumeration value="spectral-polarization"/>
+      <xs:enumeration value="rf-adsb-uwb"/>
+      <xs:enumeration value="acoustic"/>
+      <xs:enumeration value="chemical-gas"/>
+      <xs:enumeration value="particulate"/>
+      <xs:enumeration value="temp-humidity"/>
+      <xs:enumeration value="radiation"/>
+      <xs:enumeration value="structural-vibration-strain"/>
+      <xs:enumeration value="electrical-telemetry"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- ========= Reusable complex types ========= -->
+
+  <xs:complexType name="referenceGeometryType">
+    <xs:sequence>
+      <xs:element name="s-ref-m2" type="xs:double" minOccurs="0"/>
+      <xs:element name="b-ref-m" type="xs:double" minOccurs="0"/>
+      <xs:element name="c-ref-m" type="xs:double" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="hardpointType">
+    <xs:sequence>
+      <xs:element name="location-m" type="vector3Type"/>
+      <xs:element name="orientation-axis" type="vector3Type" minOccurs="0"/>
+      <xs:element name="description" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="hardpointsListType">
+    <xs:sequence>
+      <xs:element name="hardpoint" type="hardpointType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- 1D table: one input label + (x,y) pairs -->
+  <xs:complexType name="table1dType">
+    <xs:sequence>
+      <xs:element name="inputs">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="input" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="table">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="pair" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:attribute name="x" type="xs:double" use="required"/>
+                <xs:attribute name="y" type="xs:double" use="required"/>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- 2D table: two input labels + points (u,v,value) -->
+  <xs:complexType name="table2dType">
+    <xs:sequence>
+      <xs:element name="inputs">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="input" type="xs:string" minOccurs="2" maxOccurs="2"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="table">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="point" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:attribute name="u" type="xs:double" use="required"/>
+                <xs:attribute name="v" type="xs:double" use="required"/>
+                <xs:attribute name="value" type="xs:double" use="required"/>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ========= Components ========= -->
+
+  <!-- Structures -->
+  <xs:complexType name="structureType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="material" type="xs:string" minOccurs="0"/>
+      <xs:element name="reference-geometry" type="referenceGeometryType" minOccurs="0"/>
+      <xs:element name="hardpoints" type="hardpointsListType" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="structuresType">
+    <xs:sequence>
+      <xs:element name="structure" type="structureType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Energy -->
+  <xs:complexType name="batteryType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="type" fixed="battery"/>
+      <xs:element name="nominal-voltage-v" type="xs:double"/>
+      <xs:element name="capacity-ah" type="xs:double"/>
+      <xs:element name="mass-kg" type="xs:double" minOccurs="0"/>
+      <xs:element name="max-discharge-c" type="xs:double" minOccurs="0"/>
+      <xs:element name="connector" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="fuelTankType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="type" fixed="fuel-tank"/>
+      <xs:element name="fuel" type="xs:string"/>
+      <xs:element name="volume-l" type="xs:double" minOccurs="0"/>
+      <xs:element name="capacity-kg" type="xs:double" minOccurs="0"/>
+      <xs:element name="mass-empty-kg" type="xs:double" minOccurs="0"/>
+      <xs:element name="max-pressure-kpa" type="xs:double" minOccurs="0"/>
+      <xs:element name="ullage-fraction" type="xs:double" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="oxidizerTankType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="type" fixed="oxidizer-tank"/>
+      <xs:element name="propellant" type="xs:string"/>
+      <xs:element name="capacity-kg" type="xs:double" minOccurs="0"/>
+      <xs:element name="mass-empty-kg" type="xs:double" minOccurs="0"/>
+      <xs:element name="max-pressure-kpa" type="xs:double" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="energyType">
+    <xs:sequence>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="battery" type="batteryType"/>
+        <xs:element name="fuel-tank" type="fuelTankType"/>
+        <xs:element name="oxidizer-tank" type="oxidizerTankType"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Propulsion -->
+  <xs:complexType name="electricMotorType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="type" fixed="electric-motor"/>
+      <xs:element name="kv" type="xs:double" minOccurs="0"/>
+      <xs:element name="max-current-a" type="xs:double" minOccurs="0"/>
+      <xs:element name="voltage-range-v" type="vector2Type" minOccurs="0"/>
+      <xs:element name="torque-curve" type="table1dType" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="propellerType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="type" fixed="propeller"/>
+      <xs:element name="diameter-m" type="xs:double"/>
+      <xs:element name="blades" type="xs:int"/>
+      <xs:element name="pitch-in" type="xs:double" minOccurs="0"/>
+      <xs:element name="thrust-curve" type="table2dType" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="turbofanType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="type" fixed="turbofan"/>
+      <xs:element name="max-static-thrust-n" type="xs:double"/>
+      <xs:element name="tsfc-kg-per-nh" type="xs:double" minOccurs="0"/>
+      <xs:element name="bypass-ratio" type="xs:double" minOccurs="0"/>
+      <xs:element name="max-mach" type="xs:double" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="solidRocketType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="type" fixed="solid-rocket"/>
+      <xs:element name="thrust-n-curve" type="table1dType"/>
+      <xs:element name="propellant-mass-kg" type="xs:double"/>
+      <xs:element name="grain-geometry" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="liquidRocketType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="type" fixed="liquid-rocket"/>
+      <xs:element name="max-thrust-n" type="xs:double"/>
+      <xs:element name="isp-sea-s" type="xs:double" minOccurs="0"/>
+      <xs:element name="isp-vac-s" type="xs:double"/>
+      <xs:element name="mixture-ratio-ox-fuel" type="xs:double" minOccurs="0"/>
+      <xs:element name="gimbal-deg" type="xs:double" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="propulsionType">
+    <xs:sequence>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="electric-motor" type="electricMotorType"/>
+        <xs:element name="propeller" type="propellerType"/>
+        <xs:element name="turbofan" type="turbofanType"/>
+        <xs:element name="solid-rocket" type="solidRocketType"/>
+        <xs:element name="liquid-rocket" type="liquidRocketType"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Rotors & Nozzles -->
+  <xs:complexType name="rotorUnitType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <!-- const "rotor" to mirror JSON const -->
+      <xs:element name="effector-type">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="rotor"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="motor-ref" type="kebabIdType" minOccurs="0"/>
+      <xs:element name="prop-ref" type="kebabIdType" minOccurs="0"/>
+      <xs:element name="axis-body" type="vector3Type"/>
+      <xs:element name="rotation-direction" type="rotationDirectionEnum" minOccurs="0"/>
+      <xs:element name="static-thrust-n" type="xs:double" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="rcsNozzleType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <!-- const "reaction-control-jet" -->
+      <xs:element name="effector-type">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="reaction-control-jet"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="max-thrust-n" type="xs:double"/>
+      <xs:element name="isp-s" type="xs:double" minOccurs="0"/>
+      <xs:element name="axis-body" type="vector3Type"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="rotorsNozzlesType">
+    <xs:sequence>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="rotor-unit" type="rotorUnitType"/>
+        <xs:element name="rcs-nozzle" type="rcsNozzleType"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Aero surfaces -->
+  <xs:complexType name="controlSurfaceType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <!-- const "control-surface" -->
+      <xs:element name="effector-type">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="control-surface"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="area-m2" type="xs:double"/>
+      <xs:element name="max-deflection-deg" type="xs:double"/>
+      <xs:element name="rate-deg-per-s" type="xs:double" minOccurs="0"/>
+      <xs:element name="d-cl-per-deg" type="xs:double" minOccurs="0"/>
+      <xs:element name="d-cm-per-deg" type="xs:double" minOccurs="0"/>
+      <xs:element name="d-cn-per-deg" type="xs:double" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="aeroSurfacesType">
+    <xs:sequence>
+      <xs:element name="control-surface" type="controlSurfaceType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Actuators -->
+  <xs:complexType name="servoActuatorType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="actuator-type">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="servo"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="max-torque-nm" type="xs:double" minOccurs="0"/>
+      <xs:element name="max-speed-deg-per-s" type="xs:double" minOccurs="0"/>
+      <xs:element name="travel-deg" type="xs:double" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="hydraulicActuatorType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="actuator-type">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="hydraulic"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="max-force-n" type="xs:double"/>
+      <xs:element name="stroke-m" type="xs:double"/>
+      <xs:element name="max-speed-m-per-s" type="xs:double" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="genericActuatorType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="actuator-type" type="actuatorTypeEnum"/>
+      <!-- extensible -->
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="actuatorsType">
+    <xs:sequence>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="servo" type="servoActuatorType"/>
+        <xs:element name="hydraulic" type="hydraulicActuatorType"/>
+        <xs:element name="generic-actuator" type="genericActuatorType"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Avionics -->
+  <xs:complexType name="avionicsType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="cpu" type="xs:string" minOccurs="0"/>
+      <xs:element name="firmware" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="item" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="uart-ports" type="xs:int" minOccurs="0"/>
+      <xs:element name="redundancy" type="xs:string" minOccurs="0"/>
+      <xs:element name="standards" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="item" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <!-- allow extra vendor fields -->
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="avionicsBankType">
+    <xs:sequence>
+      <xs:element name="avionics" type="avionicsType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Sensors -->
+  <xs:complexType name="sensorType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="category" type="sensorCategoryEnum"/>
+      <xs:element name="constellations" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="item" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <!-- allow extra fields -->
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="sensorsType">
+    <xs:sequence>
+      <xs:element name="sensor" type="sensorType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Landing gear -->
+  <xs:complexType name="landingGearItemType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="gear-type" type="gearTypeEnum" maxOccurs="unbounded"/>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="landingGearType">
+    <xs:sequence>
+      <xs:element name="landing-gear" type="landingGearItemType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Recovery & safety -->
+  <xs:complexType name="recoveryItemType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="canopy-area-m2" type="xs:double" minOccurs="0"/>
+      <xs:element name="deploy-speed-max-mps" type="xs:double" minOccurs="0"/>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="recoverySafetyType">
+    <xs:sequence>
+      <xs:element name="recovery-item" type="recoveryItemType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Payloads -->
+  <xs:complexType name="payloadItemType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="mass-kg" type="xs:double" minOccurs="0"/>
+      <xs:element name="power-w" type="xs:double" minOccurs="0"/>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="payloadsType">
+    <xs:sequence>
+      <xs:element name="payload" type="payloadItemType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Components container -->
+  <xs:complexType name="componentsType">
+    <xs:sequence>
+      <xs:element name="structures" type="structuresType"/>
+      <xs:element name="energy" type="energyType"/>
+      <xs:element name="propulsion" type="propulsionType"/>
+      <xs:element name="rotors-and-nozzles" type="rotorsNozzlesType"/>
+      <xs:element name="aero-surfaces" type="aeroSurfacesType"/>
+      <xs:element name="actuators" type="actuatorsType"/>
+      <xs:element name="avionics" type="avionicsBankType"/>
+      <xs:element name="sensors" type="sensorsType"/>
+      <xs:element name="landing-gear" type="landingGearType"/>
+      <xs:element name="recovery-and-safety" type="recoverySafetyType"/>
+      <xs:element name="payloads" type="payloadsType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ========= Vehicle substructures ========= -->
+
+  <xs:complexType name="massPropertiesType">
+    <xs:sequence>
+      <xs:element name="cg-location-m" type="vector3Type"/>
+      <xs:element name="inertia-tensor-kg-m2" type="matrix3Type"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="performanceEnvelopeType">
+    <xs:sequence>
+      <xs:element name="vne-ms" type="xs:double" minOccurs="0"/>
+      <xs:element name="mach-max" type="xs:double" minOccurs="0"/>
+      <xs:element name="service-ceiling-m" type="xs:double" minOccurs="0"/>
+      <xs:element name="max-wind-mps" type="xs:double" minOccurs="0"/>
+      <xs:element name="max-q-pa" type="xs:double" minOccurs="0"/>
+      <xs:element name="max-dynamic-pressure-event-s" type="xs:double" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="dragPolarType">
+    <xs:sequence>
+      <xs:element name="cd0" type="xs:double"/>
+      <xs:element name="k" type="xs:double"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="liftCurveType">
+    <xs:sequence>
+      <xs:element name="cl-alpha-per-rad" type="xs:double"/>
+      <xs:element name="cl0" type="xs:double"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="effectorCommandType">
+    <xs:attribute name="target" type="kebabIdType" use="required"/>
+    <xs:attribute name="type" type="xs:string" use="required"/>
+    <xs:attribute name="scale" type="xs:double" use="required"/>
+    <xs:attribute name="offset" type="xs:double" use="optional"/>
+    <xs:attribute name="min" type="xs:double" use="optional"/>
+    <xs:attribute name="max" type="xs:double" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="controlMapItemType">
+    <xs:sequence>
+      <xs:element name="effector" type="effectorCommandType" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="input" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="controlMapType">
+    <xs:sequence>
+      <xs:element name="map" type="controlMapItemType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="vehicleEnergyMountType">
+    <xs:sequence>
+      <xs:element name="location-m" type="vector3Type" minOccurs="0"/>
+    </xs:sequence>
+    <!-- Prefer "mount" (matches JSON). "id" accepted for leniency. -->
+    <xs:attribute name="mount" type="kebabIdType" use="optional"/>
+    <xs:attribute name="id" type="kebabIdType" use="optional"/>
+    <xs:attribute name="ref" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="vehicleEnergyType">
+    <xs:sequence>
+      <xs:element name="mount" type="vehicleEnergyMountType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="propulsionGroupUnitType">
+    <xs:sequence>
+      <xs:element name="rotor-ref" type="kebabIdType" minOccurs="0"/>
+      <xs:element name="propulsion-ref" type="kebabIdType" minOccurs="0"/>
+      <xs:element name="rotation-direction" type="rotationDirectionEnum" minOccurs="0"/>
+      <xs:element name="location-m" type="vector3Type" minOccurs="0"/>
+      <xs:element name="gimbal-deg" type="vector2Type" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="propulsionGroupType">
+    <xs:sequence>
+      <xs:element name="unit" type="propulsionGroupUnitType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="surfaceMountType">
+    <xs:sequence>
+      <xs:element name="surface-ref" type="kebabIdType"/>
+      <xs:element name="actuator-ref" type="kebabIdType" minOccurs="0"/>
+      <xs:element name="location-m" type="vector3Type"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="surfacesType">
+    <xs:sequence>
+      <xs:element name="surface" type="surfaceMountType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="engineMountType">
+    <xs:sequence>
+      <xs:element name="propulsion-ref" type="kebabIdType"/>
+      <xs:element name="location-m" type="vector3Type"/>
+      <xs:element name="gimbal-deg" type="vector2Type" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="enginesType">
+    <xs:sequence>
+      <xs:element name="engine" type="engineMountType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="vehicleAvionicsRefsType">
+    <xs:sequence>
+      <xs:element name="fc-ref" type="kebabIdType" minOccurs="0"/>
+      <xs:element name="fcc-ref" type="kebabIdType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="vehicleSensorsRefsType">
+    <xs:sequence>
+      <xs:element name="sensor-ref" type="kebabIdType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Rocket/spaceplane stages -->
+  <xs:complexType name="rcsThrusterType">
+    <xs:sequence>
+      <xs:element name="nozzle-ref" type="kebabIdType"/>
+      <xs:element name="location-m" type="vector3Type" minOccurs="0"/>
+      <xs:element name="axis-body" type="vector3Type" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="rcsArrayType">
+    <xs:sequence>
+      <xs:element name="rcs" type="rcsThrusterType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- flexible propellant map (name, kg) -->
+  <xs:complexType name="propellantsKgType">
+    <xs:sequence>
+      <xs:element name="propellant" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="name" type="kebabIdType" use="required"/>
+          <xs:attribute name="kg" type="xs:double" use="required"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="separationEventType">
+    <xs:sequence>
+      <xs:element name="type" type="xs:string"/>
+      <xs:element name="time-s" type="xs:double" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="stageEngineType">
+    <xs:sequence>
+      <xs:element name="propulsion-ref" type="kebabIdType"/>
+      <xs:element name="gimbal-deg" type="vector2Type" minOccurs="0"/>
+      <xs:element name="location-m" type="vector3Type" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="stageEnginesType">
+    <xs:sequence>
+      <xs:element name="engine" type="stageEngineType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="stagePayloadMountType">
+    <xs:sequence>
+      <xs:element name="location-m" type="vector3Type" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="ref" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="stagePayloadsType">
+    <xs:sequence>
+      <xs:element name="payload" type="stagePayloadMountType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="stageRecoveryType">
+    <xs:sequence>
+      <xs:element name="parachute-ref" type="kebabIdType" minOccurs="0"/>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="vehicleStageType">
+    <xs:sequence>
+      <xs:element name="dry-mass-kg" type="xs:double"/>
+      <xs:element name="propellants-kg" type="propellantsKgType" minOccurs="0"/>
+      <xs:element name="engines" type="stageEnginesType" minOccurs="0"/>
+      <xs:element name="rcs-array" type="rcsArrayType" minOccurs="0"/>
+      <xs:element name="payloads" type="stagePayloadsType" minOccurs="0"/>
+      <xs:element name="recovery" type="stageRecoveryType" minOccurs="0"/>
+      <xs:element name="separation-event" type="separationEventType" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="vehicleStagesType">
+    <xs:sequence>
+      <xs:element name="stage" type="vehicleStageType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="vehicleRecoveryType">
+    <xs:sequence>
+      <xs:element name="parachute-ref" type="kebabIdType" minOccurs="0"/>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="guidanceType">
+    <xs:sequence>
+      <xs:element name="avionics-ref" type="kebabIdType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Full vehicle -->
+  <xs:complexType name="vehicleTypeFull">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="vehicle-type" type="vehicleTypeEnum"/>
+      <xs:element name="subtype" type="xs:string" minOccurs="0"/>
+      <xs:element name="mass-kg" type="xs:double"/>
+      <xs:element name="mass-properties" type="massPropertiesType" minOccurs="0"/>
+      <xs:element name="structure-ref" type="kebabIdType" minOccurs="0"/>
+      <xs:element name="reference-geometry" type="referenceGeometryType" minOccurs="0"/>
+      <xs:element name="energy" type="vehicleEnergyType" minOccurs="0"/>
+      <xs:element name="propulsion-group" type="propulsionGroupType" minOccurs="0"/>
+      <xs:element name="surfaces" type="surfacesType" minOccurs="0"/>
+      <xs:element name="engines" type="enginesType" minOccurs="0"/>
+      <xs:element name="landing-gear-ref" type="kebabIdType" minOccurs="0"/>
+      <xs:element name="avionics" type="vehicleAvionicsRefsType" minOccurs="0"/>
+      <xs:element name="sensors" type="vehicleSensorsRefsType" minOccurs="0"/>
+      <xs:element name="stages" type="vehicleStagesType" minOccurs="0"/>
+      <xs:element name="guidance" type="guidanceType" minOccurs="0"/>
+      <xs:element name="recovery" type="vehicleRecoveryType" minOccurs="0"/>
+      <xs:element name="performance-envelope" type="performanceEnvelopeType" minOccurs="0"/>
+      <xs:element name="drag-polar" type="dragPolarType" minOccurs="0"/>
+      <xs:element name="lift-curve" type="liftCurveType" minOccurs="0"/>
+      <xs:element name="control-map" type="controlMapType" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="kebabIdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="vehiclesType">
+    <xs:sequence>
+      <!-- Generic vehicle entries. Each has a kebab-case id attribute. -->
+      <xs:element name="vehicle" type="vehicleTypeFull" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ========= Conventions & Enums (as data blocks) ========= -->
+
+  <xs:complexType name="framesType">
+    <xs:sequence>
+      <xs:element name="body" type="xs:string"/>
+      <xs:element name="world" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="conventionsType">
+    <xs:sequence>
+      <xs:element name="frames" type="framesType"/>
+      <xs:element name="angles" type="xs:string"/>
+      <xs:element name="vectors" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="enumsType">
+    <xs:sequence>
+      <xs:element name="vehicle-type" type="vehicleTypeEnum" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element name="propulsion-type" type="propulsionTypeEnum" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element name="effector-type" type="effectorTypeEnum" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element name="actuator-type" type="actuatorTypeEnum" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element name="gear-type" type="gearTypeEnum" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element name="rotation-direction" type="rotationDirectionEnum" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element name="orientation" type="orientationEnum" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ========= Root element ========= -->
+
+  <xs:element name="unified-flight-vehicle">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="conventions" type="conventionsType" minOccurs="0"/>
+        <xs:element name="enums" type="enumsType" minOccurs="0"/>
+        <xs:element name="components" type="componentsType" minOccurs="0"/>
+        <xs:element name="vehicles" type="vehiclesType" minOccurs="1"/>
+      </xs:sequence>
+      <xs:attribute name="schema-version" type="versionString" use="required"/>
+      <xs:attribute name="units" use="required" fixed="si"/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>
