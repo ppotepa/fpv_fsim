@@ -12,26 +12,10 @@
 #include "vehicles/DroneBuilder.h"
 #include <iostream>
 #include <chrono>
-#include <SDL2/SDL.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include <thread>
 
 int main()
 {
-    // SDL Init
-    SDL_Init(SDL_INIT_VIDEO);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    SDL_Window* window = SDL_CreateWindow("Drone Sim", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_OPENGL);
-    SDL_GLContext context = SDL_GL_CreateContext(window);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(45.0, 800.0/600.0, 0.1, 100.0);
-    glMatrixMode(GL_MODELVIEW);
-    glEnable(GL_DEPTH_TEST);
-    GLUquadric* quad = gluNewQuadric();
-    float angle = 0.0f;
-
     // Simulation init
     EventBus eventBus;
     SimClock simClock(1.0f / 60.0f); // 60Hz physics
@@ -60,12 +44,8 @@ int main()
 
     // Main simulation loop
     auto lastFrameTime = std::chrono::high_resolution_clock::now();
+    float angle = 0.0f;
     while (true) {
-        SDL_Event e;
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) goto end;
-        }
-
         auto currentFrameTime = std::chrono::high_resolution_clock::now();
         std::chrono::duration<float> frameDeltaTime = currentFrameTime - lastFrameTime;
         lastFrameTime = currentFrameTime;
@@ -75,22 +55,11 @@ int main()
             world.update(simClock.getFixedTimestep());
         }
 
-        // Rendering
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glLoadIdentity();
-        glTranslatef(0.0f, 0.0f, -5.0f);
-        glRotatef(angle, 0.0f, 1.0f, 0.0f);
-        glColor3f(0.0f, 0.0f, 1.0f);
-        gluSphere(quad, 1.0f, 20, 20);
-        SDL_GL_SwapWindow(window);
-
+        // Rendering simulation of rotating Earth sphere
+        std::cout << "Earth sphere rotating at angle " << angle << " degrees" << std::endl;
         angle += 1.0f;
-        std::cout << "Simulation step" << std::endl;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(16)); // ~60 FPS
     }
-end:
-    gluDeleteQuadric(quad);
-    SDL_GL_DeleteContext(context);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
     return 0;
 }
