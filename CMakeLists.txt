@@ -11,8 +11,18 @@ include_directories(src)
 set(SOURCES
     src/main.cpp
     src/core/EventBus.cpp
+    src/core/Entity.cpp
     src/core/World.cpp
     src/core/SimClock.cpp
+    src/physics/ExponentialAirDensityModel.cpp
+    src/physics/PerlinWindModel.cpp
+    src/physics/ImpulseCollisionResolver.cpp
+    src/vehicles/DroneBuilder.cpp
+    src/utils/PugiXmlParser.cpp
+    src/systems/PhysicsSystem.cpp
+    src/systems/InputSystem.cpp
+    src/systems/VehicleControlSystem.cpp
+    src/platform/WinInputDevice.cpp
     # Add more source files as implemented
 )
 

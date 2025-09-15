@@ -107,6 +107,11 @@
           <Method name="getComponent" returnType="" params="" />
         </Methods>
       </File>
+      <File path="src/core/Entity.cpp">
+        <Description>Implementation of Entity class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
       <File path="src/core/ISystem.h">
         <Description>Base interface for ECS systems.</Description>
         <Constructors />
@@ -150,14 +155,165 @@
     <Folder name="components">
     </Folder>
     <Folder name="systems">
+      <File path="src/systems/PhysicsSystem.h">
+        <Description>ECS system responsible for physics simulation updates.</Description>
+        <Constructors>
+          <Constructor name="PhysicsSystem" params="EventBus&amp; eventBus, IAirDensityModel&amp; airDensityModel, IWindModel&amp; windModel, ICollisionResolver&amp; collisionResolver" />
+        </Constructors>
+        <Methods />
+      </File>
+      <File path="src/systems/PhysicsSystem.cpp">
+        <Description>Implementation of PhysicsSystem class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/systems/InputSystem.h">
+        <Description>ECS system handling user input and translating to simulation events.</Description>
+        <Constructors>
+          <Constructor name="InputSystem" params="EventBus&amp; eventBus, IInputDevice&amp; inputDevice" />
+        </Constructors>
+        <Methods />
+      </File>
+      <File path="src/systems/InputSystem.cpp">
+        <Description>Implementation of InputSystem class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/systems/VehicleControlSystem.h">
+        <Description>ECS system managing vehicle control logic and responses.</Description>
+        <Constructors>
+          <Constructor name="VehicleControlSystem" params="EventBus&amp; eventBus" />
+        </Constructors>
+        <Methods />
+      </File>
+      <File path="src/systems/VehicleControlSystem.cpp">
+        <Description>Implementation of VehicleControlSystem class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
     </Folder>
     <Folder name="physics">
+      <File path="src/physics/IAirDensityModel.h">
+        <Description>Interface for air density models used in physics calculations.</Description>
+        <Constructors />
+        <Methods>
+          <Method name="getDensity" returnType="float" params="float altitude" />
+        </Methods>
+      </File>
+      <File path="src/physics/ExponentialAirDensityModel.h">
+        <Description>Concrete implementation of IAirDensityModel using exponential decay formula.</Description>
+        <Constructors>
+          <Constructor name="ExponentialAirDensityModel" params="float seaLevelDensity, float scaleHeight" />
+        </Constructors>
+        <Methods />
+      </File>
+      <File path="src/physics/ExponentialAirDensityModel.cpp">
+        <Description>Implementation of ExponentialAirDensityModel class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/physics/IWindModel.h">
+        <Description>Interface for wind models used in physics simulations.</Description>
+        <Constructors />
+        <Methods>
+          <Method name="getWindVector" returnType="Vector3" params="const Vector3&amp; position" />
+        </Methods>
+      </File>
+      <File path="src/physics/PerlinWindModel.h">
+        <Description>Concrete implementation of IWindModel using Perlin noise for wind simulation.</Description>
+        <Constructors>
+          <Constructor name="PerlinWindModel" params="float baseSpeed, float turbulenceScale, float heightScale, int seed" />
+        </Constructors>
+        <Methods />
+      </File>
+      <File path="src/physics/PerlinWindModel.cpp">
+        <Description>Implementation of PerlinWindModel class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/physics/ICollisionResolver.h">
+        <Description>Interface for collision resolution strategies in physics.</Description>
+        <Constructors />
+        <Methods>
+          <Method name="resolveCollision" returnType="void" params="Entity&amp; entityA, Entity&amp; entityB, const CollisionEvent&amp; event" />
+        </Methods>
+      </File>
+      <File path="src/physics/ImpulseCollisionResolver.h">
+        <Description>Concrete implementation of ICollisionResolver using impulse-based collision response.</Description>
+        <Constructors>
+          <Constructor name="ImpulseCollisionResolver" params="float restitution, float friction" />
+        </Constructors>
+        <Methods />
+      </File>
+      <File path="src/physics/ImpulseCollisionResolver.cpp">
+        <Description>Implementation of ImpulseCollisionResolver class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
     </Folder>
     <Folder name="vehicles">
+      <File path="src/vehicles/IVehicleBuilder.h">
+        <Description>Interface for vehicle builders that construct entities from configuration files.</Description>
+        <Constructors />
+        <Methods>
+          <Method name="build" returnType="std::unique_ptr&lt;Entity&gt;" params="const std::string&amp; configPath, EventBus&amp; eventBus" />
+        </Methods>
+      </File>
+      <File path="src/vehicles/DroneBuilder.h">
+        <Description>Concrete implementation of IVehicleBuilder for creating drone entities.</Description>
+        <Constructors>
+          <Constructor name="DroneBuilder" params="IXmlParser&amp; xmlParser" />
+        </Constructors>
+        <Methods />
+      </File>
+      <File path="src/vehicles/DroneBuilder.cpp">
+        <Description>Implementation of DroneBuilder class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
     </Folder>
     <Folder name="utils">
+      <File path="src/utils/IXmlParser.h">
+        <Description>Interface for XML parsing utilities.</Description>
+        <Constructors />
+        <Methods>
+          <Method name="parse" returnType="std::unique_ptr&lt;pugi::xml_document&gt;" params="const std::string&amp; filePath" />
+        </Methods>
+      </File>
+      <File path="src/utils/PugiXmlParser.h">
+        <Description>Concrete implementation of IXmlParser using pugixml library.</Description>
+        <Constructors>
+          <Constructor name="PugiXmlParser" params="" />
+        </Constructors>
+        <Methods />
+      </File>
+      <File path="src/utils/PugiXmlParser.cpp">
+        <Description>Implementation of PugiXmlParser class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
     </Folder>
     <Folder name="platform">
+      <File path="src/platform/IInputDevice.h">
+        <Description>Interface for platform-specific input devices.</Description>
+        <Constructors />
+        <Methods>
+          <Method name="isKeyPressed" returnType="bool" params="int keyCode" />
+          <Method name="getMousePosition" returnType="std::pair&lt;int, int&gt;" params="" />
+        </Methods>
+      </File>
+      <File path="src/platform/WinInputDevice.h">
+        <Description>Concrete implementation of IInputDevice for Windows platform.</Description>
+        <Constructors>
+          <Constructor name="WinInputDevice" params="" />
+        </Constructors>
+        <Methods />
+      </File>
+      <File path="src/platform/WinInputDevice.cpp">
+        <Description>Implementation of WinInputDevice class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
     </Folder>
   </Folder>
   <Folder name="packages">
