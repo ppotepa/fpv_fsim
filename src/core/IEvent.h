@@ -5,6 +5,10 @@ enum class EventType
 {
     BatteryLow,
     Collision,
+    ConsoleToggle,
+    ConsoleVisibilityChanged,
+    NoPackagesFound,
+    DefaultWorldGenerated,
     // Add more as needed
 };
 

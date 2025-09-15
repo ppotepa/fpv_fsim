@@ -1,25 +1,6 @@
 <ProjectMap>
   <File path="CMakeLists.txt">
-    <Description    <File path="docs/2.1-assets-logic.md">
-      <Description>Documentation on asset and package logic, including principles, structure, and integration.</Description>
-      <Constructors />
-      <Methods />
-    </File>
-    <File path="docs/2.3-default-assets.md">
-      <Description>Documentation on default assets, console, and Earth-like sphere world scene for the simulation.</Description>
-      <Constructors />
-      <Methods />
-    </File>
-    <File path="docs/2.3.1-default-asset-impl.md">
-      <Description>Implementation details for default assets, including console system and sphere world generation.</Description>
-      <Constructors />
-      <Methods />
-    </File>
-    <File path="docs/prompt.md">
-      <Description>Prompt file for generating the project code map.</Description>
-      <Constructors />
-      <Methods />
-    </File>ld configuration file for the C++ project, setting up compilation and linking with SDL2 and OpenGL.</Description>
+    <Description>Main CMake build configuration file for the C++ project, setting up compilation and linking with SDL2, OpenGL, pugixml, and Windows-specific libraries for the flight simulation with asset management system.</Description>
     <Constructors />
     <Methods />
   </File>
@@ -79,7 +60,7 @@
       <Constructors />
       <Methods />
     </File>
-    <File path="docs/2.1-assets-logic.cd">
+    <File path="docs/2.1-assets-logic.md">
       <Description>Documentation on asset and package logic, including principles, structure, and integration.</Description>
       <Constructors />
       <Methods />
@@ -92,10 +73,12 @@
   </Folder>
   <Folder name="src">
     <File path="src/main.cpp">
-      <Description>Main application entry point. Initializes World, SimClock, EventBus, and registers all Systems. Creates initial entities (e.g. a drone via DroneBuilder). Contains the main simulation loop with fixed timestep coordination.</Description>
+      <Description>Main application entry point. Initializes World, SimClock, EventBus, asset systems (AssetRegistry, AssetPackLoader), and registers all Systems including BootstrapSystem, WorldGenSystem, ConsoleSystem, VisualizationSystem, and AssetHotReloadSystem. Creates proper Windows window for visualization. Contains the main simulation loop with fixed timestep coordination and Windows message handling.</Description>
       <Constructors />
       <Methods>
         <Method name="main" returnType="int" params="" />
+        <Method name="CreateSimulationWindow" returnType="HWND" params="" />
+        <Method name="WindowProc" returnType="LRESULT" params="HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam" />
       </Methods>
     </File>
     <Folder name="core">
@@ -180,8 +163,67 @@
         <Constructors />
         <Methods />
       </File>
+      <File path="src/core/AssetRegistry.h">
+        <Description>Central registry for managing all asset types (fonts, textures, materials, mesh recipes) and scene configurations. Provides asset storage, retrieval, package management, and default scene configuration support.</Description>
+        <Constructors>
+          <Constructor name="AssetRegistry" params="" />
+        </Constructors>
+        <Methods>
+          <Method name="registerFont" returnType="void" params="AssetId id, std::unique_ptr&lt;FontAsset&gt; asset" />
+          <Method name="registerTexture" returnType="void" params="AssetId id, std::unique_ptr&lt;TextureAsset&gt; asset" />
+          <Method name="registerMaterial" returnType="void" params="AssetId id, std::unique_ptr&lt;MaterialAsset&gt; asset" />
+          <Method name="registerMeshRecipe" returnType="void" params="AssetId id, std::unique_ptr&lt;MeshRecipeAsset&gt; asset" />
+          <Method name="registerSceneConfig" returnType="void" params="AssetId id, const std::string&amp; sceneXml" />
+          <Method name="getFont" returnType="const FontAsset*" params="AssetId id" />
+          <Method name="getTexture" returnType="const TextureAsset*" params="AssetId id" />
+          <Method name="getMaterial" returnType="const MaterialAsset*" params="AssetId id" />
+          <Method name="getMeshRecipe" returnType="const MeshRecipeAsset*" params="AssetId id" />
+          <Method name="getSceneConfig" returnType="const std::string*" params="AssetId id" />
+          <Method name="setDefaultScene" returnType="void" params="AssetId id" />
+          <Method name="getDefaultScene" returnType="const std::string*" params="" />
+          <Method name="getDefaultSceneId" returnType="AssetId" params="" />
+          <Method name="markPackageLoaded" returnType="void" params="const std::string&amp; packageName" />
+          <Method name="getLoadedPackages" returnType="const std::vector&lt;std::string&gt;&amp;" params="" />
+          <Method name="clear" returnType="void" params="" />
+        </Methods>
+      </File>
+      <File path="src/core/AssetRegistry.cpp">
+        <Description>Implementation of AssetRegistry class with support for asset storage, scene configuration management, and package tracking.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/core/AssetPackLoader.h">
+        <Description>Loads and parses XML package files, extracting assets and configurations into the AssetRegistry. Supports parsing of assets, scene configurations, input configs, and overlay configs.</Description>
+        <Constructors>
+          <Constructor name="AssetPackLoader" params="AssetRegistry&amp; registry" />
+        </Constructors>
+        <Methods>
+          <Method name="loadPackage" returnType="bool" params="const std::string&amp; packagePath" />
+          <Method name="loadDeveloperPackage" returnType="bool" params="" />
+          <Method name="parseAssets" returnType="bool" params="const std::string&amp; xmlContent, const std::string&amp; packageName" />
+          <Method name="parseConfigurations" returnType="bool" params="const std::string&amp; xmlContent, const std::string&amp; packageName" />
+          <Method name="parseFontAsset" returnType="std::unique_ptr&lt;FontAsset&gt;" params="const std::string&amp; xmlNode" />
+        </Methods>
+      </File>
+      <File path="src/core/AssetPackLoader.cpp">
+        <Description>Implementation of AssetPackLoader class with XML parsing for DeveloperPackage and scene configuration extraction.</Description>
+        <Constructors />
+        <Methods />
+      </File>
     </Folder>
     <Folder name="components">
+    </Folder>
+    <Folder name="events">
+      <File path="src/events/WorldGenEvents.h">
+        <Description>Event definitions for world generation workflow including NoPackagesFoundEvent and DefaultWorldGeneratedEvent.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/events/InputEvents.h">
+        <Description>Event definitions for input system including ConsoleToggleEvent and ConsoleVisibilityChangedEvent.</Description>
+        <Constructors />
+        <Methods />
+      </File>
     </Folder>
     <Folder name="systems">
       <File path="src/systems/PhysicsSystem.h">
@@ -217,6 +259,95 @@
       </File>
       <File path="src/systems/VehicleControlSystem.cpp">
         <Description>Implementation of VehicleControlSystem class.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/systems/BootstrapSystem.h">
+        <Description>One-shot system responsible for initial world construction and asset loading. Checks for available packages, loads them via AssetPackLoader, and triggers appropriate world generation events.</Description>
+        <Constructors>
+          <Constructor name="BootstrapSystem" params="EventBus&amp; eventBus, World&amp; world, AssetRegistry&amp; assetRegistry, AssetPackLoader&amp; assetLoader" />
+        </Constructors>
+        <Methods>
+          <Method name="Init" returnType="void" params="" />
+          <Method name="CheckForAssetPackages" returnType="bool" params="" />
+          <Method name="LoadAvailablePackages" returnType="bool" params="" />
+          <Method name="PostFrameUpdate" returnType="void" params="" />
+        </Methods>
+      </File>
+      <File path="src/systems/BootstrapSystem.cpp">
+        <Description>Implementation of BootstrapSystem class with package discovery, XML loading, and default scene fallback logic.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/systems/WorldGenSystem.h">
+        <Description>ECS system for creating procedural worlds and default scenes. Supports both XML-driven world generation from scene configurations and fallback default world generation.</Description>
+        <Constructors>
+          <Constructor name="WorldGenSystem" params="EventBus&amp; eventBus, World&amp; world, AssetRegistry&amp; assetRegistry" />
+        </Constructors>
+        <Methods>
+          <Method name="GenerateDefaultSphereWorld" returnType="void" params="" />
+          <Method name="GenerateWorldFromXMLScene" returnType="void" params="const std::string&amp; sceneXml" />
+          <Method name="OnNoPackagesFound" returnType="void" params="const NoPackagesFoundEvent&amp; event" />
+          <Method name="OnDefaultWorldRequested" returnType="void" params="const DefaultWorldGeneratedEvent&amp; event" />
+          <Method name="GenerateProceduralSphereMesh" returnType="AssetId" params="float radius, int segments" />
+          <Method name="GetEarthMaterialId" returnType="AssetId" params="" />
+          <Method name="GetAtmosphereMaterialId" returnType="AssetId" params="int layer" />
+          <Method name="GetCloudMaterialId" returnType="AssetId" params="" />
+        </Methods>
+      </File>
+      <File path="src/systems/WorldGenSystem.cpp">
+        <Description>Implementation of WorldGenSystem class with XML scene parsing and Earth-like sphere world generation including atmosphere layers and clouds.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/systems/ConsoleSystem.h">
+        <Description>ECS system managing developer console state, command processing, and visibility toggle via tilde key.</Description>
+        <Constructors>
+          <Constructor name="ConsoleSystem" params="EventBus&amp; eventBus" />
+        </Constructors>
+        <Methods>
+          <Method name="IsVisible" returnType="bool" params="" />
+          <Method name="OnConsoleToggle" returnType="void" params="const ConsoleToggleEvent&amp; event" />
+          <Method name="ProcessCommand" returnType="void" params="const std::string&amp; command" />
+        </Methods>
+      </File>
+      <File path="src/systems/ConsoleSystem.cpp">
+        <Description>Implementation of ConsoleSystem class with console visibility management and event handling.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/systems/VisualizationSystem.h">
+        <Description>ECS system responsible for rendering the 3D scene, HUD, debug overlays, and developer console UI. Supports Windows GDI rendering and entity visualization.</Description>
+        <Constructors>
+          <Constructor name="VisualizationSystem" params="EventBus&amp; eventBus, World&amp; world, HWND windowHandle" />
+        </Constructors>
+        <Methods>
+          <Method name="RenderEntities" returnType="void" params="" />
+          <Method name="RenderConsole" returnType="void" params="" />
+          <Method name="RenderNoPackagesMessage" returnType="void" params="" />
+          <Method name="DrawSphere" returnType="void" params="float x, float y, float radius, COLORREF color" />
+          <Method name="DrawText" returnType="void" params="float x, float y, const std::string&amp; text, COLORREF color" />
+          <Method name="OnNoPackagesFound" returnType="void" params="const NoPackagesFoundEvent&amp; event" />
+          <Method name="OnConsoleVisibilityChanged" returnType="void" params="const ConsoleVisibilityChangedEvent&amp; event" />
+        </Methods>
+      </File>
+      <File path="src/systems/VisualizationSystem.cpp">
+        <Description>Implementation of VisualizationSystem class with Windows GDI rendering, entity visualization, and console UI rendering.</Description>
+        <Constructors />
+        <Methods />
+      </File>
+      <File path="src/systems/AssetHotReloadSystem.h">
+        <Description>ECS system for development-time hot-reloading of asset packages. Watches XML files for changes and triggers reloading.</Description>
+        <Constructors>
+          <Constructor name="AssetHotReloadSystem" params="AssetRegistry&amp; assetRegistry, AssetPackLoader&amp; assetLoader" />
+        </Constructors>
+        <Methods>
+          <Method name="watchPackage" returnType="void" params="const std::string&amp; packagePath" />
+          <Method name="checkForChanges" returnType="void" params="" />
+        </Methods>
+      </File>
+      <File path="src/systems/AssetHotReloadSystem.cpp">
+        <Description>Implementation of AssetHotReloadSystem class with file watching and hot-reload capabilities.</Description>
         <Constructors />
         <Methods />
       </File>
@@ -365,6 +496,17 @@
           </File>
         </Folder>
         <Folder name="code">
+        </Folder>
+      </Folder>
+      <Folder name="DeveloperPackage">
+        <File path="assets/packages/DeveloperPackage/package.xml">
+          <Description>Core developer debug assets and default scene XML configuration. Defines console UI assets, Earth-like sphere world materials, procedural mesh recipes, scene configuration, input bindings, and overlay UI for the default development environment.</Description>
+          <Constructors />
+          <Methods />
+        </File>
+        <Folder name="console">
+        </Folder>
+        <Folder name="textures">
         </Folder>
       </Folder>
     </Folder>

@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Developer Package XML Configuration
+    This XML defines the core assets and configurations for the developer debug environment,
+    including the debug console, a default "Earth-like" sphere world scene, and input bindings.
+    It adheres to the "strings only at the edges" principle: this XML is processed by the
+    asset compiler (or hot-reloaded in debug) into compact binary formats and numeric IDs for runtime.
+
+-->
+<package name="DeveloperPackage" version="1.0" description="Core developer debug assets and default scene.">
+
+    <!--
+        Dependencies:
+        This package might implicitly depend on core engine functionality for rendering, physics primitives, etc.
+        For simplicity, we assume basic engine systems and a standard shader library are already built into the runtime.
+    -->
+    <dependencies>
+        <!-- No explicit package dependencies are typically required for this foundational dev package itself. -->
+    </dependencies>
+
+    <!--
+        Asset Declarations (Inner Assets):
+        These are the raw assets (or recipes for procedural assets) that the Developer Package provides.
+        The asset compiler will "cook" these into binary formats if needed, assigning stable AssetIds.
+        Paths are relative to the package's root (e.g., 'assets/packages/DeveloperPackage/').
+
+    -->
+    <assets>
+        <!-- Console UI Assets [user request, previous conversation] -->
+        <asset type="font" id="ConsoleFont">
+            <path>console/console_font.ttf</path>
+            <properties size="16" antialiasing="true" />
+        </asset>
+        <asset type="texture" id="ConsoleBackgroundTexture">
+            <path>console/console_background.png</path>
+            <properties format="PNG" mipmaps="false" filter="linear" />
+        </asset>
+
+        <!-- Default Sphere World Materials & Mesh Recipes [previous conversation] -->
+        <!-- These define materials for the "Earth-like" sphere, atmospheric layers, and voxel clouds. -->
+        <asset type="material" id="EarthSurfaceMaterial">
+            <shader_id>StandardPBRShader</shader_id> <!-- Assumes a standard PBR shader is available in the engine -->
+            <params>
+                <!-- Placeholder paths to actual textures for Earth, which would be located under /assets/packages/DeveloperPackage/textures/ -->
+                <albedo_texture>textures/earth_albedo.ktx2</albedo_texture>
+                <normal_map>textures/earth_normal.ktx2</normal_map>
+                <roughness value="0.8" />
+                <metallic value="0.0" />
+            </params>
+        </asset>
+        <asset type="material" id="AtmosphereLayer1Material">
+            <shader_id>AtmosphereShader</shader_id> <!-- Assumes a dedicated atmospheric shader -->
+            <params>
+                <color r="0.2" g="0.4" b="0.7" a="0.15" /> <!-- Blueish, slightly transparent -->
+                <blend_mode>AlphaBlend</blend_mode>
+            </params>
+        </asset>
+        <asset type="material" id="AtmosphereLayer2Material">
+            <shader_id>AtmosphereShader</shader_id>
+            <params>
+                <color r="0.3" g="0.5" b="0.8" a="0.05" /> <!-- Lighter blue, more transparent -->
+                <blend_mode>AlphaBlend</blend_mode>
+            </params>
+        </asset>
+        <asset type="material" id="CloudLayerMaterial">
+            <shader_id>CloudVolumeShader</shader_id> <!-- Assumes a shader capable of rendering volumetric clouds -->
+            <params>
+                <color r="1.0" g="1.0" b="1.0" a="0.7" /> <!-- White, semi-transparent -->
+                <!-- Placeholder for a pre-baked noise texture for clouds, located under /assets/packages/DeveloperPackage/textures/ -->
+                <texture_id>textures/perlin_noise_cloud.ktx2</texture_id>
+                <scroll_speed u="0.01" v="0.005" /> <!-- Simulates cloud movement -->
+            </params>
+        </asset>
+
+        <!--
+            Procedural Mesh Recipes. These define parameters for "param generators"
+            that the asset compiler executes to produce final geometry or runtime procedural recipes.
+
+        -->
+        <asset type="mesh_recipe" id="SphereRecipe">
+            <generator>ProceduralSphereGenerator</generator> <!-- Refers to a C++ generator function -->
+            <params>
+                <param name="radius_param" type="float" default_value="1.0" />
+                <param name="segments_param" type="int" default_value="32" />
+                <param name="invert_normals_param" type="bool" default_value="false" /> <!-- For rendering atmospheric layers from inside -->
+            </params>
+        </asset>
+        <asset type="mesh_recipe" id="VoxelCloudRecipe">
+            <generator>ProceduralVoxelCloudGenerator</generator> <!-- Refers to a C++ generator function -->
+            <params>
+                <param name="base_radius_param" type="float" default_value="1.0" />
+                <param name="height_range_param" type="float" default_value="0.1" />
+                <param name="noise_scale_param" type="float" default_value="0.01" />
+                <param name="density_threshold_param" type="float" default_value="0.5" />
+            </params>
+        </asset>
+    </assets>
+
+    <!--
+        Configuration Declarations:
+        These define higher-level structures and system configurations, often referencing AssetIds.
+        In release builds, these are prebaked into the .pak's PARAMS section.
+    -->
+    <configurations>
+        <!--
+            Default Scene Configuration: The "Earth-like" sphere world.
+            This SceneConfig would be provided to the WorldGenSystem if no other packages are found
+            during the BootstrapSystem's initialization [previous conversation].
+            The WorldGenSystem then instantiates entities and components based on this data.
+            [previous conversation, BootstrapSystem, WorldGenSystem code examples]
+        -->
+        <scene_config id="DefaultSphereWorldScene" type="procedural_earth_like">
+            <description>A basic Earth-like sphere with atmospheric layers and orbiting voxel clouds.</description>
+
+            <!-- Earth Entity -->
+            <entity name="Earth" entity_id="EarthEntityId">
+                <component type="TransformC">
+                    <position x="0.0" y="-6371000.0" z="0.0" /> <!-- Approximated Earth radius offset [previous conversation] -->
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" /> <!-- Identity quaternion -->
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="SphereRecipe">
+                        <param name="radius_param" value="6371000.0" />
+                        <param name="segments_param" value="64" />
+                        <param name="invert_normals_param" value="false" />
+                    </mesh_recipe_ref>
+                    <material_ref id="EarthSurfaceMaterial" />
+                </component>
+            </entity>
+
+            <!-- Atmospheric Layers -->
+            <entity name="AtmosphereLayer1" entity_id="AtmosphereLayer1EntityId">
+                <component type="TransformC">
+                    <position x="0.0" y="-6371000.0" z="0.0" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="SphereRecipe">
+                        <param name="radius_param" value="6371000.0 + 10000.0" /> <!-- 10km above surface [previous conversation] -->
+                        <param name="segments_param" value="32" />
+                        <param name="invert_normals_param" value="true" /> <!-- Render from inside the sphere -->
+                    </mesh_recipe_ref>
+                    <material_ref id="AtmosphereLayer1Material" />
+                </component>
+            </entity>
+            <entity name="AtmosphereLayer2" entity_id="AtmosphereLayer2EntityId">
+                <component type="TransformC">
+                    <position x="0.0" y="-6371000.0" z="0.0" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="SphereRecipe">
+                        <param name="radius_param" value="6371000.0 + 20000.0" /> <!-- 20km above surface [previous conversation] -->
+                        <param name="segments_param" value="32" />
+                        <param name="invert_normals_param" value="true" />
+                    </mesh_recipe_ref>
+                    <material_ref id="AtmosphereLayer2Material" />
+                </component>
+            </entity>
+
+            <!-- Voxel Clouds orbiting Earth -->
+            <entity name="VoxelClouds" entity_id="VoxelCloudsEntityId">
+                <component type="TransformC">
+                    <position x="0.0" y="-6371000.0" z="0.0" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="VoxelCloudRecipe">
+                        <param name="base_radius_param" value="6371000.0 + 5000.0" /> <!-- Clouds start at 5km altitude [previous conversation] -->
+                        <param name="height_range_param" value="5000.0" /> <!-- Clouds span 5km vertically [previous conversation] -->
+                        <param name="noise_scale_param" value="0.0001" />
+                        <param name="density_threshold_param" value="0.55" />
+                    </mesh_recipe_ref>
+                    <material_ref id="CloudLayerMaterial" />
+                </component>
+                <!-- Further components could define cloud movement/animation logic -->
+            </entity>
+
+            <!-- Environmental Physics Parameters for WorldGenSystem [30, 31, previous conversation] -->
+            <env_physics_params>
+                <gravity x="0.0" y="-9.81" z="0.0" /> <!-- Constant Earth gravity -->
+                <air_density_model type="exponential">
+                    <rho_0 value="1.225" /> <!-- Sea level density -->
+                    <scale_height value="8500.0" /> <!-- Scale height for exponential approximation -->
+                </air_density_model>
+                <!-- Default Wind Model -->
+                <wind_model type="constant">
+                    <velocity x="5.0" y="0.0" z="0.0" /> <!-- Gentle constant wind in X direction -->
+                </wind_model>
+            </env_physics_params>
+        </scene_config>
+
+        <!--
+            Global Input Configuration (supporting overlay input):
+            Defines key bindings relevant to the developer package.
+            This configuration is processed by the InputSystem.
+        -->
+        <input_config id="GlobalDeveloperInput">
+            <key_bindings>
+                <binding action="ToggleDebugConsole" key_code="TILDE" device="Keyboard" /> <!-- Tilde key for console [previous conversation] -->
+                <!-- Other debug-specific key bindings could be defined here -->
+            </key_bindings>
+        </input_config>
+
+        <!--
+            Overlay Configuration:
+            Defines the debug console UI and other visual overlays.
+            This configuration is consumed by the VisualizationSystem.
+        -->
+        <overlay_config id="DeveloperOverlay">
+            <ui_element type="DebugConsole" visible_by_default="false">
+                <font_asset_ref id="ConsoleFont" />
+                <background_texture_asset_ref id="ConsoleBackgroundTexture" />
+                <dimensions width_percent="80" height_percent="40" />
+                <position x_percent="10" y_percent="5" />
+                <color background="0x000000A0" text="0xFFFFFFFF" cursor="0xFF00FF" />
+            </ui_element>
+
+            <!-- Message displayed when no other packages are loaded [previous conversation, VisualizationSystem] -->
+            <ui_element type="TextMessageOverlay" id="NoPackagesFoundDisplay" visible_by_default="false">
+                <text_content>No packages found. Displaying default sphere world.</text_content>
+                <font_asset_ref id="ConsoleFont" />
+                <color text="0xFFFFAA00" background="0x00000080" />
+                <position x_percent="50" y_percent="95" alignment="Center" />
+            </ui_element>
+        </overlay_config>
+
+        <!-- Debug Component Configuration -->
+        <component_config id="GlobalDebugComponent">
+            <component type="DebugC">
+                <param name="show_physics_wireframe" value="false" />
+                <param name="show_wind_vectors" value="false" />
+                <!-- Add other debug toggles here -->
+            </component>
+        </component_config>
+
+    </configurations>
+
+    <!--
+        main.cpp Communication:
+        The `main.cpp` (your application's entry point) does NOT directly parse this XML at runtime.
+        Instead, it orchestrates the initialization of core systems that then consume the data defined here.
+        This follows the principles of IoC and a "thin runtime, fat tools" approach.
+
+        Here's how `main.cpp` facilitates the communication and utilizes this package's definitions:
+
+        1.  Initializes Core Infrastructure: `main.cpp` first sets up the global IoC Container and EventBus.
+            These are fundamental for Dependency Injection and Event-Driven Communication.
+
+        2.  Invokes BootstrapSystem: `main.cpp` then creates and calls `BootstrapSystem::Init()`.
+            This is the one-shot system responsible for initial world construction and asset loading.
+
+        3.  Asset Loading Decision:
+            *   In a **Release Build**: `BootstrapSystem` (via `AssetPackLoader`) attempts to memory-map
+                pre-compiled `.pak` files (e.g., `DeveloperPackage.pak`, which is the binary representation of this XML).
+                The data (assets, scene, input, overlay configs) are loaded into the `AssetRegistry`.
+            *   In a **Debug Build**: `BootstrapSystem` configures the `AssetHotReloadSystem` to watch this XML file
+                (and others) for changes. If changes occur, the XML is parsed, converted to an Intermediate
+                Representation (IR), and built into a staging registry, which is atomically swapped at the
+                end of the frame.
+
+        4.  Default Scene Fallback:
+            *   `BootstrapSystem` queries the `AssetRegistry`. **If no other packages are successfully loaded**,
+                `BootstrapSystem` then instructs the `WorldGenSystem` (which receives the `DefaultSphereWorldScene`
+                configuration from this package via IoC) to generate the "Earth-like" sphere world [previous conversation].
+                It also emits a `NoPackagesFoundEvent` [previous conversation].
+
+        5.  Input and Overlay Activation:
+            *   The `InputSystem` (configured by `GlobalDeveloperInput` from this package) detects the **Tilde** (~) key press
+                and publishes a `ConsoleToggleEvent` to the `EventBus` [previous conversation, 11].
+            *   The `ConsoleSystem` and `VisualizationSystem` (configured by `DeveloperOverlay` from this package)
+                subscribe to this `ConsoleToggleEvent`. When triggered, `VisualizationSystem` renders the debug console UI
+                using the `ConsoleFont` and `ConsoleBackgroundTexture` assets. It also renders the "No packages found" message
+                if the corresponding event was received [previous conversation, 12, 135].
+
+        In essence, this XML is the **declarative source of truth** for configuration and asset definitions that drives
+        the runtime behavior of the C++ systems and components, allowing for modularity and extensibility without
+        modifying core C++ logic.
+    -->
+</package>

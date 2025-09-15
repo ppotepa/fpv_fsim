@@ -15,6 +15,9 @@ public:
     void addSystem(std::unique_ptr<ISystem> system);
     void update(float dt);
 
+    const std::vector<std::unique_ptr<ISystem>> &getSystems() const { return systems_; }
+    const std::vector<std::unique_ptr<Entity>> &getEntities() const { return entities_; }
+
 private:
     EventBus &eventBus_;
     std::vector<std::unique_ptr<Entity>> entities_;

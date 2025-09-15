@@ -8,6 +8,7 @@ find_package(OpenGL REQUIRED)
 
 # Include directories
 include_directories(src)
+include_directories(src/components)
 
 # Source files
 set(SOURCES
@@ -16,6 +17,8 @@ set(SOURCES
     src/core/Entity.cpp
     src/core/World.cpp
     src/core/SimClock.cpp
+    src/core/AssetRegistry.cpp
+    src/core/AssetPackLoader.cpp
     src/physics/ExponentialAirDensityModel.cpp
     src/physics/PerlinWindModel.cpp
     src/physics/ImpulseCollisionResolver.cpp
@@ -24,6 +27,11 @@ set(SOURCES
     src/systems/PhysicsSystem.cpp
     src/systems/InputSystem.cpp
     src/systems/VehicleControlSystem.cpp
+    src/systems/BootstrapSystem.cpp
+    src/systems/WorldGenSystem.cpp
+    src/systems/ConsoleSystem.cpp
+    src/systems/VisualizationSystem.cpp
+    src/systems/AssetHotReloadSystem.cpp
     src/platform/WinInputDevice.cpp
     # Add more source files as implemented
 )
