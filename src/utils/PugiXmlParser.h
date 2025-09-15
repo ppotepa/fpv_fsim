@@ -3,9 +3,10 @@
 
 #include "IXmlParser.h"
 
-class PugiXmlParser : public IXmlParser {
+class PugiXmlParser : public IXmlParser
+{
 public:
-    bool loadFile(const std::string& path) override;
+    bool loadFile(const std::string &path) override;
     // Add more methods
 };
 

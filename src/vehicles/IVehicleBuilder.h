@@ -6,10 +6,11 @@
 #include "core/Entity.h"
 #include "core/EventBus.h"
 
-class IVehicleBuilder {
+class IVehicleBuilder
+{
 public:
     virtual ~IVehicleBuilder() = default;
-    virtual std::unique_ptr<Entity> build(const std::string& configPath, EventBus& eventBus) = 0;
+    virtual std::unique_ptr<Entity> build(const std::string &configPath, EventBus &eventBus) = 0;
 };
 
 #endif

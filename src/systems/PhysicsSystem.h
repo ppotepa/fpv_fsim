@@ -7,15 +7,17 @@
 #include "physics/IWindModel.h"
 #include "physics/ICollisionResolver.h"
 
-class PhysicsSystem : public ISystem {
+class PhysicsSystem : public ISystem
+{
 public:
-    PhysicsSystem(EventBus& eventBus, IAirDensityModel& airDensityModel, IWindModel& windModel, ICollisionResolver& collisionResolver);
-    void update(World& world, float dt) override;
+    PhysicsSystem(EventBus &eventBus, IAirDensityModel &airDensityModel, IWindModel &windModel, ICollisionResolver &collisionResolver);
+    void update(World &world, float dt) override;
+
 private:
-    EventBus& eventBus_;
-    IAirDensityModel& airDensityModel_;
-    IWindModel& windModel_;
-    ICollisionResolver& collisionResolver_;
+    EventBus &eventBus_;
+    IAirDensityModel &airDensityModel_;
+    IWindModel &windModel_;
+    ICollisionResolver &collisionResolver_;
 };
 
 #endif

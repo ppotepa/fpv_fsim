@@ -4,12 +4,14 @@
 #include "IVehicleBuilder.h"
 #include "utils/IXmlParser.h"
 
-class DroneBuilder : public IVehicleBuilder {
+class DroneBuilder : public IVehicleBuilder
+{
 public:
-    DroneBuilder(IXmlParser& xmlParser);
-    std::unique_ptr<Entity> build(const std::string& configPath, EventBus& eventBus) override;
+    DroneBuilder(IXmlParser &xmlParser);
+    std::unique_ptr<Entity> build(const std::string &configPath, EventBus &eventBus) override;
+
 private:
-    IXmlParser& xmlParser_;
+    IXmlParser &xmlParser_;
 };
 
 #endif

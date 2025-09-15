@@ -3,7 +3,8 @@
 
 #include "IInputDevice.h"
 
-class WinInputDevice : public IInputDevice {
+class WinInputDevice : public IInputDevice
+{
 public:
     void poll() override;
 };

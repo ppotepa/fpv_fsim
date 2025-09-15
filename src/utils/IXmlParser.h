@@ -3,10 +3,11 @@
 
 #include <string>
 
-class IXmlParser {
+class IXmlParser
+{
 public:
     virtual ~IXmlParser() = default;
-    virtual bool loadFile(const std::string& path) = 0;
+    virtual bool loadFile(const std::string &path) = 0;
     // Add more methods as needed
 };
 

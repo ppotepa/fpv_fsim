@@ -42,13 +42,15 @@ int main()
 
     // Main simulation loop
     auto lastFrameTime = std::chrono::high_resolution_clock::now();
-    while (true) { // exit condition
+    while (true)
+    { // exit condition
         auto currentFrameTime = std::chrono::high_resolution_clock::now();
         std::chrono::duration<float> frameDeltaTime = currentFrameTime - lastFrameTime;
         lastFrameTime = currentFrameTime;
 
         simClock.tick(frameDeltaTime.count());
-        while (simClock.shouldStepPhysics()) {
+        while (simClock.shouldStepPhysics())
+        {
             world.update(simClock.getFixedTimestep());
         }
 

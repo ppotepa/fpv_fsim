@@ -1,5 +1,6 @@
 #include "WinInputDevice.h"
 
-void WinInputDevice::poll() {
+void WinInputDevice::poll()
+{
     // Stub: poll Windows input
 }

@@ -3,10 +3,12 @@
 
 #include "ICollisionResolver.h"
 
-class ImpulseCollisionResolver : public ICollisionResolver {
+class ImpulseCollisionResolver : public ICollisionResolver
+{
 public:
     ImpulseCollisionResolver(float friction, float restitution);
-    void resolveCollision(float& vx, float& vy, float& vz, float normalX, float normalY, float normalZ, float restitution) override;
+    void resolveCollision(float &vx, float &vy, float &vz, float normalX, float normalY, float normalZ, float restitution) override;
+
 private:
     float friction_;
     float restitution_;

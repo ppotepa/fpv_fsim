@@ -4,12 +4,14 @@
 #include "core/ISystem.h"
 #include "core/EventBus.h"
 
-class VehicleControlSystem : public ISystem {
+class VehicleControlSystem : public ISystem
+{
 public:
-    VehicleControlSystem(EventBus& eventBus);
-    void update(World& world, float dt) override;
+    VehicleControlSystem(EventBus &eventBus);
+    void update(World &world, float dt) override;
+
 private:
-    EventBus& eventBus_;
+    EventBus &eventBus_;
 };
 
 #endif
