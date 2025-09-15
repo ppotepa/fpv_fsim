@@ -128,8 +128,71 @@ bool AssetPackLoader::parseAssets(const std::string &xmlContent, const std::stri
         pos = endPos;
     }
 
-    // Similar parsing for other asset types would go here
-    // For brevity, implementing only basic structure
+    // Parse texture assets
+    pos = 0;
+    while ((pos = assetsSection.find("<asset type=\"texture\"", pos)) != std::string::npos)
+    {
+        size_t endPos = assetsSection.find("</asset>", pos);
+        if (endPos == std::string::npos)
+            break;
+
+        std::string assetXml = assetsSection.substr(pos, endPos - pos + 8);
+        auto texAsset = parseTextureAsset(assetXml);
+        if (texAsset)
+        {
+            // Extract ID
+            size_t idStart = assetXml.find("id=\"") + 4;
+            size_t idEnd = assetXml.find("\"", idStart);
+            std::string id = assetXml.substr(idStart, idEnd - idStart);
+
+            registry_.registerTexture(packageName + "::" + id, std::move(texAsset));
+        }
+        pos = endPos;
+    }
+
+    // Parse material assets (simplified: only shader_id captured now)
+    pos = 0;
+    while ((pos = assetsSection.find("<asset type=\"material\"", pos)) != std::string::npos)
+    {
+        size_t endPos = assetsSection.find("</asset>", pos);
+        if (endPos == std::string::npos)
+            break;
+
+        std::string assetXml = assetsSection.substr(pos, endPos - pos + 8);
+        auto matAsset = parseMaterialAsset(assetXml);
+        if (matAsset)
+        {
+            // Extract ID
+            size_t idStart = assetXml.find("id=\"") + 4;
+            size_t idEnd = assetXml.find("\"", idStart);
+            std::string id = assetXml.substr(idStart, idEnd - idStart);
+
+            registry_.registerMaterial(packageName + "::" + id, std::move(matAsset));
+        }
+        pos = endPos;
+    }
+
+    // Parse mesh recipe assets
+    pos = 0;
+    while ((pos = assetsSection.find("<asset type=\"mesh_recipe\"", pos)) != std::string::npos)
+    {
+        size_t endPos = assetsSection.find("</asset>", pos);
+        if (endPos == std::string::npos)
+            break;
+
+        std::string assetXml = assetsSection.substr(pos, endPos - pos + 8);
+        auto meshAsset = parseMeshRecipeAsset(assetXml);
+        if (meshAsset)
+        {
+            // Extract ID
+            size_t idStart = assetXml.find("id=\"") + 4;
+            size_t idEnd = assetXml.find("\"", idStart);
+            std::string id = assetXml.substr(idStart, idEnd - idStart);
+
+            registry_.registerMeshRecipe(packageName + "::" + id, std::move(meshAsset));
+        }
+        pos = endPos;
+    }
 
     return true;
 }

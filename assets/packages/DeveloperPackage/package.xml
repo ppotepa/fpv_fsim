@@ -94,6 +94,31 @@
                 <param name="density_threshold_param" type="float" default_value="0.5" />
             </params>
         </asset>
+        <!-- Paper Plane Materials & Mesh Recipe -->
+        <asset type="material" id="PlaneFuselageMaterial">
+            <shader_id>CelFlatShader</shader_id>
+            <params>
+                <color r="0.88" g="0.15" b="0.20" a="1.0" />
+                <roughness value="0.9" />
+                <metallic value="0.0" />
+            </params>
+        </asset>
+        <asset type="material" id="PlaneWingMaterial">
+            <shader_id>CelFlatShader</shader_id>
+            <params>
+                <color r="0.70" g="0.70" b="0.72" a="1.0" />
+                <roughness value="0.95" />
+                <metallic value="0.0" />
+            </params>
+        </asset>
+        <asset type="mesh_recipe" id="PaperPlaneRecipe">
+            <generator>ProceduralPaperPlaneGenerator</generator>
+            <params>
+                <param name="length_param" type="float" default_value="0.25" />
+                <param name="wing_span_param" type="float" default_value="0.22" />
+                <param name="fin_height_param" type="float" default_value="0.05" />
+            </params>
+        </asset>
     </assets>
 
     <!--
@@ -174,6 +199,23 @@
                     <material_ref id="CloudLayerMaterial" />
                 </component>
                 <!-- Further components could define cloud movement/animation logic -->
+            </entity>
+
+            <!-- Low-Poly Paper Plane Entity (orbiting indicator) -->
+            <entity name="PaperPlane" entity_id="PaperPlaneEntityId">
+                <component type="TransformC">
+                    <position x="0.0" y="-6371000.0" z="0.0" />
+                    <orientation x="0.0" y="0.0" z="0.0" w="1.0" />
+                </component>
+                <component type="RenderableC">
+                    <mesh_recipe_ref id="PaperPlaneRecipe">
+                        <param name="length_param" value="0.25" />
+                        <param name="wing_span_param" value="0.22" />
+                        <param name="fin_height_param" value="0.05" />
+                    </mesh_recipe_ref>
+                    <material_ref id="PlaneFuselageMaterial" />
+                    <!-- Wing material could be assigned by multi-material system in future; placeholder single material now -->
+                </component>
             </entity>
 
             <!-- Environmental Physics Parameters for WorldGenSystem [30, 31, previous conversation] -->
