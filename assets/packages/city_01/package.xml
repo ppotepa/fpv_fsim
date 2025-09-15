@@ -1,0 +1,11 @@
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;Package name="city_01"&gt;
+    &lt;Assets&gt;
+        &lt;Mesh id="building" path="meshes/building.obj" /&gt;
+        &lt;Texture id="concrete" path="textures/concrete.png" /&gt;
+        &lt;Parametric id="building_block" path="params/building_city_block.xml" /&gt;
+    &lt;/Assets&gt;
+    &lt;Dependencies&gt;
+        &lt;Package ref="core" /&gt;
+    &lt;/Dependencies&gt;
+&lt;/Package&gt;

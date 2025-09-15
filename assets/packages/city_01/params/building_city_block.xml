@@ -1,0 +1,11 @@
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;ParametricAsset type="Building"&gt;
+    &lt;Parameters&gt;
+        &lt;Height value="50" /&gt;
+        &lt;Width value="20" /&gt;
+        &lt;Depth value="15" /&gt;
+    &lt;/Parameters&gt;
+    &lt;Material&gt;
+        &lt;Diffuse r="0.5" g="0.5" b="0.5" /&gt;
+    &lt;/Material&gt;
+&lt;/ParametricAsset&gt;

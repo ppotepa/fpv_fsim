@@ -60,6 +60,11 @@
       <Constructors />
       <Methods />
     </File>
+    <File path="docs/2.1-assets-logic.cd">
+      <Description>Documentation on asset and package logic, including principles, structure, and integration.</Description>
+      <Constructors />
+      <Methods />
+    </File>
     <File path="docs/prompt.md">
       <Description>Prompt file for generating the project code map.</Description>
       <Constructors />
@@ -319,6 +324,76 @@
         <Constructors />
         <Methods />
       </File>
+    </Folder>
+  </Folder>
+  <Folder name="assets">
+    <Folder name="packages">
+      <Folder name="city_01">
+        <File path="assets/packages/city_01/package.xml">
+          <Description>XML file declaring assets and dependencies for the city_01 package.</Description>
+          <Constructors />
+          <Methods />
+        </File>
+        <Folder name="meshes">
+        </Folder>
+        <Folder name="textures">
+        </Folder>
+        <Folder name="params">
+          <File path="assets/packages/city_01/params/building_city_block.xml">
+            <Description>XML file defining parametric parameters for a city building block.</Description>
+            <Constructors />
+            <Methods />
+          </File>
+        </Folder>
+        <Folder name="code">
+        </Folder>
+      </Folder>
+    </Folder>
+    <Folder name="build_tools">
+      <Folder name="asset_compiler">
+        <File path="assets/build_tools/asset_compiler/CMakeLists.txt">
+          <Description>CMake build configuration for the asset compiler CLI tool.</Description>
+          <Constructors />
+          <Methods />
+        </File>
+        <File path="assets/build_tools/asset_compiler/main.cpp">
+          <Description>Main entry point for the asset compiler tool that processes XML to binary packs.</Description>
+          <Constructors />
+          <Methods>
+            <Method name="main" returnType="int" params="int argc, char* argv[]" />
+          </Methods>
+        </File>
+      </Folder>
+      <Folder name="codegen">
+        <File path="assets/build_tools/codegen/CMakeLists.txt">
+          <Description>CMake build configuration for the codegen tool.</Description>
+          <Constructors />
+          <Methods />
+        </File>
+        <File path="assets/build_tools/codegen/main.cpp">
+          <Description>Main entry point for the codegen tool that generates asset ID headers.</Description>
+          <Constructors />
+          <Methods>
+            <Method name="main" returnType="int" params="int argc, char* argv[]" />
+          </Methods>
+        </File>
+      </Folder>
+    </Folder>
+    <Folder name="runtime">
+      <Folder name="data">
+        <Folder name="packs">
+        </Folder>
+        <Folder name="plugins">
+        </Folder>
+        <Folder name="cache">
+          <Folder name="shader_cache">
+          </Folder>
+          <Folder name="geom_cache">
+          </Folder>
+          <Folder name="thumb_index">
+          </Folder>
+        </Folder>
+      </Folder>
     </Folder>
   </Folder>
   <Folder name="packages">
