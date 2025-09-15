@@ -4,6 +4,9 @@ project(fpv_fsim VERSION 1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+find_package(OpenGL REQUIRED)
+find_package(SDL2 REQUIRED)
+
 # Include directories
 include_directories(src)
 
@@ -30,4 +33,4 @@ set(SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Link libraries (uncomment when SDL2 and OpenGL are available)
-# target_link_libraries(${PROJECT_NAME} SDL2::SDL2 OpenGL::GL)
+target_link_libraries(${PROJECT_NAME} SDL2::SDL2 OpenGL::GL)
