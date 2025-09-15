@@ -11,11 +11,29 @@ namespace Assets
 
     using AssetId = uint32_t;
 
-    // Asset ID constants
+    // Asset ID constants from DeveloperPackage
     constexpr AssetId DEVELOPERPACKAGE_DEMO_TEXTURE = 1;  // texture from DeveloperPackage
     constexpr AssetId DEVELOPERPACKAGE_DEMO_MESH = 2;     // mesh from DeveloperPackage
     constexpr AssetId DEVELOPERPACKAGE_DEMO_MATERIAL = 3; // material from DeveloperPackage
     constexpr AssetId DEVELOPERPACKAGE_DEMO_SHADER = 4;   // shader from DeveloperPackage
+
+    // Loading indicator scene materials (from terminal output)
+    constexpr AssetId EARTH_MATERIAL_1000 = 1000;    // earth_material_1000 - central globe
+    constexpr AssetId CONTRAIL_MATERIAL_1001 = 1001; // contrail_material_1001 - aircraft trails
+    constexpr AssetId AIRCRAFT_BODY_MATERIAL = 1002; // AircraftBodyMaterial - red aircraft
+    constexpr AssetId AIRCRAFT_WING_MATERIAL = 1003; // AircraftWingMaterial - gray wings
+    constexpr AssetId CLOUD_MATERIAL = 1004;         // CloudMaterial - white clouds
+    constexpr AssetId LAND_MATERIAL = 1005;          // LandMaterial - green land texture
+
+    // Material type identifiers for efficient lookup
+    namespace MaterialTypes
+    {
+        constexpr AssetId EARTH_TYPE = 2000;
+        constexpr AssetId AIRCRAFT_TYPE = 2001;
+        constexpr AssetId CONTRAIL_TYPE = 2002;
+        constexpr AssetId CLOUD_TYPE = 2003;
+        constexpr AssetId ATMOSPHERE_TYPE = 2004;
+    }
 
 } // namespace Assets
 

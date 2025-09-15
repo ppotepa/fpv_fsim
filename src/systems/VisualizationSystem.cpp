@@ -1,8 +1,10 @@
 #include "VisualizationSystem.h"
+#include "../core/AssetIds.h"
 #include <iostream>
 #include <string>
 #include <cmath>
 #include <memory>
+#include <unordered_map>
 
 // Component definitions
 #include "core/IComponent.h"
@@ -46,6 +48,26 @@ VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND 
 {
     hdc = GetDC(hwnd);
 
+    // Initialize material color lookup table using precompiled asset IDs
+    materialColors = {
+        // Earth/Land materials (forest green)
+        {"earth_material_1000", RGB(34, 139, 34)},
+        {"LandMaterial", RGB(34, 139, 34)},
+
+        // Aircraft materials (red for body, gray for wings)
+        {"AircraftBodyMaterial", RGB(204, 51, 51)},
+        {"AircraftWingMaterial", RGB(128, 128, 128)},
+
+        // Contrail materials (white)
+        {"contrail_material_1001", RGB(255, 255, 255)},
+
+        // Cloud materials (light gray)
+        {"CloudMaterial", RGB(220, 220, 220)},
+
+        // Atmosphere materials (sky blue)
+        {"AtmosphereMaterial", RGB(135, 206, 235)},
+        {"atmosphere_material", RGB(135, 206, 235)}};
+
     // Subscribe to events
     eventBus.subscribe(EventType::NoPackagesFound, [this](const IEvent &event)
                        {
@@ -67,7 +89,7 @@ void VisualizationSystem::update(World &world, float deltaTime)
 {
     // Get a fresh device context for this frame
     HDC frameDC = GetDC(hwnd);
-    
+
     // Clear the screen
     RECT rect;
     GetClientRect(hwnd, &rect);
@@ -112,7 +134,7 @@ void VisualizationSystem::OnConsoleVisibilityChanged(const ConsoleVisibilityChan
 
 void VisualizationSystem::RenderEntities()
 {
-    // Simple rendering of entities with TransformC and RenderableC
+    // Efficient rendering using precompiled material color lookup
     for (const auto &entity : worldRef.getEntities())
     {
         auto transform = entity->getComponent<TransformC>();
@@ -125,14 +147,14 @@ void VisualizationSystem::RenderEntities()
             float screenY = 300 + transform->position.z * 0.01f;
             float radius = 50.0f; // Fixed radius for now
 
-            // Color based on material ID (simple mapping)
+            // Fast O(1) lookup using precompiled material colors
             COLORREF color = RGB(0, 255, 0); // Default green
-            if (renderable->materialId == "earth_material")
-                color = RGB(0, 0, 255); // Blue for Earth
-            else if (renderable->materialId.find("atmosphere_material") == 0)
-                color = RGB(135, 206, 235); // Sky blue for atmosphere
-            else if (renderable->materialId == "cloud_material")
-                color = RGB(255, 255, 255); // White for clouds
+
+            auto colorIter = materialColors.find(renderable->materialId);
+            if (colorIter != materialColors.end())
+            {
+                color = colorIter->second;
+            }
 
             DrawSphere(screenX, screenY, radius, color);
         }

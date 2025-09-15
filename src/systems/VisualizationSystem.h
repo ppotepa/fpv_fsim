@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 class VisualizationSystem : public ISystem
 {
@@ -27,6 +28,9 @@ private:
     bool displayNoPackagesMessage;
     bool consoleVisible;
     float rotationAngle;
+
+    // Precompiled material color lookup table
+    std::unordered_map<std::string, COLORREF> materialColors;
 
     void OnNoPackagesFound(const NoPackagesFoundEvent &event);
     void OnConsoleVisibilityChanged(const ConsoleVisibilityChangedEvent &event);

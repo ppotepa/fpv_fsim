@@ -192,6 +192,10 @@ namespace Math
         float L = len(v);
         return (L > 0) ? mul(v, 1.f / L) : float3{0, 0, 0};
     }
+    inline float3 normalize(const float3 &v)
+    {
+        return norm(v);
+    }
 
     // ============================================================================
     // 4) Quaternion operations

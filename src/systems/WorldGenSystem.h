@@ -41,6 +41,7 @@ private:
 
     // Core scene loading methods
     void LoadScene(const std::string &sceneType);
+    void GenerateLoadingIndicatorWorld();
     void LoadSceneEntities(const SceneConfig::Scene &scene);
     AssetId GenerateVoxelMesh(const SceneConfig::CompoundMesh &meshConfig);
 
@@ -52,4 +53,7 @@ private:
     AssetId GetEarthMaterialId();
     AssetId GetAtmosphereMaterialId(int layer);
     AssetId GetCloudMaterialId();
+
+    // Helper method to convert MaterialId to numeric AssetId
+    AssetId MaterialIdToAssetId(const std::string &materialId);
 };

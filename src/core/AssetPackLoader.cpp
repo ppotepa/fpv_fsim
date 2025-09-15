@@ -1,5 +1,5 @@
 #include "AssetPackLoader.h"
-#include "../utils/PugiXmlParser.h"
+#include "../platform/PugiXmlParser.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -123,7 +123,7 @@ bool AssetPackLoader::parseAssets(const std::string &xmlContent, const std::stri
             size_t idEnd = assetXml.find("\"", idStart);
             std::string id = assetXml.substr(idStart, idEnd - idStart);
 
-            registry_.registerFont(packageName + "::" + id, std::move(fontAsset));
+            registry_.registerFont(stringToAssetId(packageName, id), std::move(fontAsset));
         }
         pos = endPos;
     }
@@ -145,7 +145,7 @@ bool AssetPackLoader::parseAssets(const std::string &xmlContent, const std::stri
             size_t idEnd = assetXml.find("\"", idStart);
             std::string id = assetXml.substr(idStart, idEnd - idStart);
 
-            registry_.registerTexture(packageName + "::" + id, std::move(texAsset));
+            registry_.registerTexture(stringToAssetId(packageName, id), std::move(texAsset));
         }
         pos = endPos;
     }
@@ -167,7 +167,7 @@ bool AssetPackLoader::parseAssets(const std::string &xmlContent, const std::stri
             size_t idEnd = assetXml.find("\"", idStart);
             std::string id = assetXml.substr(idStart, idEnd - idStart);
 
-            registry_.registerMaterial(packageName + "::" + id, std::move(matAsset));
+            registry_.registerMaterial(stringToAssetId(packageName, id), std::move(matAsset));
         }
         pos = endPos;
     }
@@ -189,7 +189,7 @@ bool AssetPackLoader::parseAssets(const std::string &xmlContent, const std::stri
             size_t idEnd = assetXml.find("\"", idStart);
             std::string id = assetXml.substr(idStart, idEnd - idStart);
 
-            registry_.registerMeshRecipe(packageName + "::" + id, std::move(meshAsset));
+            registry_.registerMeshRecipe(stringToAssetId(packageName, id), std::move(meshAsset));
         }
         pos = endPos;
     }
@@ -239,8 +239,8 @@ bool AssetPackLoader::parseConfigurations(const std::string &xmlContent, const s
         // For DefaultSphereWorldScene, register it as the default scene
         if (sceneId == "DefaultSphereWorldScene")
         {
-            registry_.registerSceneConfig(packageName + "::" + sceneId, sceneXml);
-            registry_.setDefaultScene(packageName + "::" + sceneId);
+            registry_.registerSceneConfig(stringToAssetId(packageName, sceneId), sceneXml);
+            registry_.setDefaultScene(stringToAssetId(packageName, sceneId));
             std::cout << "Registered default scene: " << packageName << "::" << sceneId << std::endl;
         }
 
@@ -402,4 +402,24 @@ std::unique_ptr<MeshRecipeAsset> AssetPackLoader::parseMeshRecipeAsset(const std
     }
 
     return asset;
+}
+
+AssetId AssetPackLoader::stringToAssetId(const std::string &packageName, const std::string &assetName)
+{
+    // Create a fully qualified asset name
+    std::string fullName = packageName + "::" + assetName;
+
+    // Use FNV-1a hash algorithm for consistent ID generation
+    constexpr uint32_t FNV_OFFSET_BASIS = 2166136261u;
+    constexpr uint32_t FNV_PRIME = 16777619u;
+
+    uint32_t hash = FNV_OFFSET_BASIS;
+    for (char c : fullName)
+    {
+        hash ^= static_cast<uint32_t>(c);
+        hash *= FNV_PRIME;
+    }
+
+    // Ensure we don't return 0 (reserved for invalid/empty ID)
+    return (hash == 0) ? 1 : hash;
 }

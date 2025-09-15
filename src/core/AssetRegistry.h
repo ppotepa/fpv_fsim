@@ -13,6 +13,9 @@ struct TextureAsset;
 struct MaterialAsset;
 struct MeshRecipeAsset;
 
+// Use numeric AssetId as defined in AssetIds.h for performance and consistency
+using AssetId = Assets::AssetId;
+
 /**
  * @brief Central registry for managing all game assets.
  *
@@ -228,8 +231,8 @@ struct MaterialAsset
  */
 struct MeshRecipeAsset
 {
-    std::string generator;                                                  /**< Name of the generator to use */
-    std::unordered_map<std::string, std::variant<float, int, bool>> params; /**< Generation parameters */
+    std::string generator;                                                               /**< Name of the generator to use */
+    std::unordered_map<std::string, std::variant<float, int, bool, std::string>> params; /**< Generation parameters */
 };
 
 #endif

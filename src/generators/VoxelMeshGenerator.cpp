@@ -2,6 +2,7 @@
 #include <cmath>
 #include <algorithm>
 #include <unordered_map>
+#include <array>
 
 // ============================================================================
 // Public Generation Methods
@@ -212,8 +213,8 @@ VoxelMesh::MeshData VoxelMeshGenerator::generateSphere(const VoxelMesh::VoxelPar
                 float x = ringRadius * std::cos(2.0f * Math::PI * s / sectors);
                 float z = ringRadius * std::sin(2.0f * Math::PI * s / sectors);
 
-                Math::float3 position = Math::add({x, y, z}, center);
-                Math::float3 normal = Math::normalize({x, y, z});
+                Math::float3 position = Math::add(Math::float3{x, y, z}, center);
+                Math::float3 normal = Math::normalize(Math::float3{x, y, z});
                 Math::float2 uv = {static_cast<float>(s) / sectors, static_cast<float>(r) / rings};
 
                 mesh.vertices.emplace_back(position, normal, uv);
@@ -264,9 +265,9 @@ VoxelMesh::MeshData VoxelMeshGenerator::generateCylinder(const VoxelMesh::VoxelP
         float x = radius * std::cos(angle);
         float z = radius * std::sin(angle);
 
-        Math::float3 bottomPos = Math::add({x, -halfHeight, z}, center);
-        Math::float3 topPos = Math::add({x, halfHeight, z}, center);
-        Math::float3 normal = Math::normalize({x, 0, z});
+        Math::float3 bottomPos = Math::add(Math::float3{x, -halfHeight, z}, center);
+        Math::float3 topPos = Math::add(Math::float3{x, halfHeight, z}, center);
+        Math::float3 normal = Math::normalize(Math::float3{x, 0, z});
         Math::float2 uvBottom = {static_cast<float>(i) / segments, 0.0f};
         Math::float2 uvTop = {static_cast<float>(i) / segments, 1.0f};
 
@@ -276,9 +277,9 @@ VoxelMesh::MeshData VoxelMeshGenerator::generateCylinder(const VoxelMesh::VoxelP
 
     // Add center vertices for caps
     uint32_t bottomCenterIdx = mesh.vertices.size();
-    mesh.vertices.emplace_back(Math::add({0, -halfHeight, 0}, center), {0, -1, 0}, {0.5f, 0.5f});
+    mesh.vertices.emplace_back(Math::add(Math::float3{0, -halfHeight, 0}, center), Math::float3{0, -1, 0}, Math::float2{0.5f, 0.5f});
     uint32_t topCenterIdx = mesh.vertices.size();
-    mesh.vertices.emplace_back(Math::add({0, halfHeight, 0}, center), {0, 1, 0}, {0.5f, 0.5f});
+    mesh.vertices.emplace_back(Math::add(Math::float3{0, halfHeight, 0}, center), Math::float3{0, 1, 0}, Math::float2{0.5f, 0.5f});
 
     // Generate side faces
     for (uint32_t i = 0; i < segments; ++i)
@@ -422,8 +423,27 @@ void VoxelMeshGenerator::generateIcosphere(VoxelMesh::MeshData &mesh, const Voxe
     }
 
     // Create faces (20 triangles)
-    std::vector<std::array<uint32_t, 3>> faces = {
-        {0, 11, 5}, {0, 5, 1}, {0, 1, 7}, {0, 7, 10}, {0, 10, 11}, {1, 5, 9}, {5, 11, 4}, {11, 10, 2}, {10, 7, 6}, {7, 1, 8}, {3, 9, 4}, {3, 4, 2}, {3, 2, 6}, {3, 6, 8}, {3, 8, 9}, {4, 9, 5}, {2, 4, 11}, {6, 2, 10}, {8, 6, 7}, {9, 8, 1}};
+    std::vector<std::array<uint32_t, 3>> faces;
+    faces.push_back(std::array<uint32_t, 3>{0, 11, 5});
+    faces.push_back(std::array<uint32_t, 3>{0, 5, 1});
+    faces.push_back(std::array<uint32_t, 3>{0, 1, 7});
+    faces.push_back(std::array<uint32_t, 3>{0, 7, 10});
+    faces.push_back(std::array<uint32_t, 3>{0, 10, 11});
+    faces.push_back(std::array<uint32_t, 3>{1, 5, 9});
+    faces.push_back(std::array<uint32_t, 3>{5, 11, 4});
+    faces.push_back(std::array<uint32_t, 3>{11, 10, 2});
+    faces.push_back(std::array<uint32_t, 3>{10, 7, 6});
+    faces.push_back(std::array<uint32_t, 3>{7, 1, 8});
+    faces.push_back(std::array<uint32_t, 3>{3, 9, 4});
+    faces.push_back(std::array<uint32_t, 3>{3, 4, 2});
+    faces.push_back(std::array<uint32_t, 3>{3, 2, 6});
+    faces.push_back(std::array<uint32_t, 3>{3, 6, 8});
+    faces.push_back(std::array<uint32_t, 3>{3, 8, 9});
+    faces.push_back(std::array<uint32_t, 3>{4, 9, 5});
+    faces.push_back(std::array<uint32_t, 3>{2, 4, 11});
+    faces.push_back(std::array<uint32_t, 3>{6, 2, 10});
+    faces.push_back(std::array<uint32_t, 3>{8, 6, 7});
+    faces.push_back(std::array<uint32_t, 3>{9, 8, 1});
 
     // Add vertices and indices
     for (const auto &vertex : vertices)

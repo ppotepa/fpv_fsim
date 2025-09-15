@@ -101,6 +101,19 @@ private:
      * @return Unique pointer to the parsed mesh recipe asset
      */
     std::unique_ptr<MeshRecipeAsset> parseMeshRecipeAsset(const std::string &xmlNode);
+
+    /**
+     * @brief Convert string asset identifier to numeric AssetId.
+     *
+     * Uses FNV-1a hash algorithm to generate consistent numeric IDs from string names.
+     * This ensures compatibility with the numeric AssetId system while maintaining
+     * deterministic asset identification.
+     *
+     * @param packageName Name of the package
+     * @param assetName Name of the asset within the package
+     * @return Numeric AssetId for the asset
+     */
+    AssetId stringToAssetId(const std::string &packageName, const std::string &assetName);
 };
 
 #endif

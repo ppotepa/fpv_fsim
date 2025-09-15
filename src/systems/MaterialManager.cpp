@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
+#include <fstream>
 
 namespace Material
 {
@@ -203,7 +204,7 @@ namespace Material
         std::cout << "Texture generator assigned to MaterialManager" << std::endl;
     }
 
-    AssetId MaterialManager::GenerateAndAssignTexture(const std::string &materialId, const std::string &textureType)
+    MaterialId MaterialManager::GenerateAndAssignTexture(const std::string &materialId, const std::string &textureType)
     {
         if (!textureGenerator_)
         {
@@ -256,7 +257,7 @@ namespace Material
 
         // Generate the texture (for now just return the name as AssetId)
         // In a real implementation, this would generate the texture and register it in an asset system
-        AssetId textureId = params.name + "_generated";
+        MaterialId textureId = params.name + "_generated";
 
         if (!textureId.empty())
         {

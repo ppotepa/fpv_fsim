@@ -16,6 +16,7 @@
 #include <string>
 #include <unordered_map>
 #include <chrono>
+#include <memory>
 
 /**
  * @class AssetHotReloadSystem
@@ -104,6 +105,18 @@ private:
     /** @brief Map of package paths to their watched file information */
     std::unordered_map<std::string, WatchedFile> watchedFiles_;
 
+    /** @brief Secondary asset registry for double-buffering */
+    std::unique_ptr<AssetRegistry> pendingRegistry_;
+
+    /** @brief Secondary asset loader for loading into pending registry */
+    std::unique_ptr<AssetPackLoader> pendingLoader_;
+
+    /** @brief Flag indicating pending assets are ready for commit */
+    bool hasPendingAssets_;
+
+    /** @brief Flag to request commit at frame boundary */
+    bool commitRequested_;
+
     /**
      * @brief Get the last modification time of a file.
      *
@@ -111,6 +124,22 @@ private:
      * @return The file's last modification time, or epoch time if file doesn't exist
      */
     std::chrono::system_clock::time_point getFileModifiedTime(const std::string &path);
+
+    /**
+     * @brief Load changed packages into pending registry for deterministic commit.
+     *
+     * Loads assets into a secondary registry without affecting the active one.
+     * This allows for atomic swapping at frame boundaries.
+     */
+    void loadPendingAssets();
+
+    /**
+     * @brief Commit pending assets by swapping registries.
+     *
+     * Atomically swaps the pending registry with the active one,
+     * ensuring deterministic asset updates at frame boundaries.
+     */
+    void commitPendingAssets();
 };
 
 #endif

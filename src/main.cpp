@@ -15,7 +15,8 @@
 #include "systems/VisualizationSystem.h"
 #include "systems/AssetHotReloadSystem.h"
 #include "platform/WinInputDevice.h"
-#include "utils/PugiXmlParser.h"
+#include "platform/PugiXmlParser.h"
+#include "utils/IXmlParserUnified.h"
 #include "vehicles/DroneBuilder.h"
 #include <iostream>
 #include <chrono>
@@ -27,20 +28,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
-        case WM_CLOSE:
-            PostQuitMessage(0);
-            return 0;
-        case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-            // Fill with dark blue background
-            HBRUSH brush = CreateSolidBrush(RGB(20, 30, 50));
-            FillRect(hdc, &ps.rcPaint, brush);
-            DeleteObject(brush);
-            EndPaint(hwnd, &ps);
-            return 0;
-        }
+    case WM_CLOSE:
+        PostQuitMessage(0);
+        return 0;
+    case WM_PAINT:
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hwnd, &ps);
+        // Fill with dark blue background
+        HBRUSH brush = CreateSolidBrush(RGB(20, 30, 50));
+        FillRect(hdc, &ps.rcPaint, brush);
+        DeleteObject(brush);
+        EndPaint(hwnd, &ps);
+        return 0;
+    }
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
@@ -49,12 +50,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 HWND CreateSimulationWindow()
 {
     const char CLASS_NAME[] = "FPV_FlightSimWindow";
-    
+
     WNDCLASSA wc = {};
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = GetModuleHandle(NULL);
     wc.lpszClassName = CLASS_NAME;
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
+    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 
     if (!RegisterClassA(&wc))
@@ -63,15 +64,15 @@ HWND CreateSimulationWindow()
     }
 
     HWND hwnd = CreateWindowExA(
-        0,                      // Optional window styles
-        CLASS_NAME,             // Window class
-        "FPV Flight Sim - Procedural Earth World",    // Window text
-        WS_OVERLAPPEDWINDOW,    // Window style
-        CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,        // Size and position
-        NULL,       // Parent window    
-        NULL,       // Menu
-        GetModuleHandle(NULL),  // Instance handle
-        NULL        // Additional application data
+        0,                                         // Optional window styles
+        CLASS_NAME,                                // Window class
+        "FPV Flight Sim - Procedural Earth World", // Window text
+        WS_OVERLAPPEDWINDOW,                       // Window style
+        CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,    // Size and position
+        NULL,                                      // Parent window
+        NULL,                                      // Menu
+        GetModuleHandle(NULL),                     // Instance handle
+        NULL                                       // Additional application data
     );
 
     if (hwnd != NULL)
@@ -103,7 +104,7 @@ int main()
     std::unique_ptr<IInputDevice> inputDevice = std::make_unique<WinInputDevice>();
 
     // Concrete implementation of XML parser
-    std::unique_ptr<IXmlParser> xmlParser = std::make_unique<PugiXmlParser>();
+    std::unique_ptr<IXmlParserUnified> xmlParser = std::make_unique<PugiXmlParser>();
 
     // Instantiate and inject systems
     world.addSystem(std::make_unique<PhysicsSystem>(eventBus, *airDensityModel, *windModel, *collisionResolver));
@@ -147,7 +148,7 @@ int main()
     float angle = 0.0f;
     MSG msg = {};
     bool running = true;
-    
+
     while (running)
     {
         // Handle Windows messages
@@ -161,8 +162,9 @@ int main()
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
-        
-        if (!running) break;
+
+        if (!running)
+            break;
 
         auto currentFrameTime = std::chrono::high_resolution_clock::now();
         std::chrono::duration<float> frameDeltaTime = currentFrameTime - lastFrameTime;

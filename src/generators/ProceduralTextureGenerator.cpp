@@ -4,6 +4,10 @@
 #include <random>
 #include <sstream>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 namespace ProceduralTexture
 {
 
@@ -674,6 +678,167 @@ namespace ProceduralTexture
     }
 
     // Implementation of remaining parsing and processing methods would continue...
+
+    // ============================================================================
+    // Missing Method Implementations (Stub implementations for build completion)
+    // ============================================================================
+
+    void ProceduralTextureGenerator::applyPostProcessing(TextureData &texture, const TextureParams &params)
+    {
+        // Stub implementation - basic post-processing
+        if (params.invert)
+        {
+            for (auto &pixel : texture.pixels)
+            {
+                pixel.r = 255 - pixel.r;
+                pixel.g = 255 - pixel.g;
+                pixel.b = 255 - pixel.b;
+            }
+        }
+        // Additional post-processing would be implemented here
+    }
+
+    TextureData ProceduralTextureGenerator::generateComposite(const std::vector<TextureData> &layers,
+                                                              const std::vector<TextureParams::BlendMode> &blendModes,
+                                                              const std::vector<float> &opacities)
+    {
+        if (layers.empty())
+        {
+            return TextureData{};
+        }
+
+        // Start with the first layer
+        TextureData result = layers[0];
+
+        // Blend additional layers (stub implementation)
+        for (size_t i = 1; i < layers.size(); ++i)
+        {
+            // Simple additive blending for stub
+            const auto &layer = layers[i];
+            float opacity = (i < opacities.size()) ? opacities[i] : 1.0f;
+
+            for (size_t j = 0; j < result.pixels.size() && j < layer.pixels.size(); ++j)
+            {
+                result.pixels[j].r = static_cast<uint8_t>(
+                    std::min(255.0f, result.pixels[j].r + layer.pixels[j].r * opacity));
+                result.pixels[j].g = static_cast<uint8_t>(
+                    std::min(255.0f, result.pixels[j].g + layer.pixels[j].g * opacity));
+                result.pixels[j].b = static_cast<uint8_t>(
+                    std::min(255.0f, result.pixels[j].b + layer.pixels[j].b * opacity));
+            }
+        }
+
+        return result;
+    }
+
+    NoiseParams ProceduralTextureGenerator::parseNoiseParameters(const std::map<std::string, std::string> &parameters)
+    {
+        NoiseParams params;
+
+        // Parse basic noise parameters (stub implementation)
+        auto it = parameters.find("type");
+        if (it != parameters.end())
+        {
+            params.type = parseNoiseType(it->second);
+        }
+
+        it = parameters.find("frequency");
+        if (it != parameters.end())
+        {
+            params.frequency = std::stof(it->second);
+        }
+
+        it = parameters.find("amplitude");
+        if (it != parameters.end())
+        {
+            params.amplitude = std::stof(it->second);
+        }
+
+        return params;
+    }
+
+    GradientParams ProceduralTextureGenerator::parseGradientParameters(const std::map<std::string, std::string> &parameters)
+    {
+        GradientParams params;
+
+        // Parse gradient parameters (stub implementation)
+        auto it = parameters.find("type");
+        if (it != parameters.end())
+        {
+            if (it->second == "linear")
+                params.type = GradientParams::Type::Linear;
+            else if (it->second == "radial")
+                params.type = GradientParams::Type::Radial;
+            else if (it->second == "angular")
+                params.type = GradientParams::Type::Angular;
+            else if (it->second == "diamond")
+                params.type = GradientParams::Type::Diamond;
+        }
+
+        return params;
+    }
+
+    PatternParams ProceduralTextureGenerator::parsePatternParameters(const std::map<std::string, std::string> &parameters)
+    {
+        PatternParams params;
+
+        // Parse pattern parameters (stub implementation)
+        auto it = parameters.find("type");
+        if (it != parameters.end())
+        {
+            if (it->second == "checkerboard")
+                params.type = PatternParams::Type::Checkerboard;
+            else if (it->second == "stripes")
+                params.type = PatternParams::Type::Stripes;
+            else if (it->second == "dots")
+                params.type = PatternParams::Type::Dots;
+            else if (it->second == "grid")
+                params.type = PatternParams::Type::Grid;
+        }
+
+        it = parameters.find("frequency");
+        if (it != parameters.end())
+        {
+            params.frequency = static_cast<uint32_t>(std::stoi(it->second));
+        }
+
+        return params;
+    }
+
+    float ProceduralTextureGenerator::calculateGradientPosition(const GradientParams &params, float x, float y)
+    {
+        // Stub implementation for gradient position calculation
+        switch (params.type)
+        {
+        case GradientParams::Type::Linear:
+            return x;
+        case GradientParams::Type::Radial:
+            return std::sqrt(x * x + y * y);
+        case GradientParams::Type::Angular:
+            return std::atan2(y, x);
+        case GradientParams::Type::Diamond:
+            return std::abs(x) + std::abs(y);
+        default:
+            return x;
+        }
+    }
+
+    Color ProceduralTextureGenerator::evaluateGradient(const GradientParams &params, float position)
+    {
+        // Stub implementation for gradient evaluation
+        if (params.colors.empty())
+        {
+            return Color(128, 128, 128, 255); // Default gray
+        }
+
+        if (params.colors.size() == 1)
+        {
+            return params.colors[0];
+        }
+
+        // Simple linear interpolation between first and last colors
+        return Color::lerp(params.colors[0], params.colors.back(), position);
+    }
     // This represents the core functionality of the texture generator
 
 } // namespace ProceduralTexture

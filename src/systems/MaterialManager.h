@@ -6,8 +6,10 @@
 #include <optional>
 #include "../math/MathUtils.h"
 #include "../generators/ProceduralTextureGenerator.h"
+#include "../core/AssetIds.h"
 
-using AssetId = std::string;
+// MaterialManager uses string-based IDs internally but should convert to numeric AssetIds for registry
+using MaterialId = std::string;
 
 namespace Material
 {
@@ -83,7 +85,7 @@ namespace Material
 
         // Texture integration (internal use only)
         void SetTextureGenerator(const ProceduralTexture::ProceduralTextureGenerator *generator);
-        AssetId GenerateAndAssignTexture(const std::string &materialId, const std::string &textureType);
+        MaterialId GenerateAndAssignTexture(const std::string &materialId, const std::string &textureType);
 
         // Bulk operations
         bool LoadMaterialsFromFile(const std::string &filePath);

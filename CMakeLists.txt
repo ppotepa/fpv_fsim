@@ -23,7 +23,9 @@ set(SOURCES
     src/physics/PerlinWindModel.cpp
     src/physics/ImpulseCollisionResolver.cpp
     src/vehicles/DroneBuilder.cpp
-    src/utils/PugiXmlParser.cpp
+    src/platform/PugiXmlParser.cpp
+    src/generators/VoxelMeshGenerator.cpp
+    src/generators/ProceduralTextureGenerator.cpp
     src/systems/PhysicsSystem.cpp
     src/systems/InputSystem.cpp
     src/systems/VehicleControlSystem.cpp

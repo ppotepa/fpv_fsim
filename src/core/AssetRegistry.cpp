@@ -181,7 +181,7 @@ void AssetRegistry::clear()
     materials_.clear();
     meshRecipes_.clear();
     sceneConfigs_.clear();
-    defaultSceneId_.clear();
+    defaultSceneId_ = 0; // Reset to invalid ID
     loadedPackages_.clear();
 }
 
@@ -237,7 +237,7 @@ void AssetRegistry::setDefaultScene(AssetId id)
  */
 const std::string *AssetRegistry::getDefaultScene() const
 {
-    if (defaultSceneId_.empty())
+    if (defaultSceneId_ == 0)
         return nullptr;
     return getSceneConfig(defaultSceneId_);
 }

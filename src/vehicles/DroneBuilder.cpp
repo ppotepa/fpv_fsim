@@ -1,6 +1,6 @@
 #include "DroneBuilder.h"
 
-DroneBuilder::DroneBuilder(IXmlParser &xmlParser) : xmlParser_(xmlParser) {}
+DroneBuilder::DroneBuilder(IXmlQuery &xmlParser) : xmlParser_(xmlParser) {}
 
 std::unique_ptr<Entity> DroneBuilder::build(const std::string &configPath, EventBus &eventBus)
 {
