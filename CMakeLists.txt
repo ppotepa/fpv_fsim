@@ -29,10 +29,15 @@ set(SOURCES
     src/systems/VehicleControlSystem.cpp
     src/systems/BootstrapSystem.cpp
     src/systems/WorldGenSystem.cpp
+    src/systems/MaterialManager.cpp
+    src/config/SceneConfigParser.cpp
     src/systems/ConsoleSystem.cpp
     src/systems/VisualizationSystem.cpp
     src/systems/AssetHotReloadSystem.cpp
     src/platform/WinInputDevice.cpp
+    # Temporarily comment out procedural generators until they're fixed
+    # src/procedural/ProceduralMeshGenerators.cpp
+    src/assets/ShaderAsset.cpp
     # Add more source files as implemented
 )
 

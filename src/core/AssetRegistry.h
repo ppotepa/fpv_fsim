@@ -5,15 +5,13 @@
 #include <string>
 #include <memory>
 #include <variant>
+#include "AssetIds.h"
 
 // Forward declarations for asset types
 struct FontAsset;
 struct TextureAsset;
 struct MaterialAsset;
 struct MeshRecipeAsset;
-
-/** Type alias for asset identifiers */
-using AssetId = std::string;
 
 /**
  * @brief Central registry for managing all game assets.

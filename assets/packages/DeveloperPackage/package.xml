@@ -1,36 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Developer Package XML Configuration — EXTENDED
-    Adds a lightweight cel-shaded (no outline) voxel/low-poly "Universal-style" busy-indicator scene:
-    - Low-poly globe with procedural land bumps
-    - Six randomly generated 32×32 textures (water, land, rock, cloud, fuselage red, wings grey)
-    - Single distant sun (directional light)
+    Developer Package XML Configuration — SIMPLIFIED
+    Adds a lightweight loading indicator scene using voxel cubes as the base primitive:
+    - Globe made from voxel spheres with procedural textures
+    - Six small procedural 32×32 textures (water, land, rock, cloud, aircraft body, aircraft wings)
+    - Single directional light
     - Fixed cinematic camera
-    - Low-poly aircraft orbiting on an inclined slightly-elliptic path, optional contrail
-    - Voxel cloud groups that orbit + fade (vapourise) with lifecycle
+    - Aircraft made from voxel cubes orbiting on inclined elliptic path
+    - Cloud groups made from voxel cubes that orbit and fade with lifecycle
     - ~1 MiB target memory footprint (tiny meshes, tiny textures, procedural animation)
 -->
-<package name="DeveloperPackage" version="1.1" description="Core developer debug assets, default scene, and voxel busy indicator.">
+<package name="DeveloperPackage" version="1.2" description="Core developer debug assets and loading indicator scene.">
 
     <!--
         Dependencies:
-        This package might implicitly depend on core engine functionality for rendering, physics primitives, etc.
-        For simplicity, we assume basic engine systems and a standard shader library are already built into the runtime.
+        Basic engine systems and shader library assumed to be built into runtime.
     -->
     <dependencies>
         <!-- No additional deps; assumes core shader library + ECS components exist. -->
     </dependencies>
 
     <!--
-        Asset Declarations (Inner Assets):
-        These are the raw assets (or recipes for procedural assets) that the Developer Package provides.
-        The asset compiler will "cook" these into binary formats if needed, assigning stable AssetIds.
-        Paths are relative to the package's root (e.g., 'assets/packages/DeveloperPackage/').
-
+        Asset Declarations:
+        Simplified naming scheme using voxel cubes as base primitive.
+        All shapes are constructed from voxel building blocks.
     -->
     <assets>
-        <!-- ==== EXISTING ASSETS (unchanged) =================================================== -->
-        <!-- Console UI Assets [user request, previous conversation] -->
+        <!-- ==== CONSOLE ASSETS (unchanged) =================================================== -->
         <asset type="font" id="ConsoleFont">
             <path>console/console_font.ttf</path>
             <properties size="16" antialiasing="true" />
@@ -40,14 +36,407 @@
             <properties format="PNG" mipmaps="false" filter="linear" />
         </asset>
 
-        <!-- Default Sphere World Materials & Mesh Recipes [previous conversation] -->
-        <!-- These define materials for the "Earth-like" sphere, atmospheric layers, and voxel clouds. -->
+        <!-- ==== DEFAULT SPHERE SCENE ASSETS (unchanged) ================================== -->
         <asset type="material" id="EarthSurfaceMaterial">
-            <shader_id>StandardPBRShader</shader_id> <!-- Assumes a standard PBR shader is available in the engine -->
+            <shader_id>BasicShader</shader_id>
             <params>
-                <!-- Placeholder paths to actual textures for Earth, which would be located under /assets/packages/DeveloperPackage/textures/ -->
                 <albedo_texture>textures/earth_albedo.ktx2</albedo_texture>
                 <normal_map>textures/earth_normal.ktx2</normal_map>
+                <roughness>0.8</roughness>
+                <metallic>0.0</metallic>
+            </params>
+        </asset>
+        <asset type="material" id="AtmosphereLayer1Material">
+            <shader_id>BasicShader</shader_id>
+            <params>
+                <albedo_color>0.6 0.8 1.0 0.3</albedo_color>
+                <transparency>true</transparency>
+            </params>
+        </asset>
+        <asset type="material" id="AtmosphereLayer2Material">
+            <shader_id>BasicShader</shader_id>
+            <params>
+                <albedo_color>0.4 0.6 0.9 0.2</albedo_color>
+                <transparency>true</transparency>
+            </params>
+        </asset>
+        <asset type="material" id="CloudLayerMaterial">
+            <shader_id>BasicShader</shader_id>
+            <params>
+                <albedo_color>1.0 1.0 1.0 0.8</albedo_color>
+                <transparency>true</transparency>
+            </params>
+        </asset>
+        <asset type="mesh_recipe" id="SphereRecipe">
+            <generator>VoxelGenerator</generator>
+            <params>
+                <type>sphere</type>
+                <subdivisions>3</subdivisions>
+                <radius>1.0</radius>
+            </params>
+        </asset>
+        <asset type="mesh_recipe" id="CloudRecipe">
+            <generator>VoxelGenerator</generator>
+            <params>
+                <type>cube</type>
+                <size>1.0</size>
+                <subdivisions>1</subdivisions>
+            </params>
+        </asset>
+
+        <!-- ==== SIMPLIFIED SHADERS ======================================================= -->
+        <asset type="shader" id="BasicShader">
+            <vertex_shader>shaders/basic.vert</vertex_shader>
+            <fragment_shader>shaders/basic.frag</fragment_shader>
+            <parameters>
+                <uniform name="albedo_color" type="vec4" default="1.0 1.0 1.0 1.0"/>
+                <uniform name="roughness" type="float" default="0.5"/>
+                <uniform name="metallic" type="float" default="0.0"/>
+            </parameters>
+        </asset>
+        <asset type="shader" id="CelShader">
+            <vertex_shader>shaders/cel.vert</vertex_shader>
+            <fragment_shader>shaders/cel.frag</fragment_shader>
+            <parameters>
+                <uniform name="band_count" type="int" default="4"/>
+                <uniform name="band_smoothness" type="float" default="0.1"/>
+                <uniform name="rim_power" type="float" default="2.0"/>
+            </parameters>
+        </asset>
+
+        <!-- ==== SIMPLIFIED PROCEDURAL TEXTURES =========================================== -->
+        <asset type="texture_generator" id="WaterTexture">
+            <generator>ProceduralTextureGenerator</generator>
+            <params>
+                <type>flat_noise</type>
+                <size>32</size>
+                <seed>1001</seed>
+                <color_primary>#0066CC</color_primary>
+                <color_secondary>#004499</color_secondary>
+                <noise_scale>4.0</noise_scale>
+            </params>
+        </asset>
+        <asset type="texture_generator" id="LandTexture">
+            <generator>ProceduralTextureGenerator</generator>
+            <params>
+                <type>flat_noise</type>
+                <size>32</size>
+                <seed>1002</seed>
+                <color_primary>#228B22</color_primary>
+                <color_secondary>#006400</color_secondary>
+                <noise_scale>6.0</noise_scale>
+            </params>
+        </asset>
+        <asset type="texture_generator" id="RockTexture">
+            <generator>ProceduralTextureGenerator</generator>
+            <params>
+                <type>speckle</type>
+                <size>32</size>
+                <seed>1003</seed>
+                <color_primary>#696969</color_primary>
+                <color_secondary>#2F2F2F</color_secondary>
+                <noise_scale>8.0</noise_scale>
+            </params>
+        </asset>
+        <asset type="texture_generator" id="CloudTexture">
+            <generator>ProceduralTextureGenerator</generator>
+            <params>
+                <type>dither</type>
+                <size>32</size>
+                <seed>1004</seed>
+                <color_primary>#FFFFFF</color_primary>
+                <color_secondary>#E0E0E0</color_secondary>
+                <noise_scale>2.0</noise_scale>
+            </params>
+        </asset>
+        <asset type="texture_generator" id="AircraftBodyTexture">
+            <generator>ProceduralTextureGenerator</generator>
+            <params>
+                <type>solid_color</type>
+                <size>32</size>
+                <color_primary>#CC3333</color_primary>
+            </params>
+        </asset>
+        <asset type="texture_generator" id="AircraftWingTexture">
+            <generator>ProceduralTextureGenerator</generator>
+            <params>
+                <type>solid_color</type>
+                <size>32</size>
+                <color_primary>#808080</color_primary>
+            </params>
+        </asset>
+
+        <!-- ==== SIMPLIFIED MATERIALS ===================================================== -->
+        <asset type="material" id="WaterMaterial">
+            <shader_id>CelShader</shader_id>
+            <textures>
+                <texture slot="diffuse" asset_id="WaterTexture"/>
+            </textures>
+            <params>
+                <band_count>3</band_count>
+                <band_smoothness>0.15</band_smoothness>
+            </params>
+        </asset>
+        <asset type="material" id="LandMaterial">
+            <shader_id>CelShader</shader_id>
+            <textures>
+                <texture slot="diffuse" asset_id="LandTexture"/>
+            </textures>
+            <params>
+                <band_count>4</band_count>
+                <band_smoothness>0.1</band_smoothness>
+            </params>
+        </asset>
+        <asset type="material" id="RockMaterial">
+            <shader_id>CelShader</shader_id>
+            <textures>
+                <texture slot="diffuse" asset_id="RockTexture"/>
+            </textures>
+            <params>
+                <band_count>3</band_count>
+                <band_smoothness>0.2</band_smoothness>
+            </params>
+        </asset>
+        <asset type="material" id="CloudMaterial">
+            <shader_id>CelShader</shader_id>
+            <textures>
+                <texture slot="diffuse" asset_id="CloudTexture"/>
+            </textures>
+            <params>
+                <band_count>2</band_count>
+                <band_smoothness>0.3</band_smoothness>
+                <transparency>true</transparency>
+            </params>
+        </asset>
+        <asset type="material" id="AircraftBodyMaterial">
+            <shader_id>CelShader</shader_id>
+            <textures>
+                <texture slot="diffuse" asset_id="AircraftBodyTexture"/>
+            </textures>
+            <params>
+                <band_count>2</band_count>
+                <band_smoothness>0.05</band_smoothness>
+            </params>
+        </asset>
+        <asset type="material" id="AircraftWingMaterial">
+            <shader_id>CelShader</shader_id>
+            <textures>
+                <texture slot="diffuse" asset_id="AircraftWingTexture"/>
+            </textures>
+            <params>
+                <band_count>2</band_count>
+                <band_smoothness>0.05</band_smoothness>
+            </params>
+        </asset>
+
+        <!-- ==== SIMPLIFIED MESH RECIPES (All Voxel Based) ================================ -->
+        <asset type="mesh_recipe" id="GlobeRecipe">
+            <generator>VoxelGenerator</generator>
+            <params>
+                <type>sphere</type>
+                <subdivisions>4</subdivisions>
+                <radius>2.0</radius>
+            </params>
+        </asset>
+        <asset type="mesh_recipe" id="CubeRecipe">
+            <generator>VoxelGenerator</generator>
+            <params>
+                <type>cube</type>
+                <size>1.0</size>
+                <subdivisions>1</subdivisions>
+            </params>
+        </asset>
+        <asset type="mesh_recipe" id="AircraftRecipe">
+            <generator>VoxelGenerator</generator>
+            <params>
+                <type>compound</type>
+                <parts>
+                    <!-- Fuselage -->
+                    <part name="body">
+                        <primitive type="cube"/>
+                        <scale x="0.3" y="0.3" z="1.2"/>
+                        <offset x="0.0" y="0.0" z="0.0"/>
+                    </part>
+                    <!-- Wings -->
+                    <part name="wings">
+                        <primitive type="cube"/>
+                        <scale x="1.5" y="0.1" z="0.4"/>
+                        <offset x="0.0" y="0.0" z="-0.2"/>
+                    </part>
+                    <!-- Tail -->
+                    <part name="tail">
+                        <primitive type="cube"/>
+                        <scale x="0.1" y="0.4" z="0.2"/>
+                        <offset x="0.0" y="0.0" z="0.5"/>
+                    </part>
+                </parts>
+            </params>
+        </asset>
+    </assets>
+
+    <!--
+        Scene Configurations:
+        Simplified to use "loading_indicator" type instead of "voxel_busy_indicator"
+    -->
+    <configurations>
+        <scenes>
+            <!-- Default Earth-like sphere scene (unchanged functionality) -->
+            <scene name="DefaultSphereScene" type="default_sphere" budget_memory_mb="2">
+                <description>A simple Earth-like sphere with atmospheric layers for basic world visualization.</description>
+                
+                <camera>
+                    <position x="0" y="0" z="8"/>
+                    <target x="0" y="0" z="0"/>
+                    <fov>45</fov>
+                </camera>
+                
+                <lighting>
+                    <directional_light intensity="1.0">
+                        <direction x="-0.5" y="-1.0" z="-0.3"/>
+                        <color r="1.0" g="0.95" b="0.8" a="1.0"/>
+                    </directional_light>
+                    <ambient_light intensity="0.2">
+                        <color r="0.3" g="0.4" z="0.6" a="1.0"/>
+                    </ambient_light>
+                </lighting>
+                
+                <entities>
+                    <entity id="earth_sphere" name="Earth">
+                        <transform>
+                            <position x="0" y="0" z="0"/>
+                            <scale x="2.0" y="2.0" z="2.0"/>
+                        </transform>
+                        <mesh>
+                            <voxel_primitive type="sphere" subdivisions="4" radius="1.0"/>
+                        </mesh>
+                        <material shader="basic">
+                            <texture slot="diffuse" file="textures/earth_albedo.ktx2"/>
+                            <parameters>
+                                <parameter name="roughness" value="0.8" type="float"/>
+                            </parameters>
+                        </material>
+                        <components>
+                            <rotation>
+                                <axis x="0" y="1" z="0"/>
+                                <speed>0.1</speed>
+                            </rotation>
+                        </components>
+                    </entity>
+                </entities>
+            </scene>
+
+            <!-- Simplified Loading Indicator Scene -->
+            <scene name="LoadingIndicatorScene" type="loading_indicator" budget_memory_mb="1">
+                <description>Lightweight loading indicator with orbiting aircraft and cloud groups using voxel primitives.</description>
+                
+                <camera>
+                    <position x="4.5" y="3.2" z="6.8"/>
+                    <target x="0" y="0" z="0"/>
+                    <fov>35</fov>
+                </camera>
+                
+                <lighting>
+                    <directional_light intensity="1.2">
+                        <direction x="-0.6" y="-0.8" z="-0.4"/>
+                        <color r="1.0" g="0.95" b="0.85" a="1.0"/>
+                    </directional_light>
+                    <ambient_light intensity="0.3">
+                        <color r="0.4" g="0.5" b="0.7" a="1.0"/>
+                    </ambient_light>
+                </lighting>
+                
+                <entities>
+                    <!-- Central Globe -->
+                    <entity id="globe" name="Globe">
+                        <transform>
+                            <position x="0" y="0" z="0"/>
+                        </transform>
+                        <mesh>
+                            <voxel_primitive type="sphere" subdivisions="3" radius="2.0"/>
+                        </mesh>
+                        <material shader="cel">
+                            <texture slot="diffuse" asset_id="LandTexture"/>
+                            <parameters>
+                                <parameter name="band_count" value="4" type="int"/>
+                                <parameter name="band_smoothness" value="0.1" type="float"/>
+                            </parameters>
+                        </material>
+                        <components>
+                            <rotation>
+                                <axis x="0" y="1" z="0"/>
+                                <speed>0.05</speed>
+                            </rotation>
+                        </components>
+                    </entity>
+
+                    <!-- Orbiting Aircraft 1 -->
+                    <entity id="aircraft1" name="Aircraft1">
+                        <mesh>
+                            <voxel_compound name="aircraft">
+                                <part name="body">
+                                    <primitive type="cube"/>
+                                    <scale x="0.3" y="0.3" z="1.2"/>
+                                </part>
+                                <part name="wings">
+                                    <primitive type="cube"/>
+                                    <scale x="1.5" y="0.1" z="0.4"/>
+                                    <offset x="0.0" y="0.0" z="-0.2"/>
+                                </part>
+                            </voxel_compound>
+                        </mesh>
+                        <material shader="cel">
+                            <texture slot="diffuse" asset_id="AircraftBodyTexture"/>
+                        </material>
+                        <components>
+                            <orbital radius="4.5" speed="0.3" eccentricity="0.15" inclination="15.0" enable_banking="true" max_bank_angle="25.0">
+                                <center x="0" y="0" z="0"/>
+                                <axis x="0" y="1" z="0"/>
+                            </orbital>
+                            <trail particle_count="30" lifetime="1.5" spawn_rate="15.0"/>
+                        </components>
+                    </entity>
+
+                    <!-- Orbiting Aircraft 2 -->
+                    <entity id="aircraft2" name="Aircraft2">
+                        <mesh>
+                            <voxel_compound name="aircraft">
+                                <part name="body">
+                                    <primitive type="cube"/>
+                                    <scale x="0.3" y="0.3" z="1.2"/>
+                                </part>
+                                <part name="wings">
+                                    <primitive type="cube"/>
+                                    <scale x="1.5" y="0.1" z="0.4"/>
+                                    <offset x="0.0" y="0.0" z="-0.2"/>
+                                </part>
+                            </voxel_compound>
+                        </mesh>
+                        <material shader="cel">
+                            <texture slot="diffuse" asset_id="AircraftBodyTexture"/>
+                        </material>
+                        <components>
+                            <orbital radius="5.2" speed="0.25" eccentricity="0.1" inclination="-20.0" phase_offset="180.0" enable_banking="true">
+                                <center x="0" y="0" z="0"/>
+                                <axis x="0" y="1" z="0"/>
+                            </orbital>
+                            <trail particle_count="25" lifetime="1.8" spawn_rate="12.0"/>
+                        </components>
+                    </entity>
+
+                    <!-- Cloud Group Spawner -->
+                    <entity id="cloud_spawner" name="CloudSpawner">
+                        <transform>
+                            <position x="0" y="0" z="0"/>
+                        </transform>
+                        <components>
+                            <spawner spawn_rate="0.08" max_entities="8" entity_lifetime="25.0" spawn_radius="7.0"/>
+                        </components>
+                    </entity>
+                </entities>
+            </scene>
+        </scenes>
+    </configurations>
+</package>
                 <roughness value="0.8" />
                 <metallic value="0.0" />
             </params>

@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://fpvfsim.com/asset-schema"
+           xmlns:tns="http://fpvfsim.com/asset-schema"
+           elementFormDefault="qualified">
+
+    <!-- Root package element -->
+    <xs:element name="package">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="metadata" type="tns:MetadataType" minOccurs="0"/>
+                <xs:element name="dependencies" type="tns:DependenciesType" minOccurs="0"/>
+                <xs:element name="assets" type="tns:AssetsType" minOccurs="0"/>
+                <xs:element name="textures" type="tns:TexturesType" minOccurs="0"/>
+                <xs:element name="meshes" type="tns:MeshesType" minOccurs="0"/>
+                <xs:element name="materials" type="tns:MaterialsType" minOccurs="0"/>
+                <xs:element name="shaders" type="tns:ShadersType" minOccurs="0"/>
+                <xs:element name="fonts" type="tns:FontsType" minOccurs="0"/>
+                <xs:element name="audio" type="tns:AudioType" minOccurs="0"/>
+                <xs:element name="scenes" type="tns:ScenesType" minOccurs="0"/>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+            <xs:attribute name="version" type="xs:string" use="required"/>
+            <xs:attribute name="description" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Metadata section -->
+    <xs:complexType name="MetadataType">
+        <xs:sequence>
+            <xs:element name="description" type="xs:string" minOccurs="0"/>
+            <xs:element name="author" type="xs:string" minOccurs="0"/>
+            <xs:element name="version" type="xs:string" minOccurs="0"/>
+            <xs:element name="license" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Dependencies section -->
+    <xs:complexType name="DependenciesType">
+        <xs:sequence>
+            <xs:element name="package" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:attribute name="name" type="xs:string" use="required"/>
+                    <xs:attribute name="version" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Assets section (legacy format) -->
+    <xs:complexType name="AssetsType">
+        <xs:sequence>
+            <xs:element name="asset" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="path" type="xs:string" minOccurs="0"/>
+                        <xs:element name="properties" minOccurs="0">
+                            <xs:complexType>
+                                <xs:anyAttribute processContents="lax"/>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="params" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:any maxOccurs="unbounded" processContents="lax"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="type" type="xs:string" use="required"/>
+                    <xs:attribute name="id" type="xs:string" use="required"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Textures section -->
+    <xs:complexType name="TexturesType">
+        <xs:sequence>
+            <xs:element name="texture" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="source" type="xs:string" minOccurs="0"/>
+                        <xs:element name="format" type="xs:string" minOccurs="0"/>
+                        <xs:element name="compression" type="xs:string" minOccurs="0"/>
+                        <xs:element name="generate_mipmaps" type="xs:boolean" minOccurs="0"/>
+                        <xs:element name="param" maxOccurs="unbounded" minOccurs="0">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute name="name" type="xs:string" use="required"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="id" type="xs:string" use="required"/>
+                    <xs:attribute name="type" use="required">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="file"/>
+                                <xs:enumeration value="procedural"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Meshes section -->
+    <xs:complexType name="MeshesType">
+        <xs:sequence>
+            <xs:element name="mesh" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="source" type="xs:string" minOccurs="0"/>
+                        <xs:element name="optimize" type="xs:boolean" minOccurs="0"/>
+                        <xs:element name="generate_lods" type="xs:boolean" minOccurs="0"/>
+                        <xs:element name="lod_levels" type="xs:positiveInteger" minOccurs="0"/>
+                        <xs:element name="param" maxOccurs="unbounded" minOccurs="0">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute name="name" type="xs:string" use="required"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="id" type="xs:string" use="required"/>
+                    <xs:attribute name="type" use="required">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="file"/>
+                                <xs:enumeration value="procedural"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Materials section -->
+    <xs:complexType name="MaterialsType">
+        <xs:sequence>
+            <xs:element name="material" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="albedo_map" type="xs:string" minOccurs="0"/>
+                        <xs:element name="normal_map" type="xs:string" minOccurs="0"/>
+                        <xs:element name="roughness_map" type="xs:string" minOccurs="0"/>
+                        <xs:element name="metallic_map" type="xs:string" minOccurs="0"/>
+                        <xs:element name="ao_map" type="xs:string" minOccurs="0"/>
+                        <xs:element name="albedo" type="xs:string" minOccurs="0"/>
+                        <xs:element name="roughness" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="metallic" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="ao" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="ambient" type="xs:string" minOccurs="0"/>
+                        <xs:element name="diffuse" type="xs:string" minOccurs="0"/>
+                        <xs:element name="specular" type="xs:string" minOccurs="0"/>
+                        <xs:element name="shininess" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="color" type="xs:string" minOccurs="0"/>
+                        <xs:element name="opacity" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="double_sided" type="xs:boolean" minOccurs="0"/>
+                    </xs:sequence>
+                    <xs:attribute name="id" type="xs:string" use="required"/>
+                    <xs:attribute name="type" use="required">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="pbr"/>
+                                <xs:enumeration value="phong"/>
+                                <xs:enumeration value="unlit"/>
+                                <xs:enumeration value="volumetric"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Shaders section -->
+    <xs:complexType name="ShadersType">
+        <xs:sequence>
+            <xs:element name="shader" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="vertex_source" type="xs:string" minOccurs="0"/>
+                        <xs:element name="fragment_source" type="xs:string" minOccurs="0"/>
+                        <xs:element name="geometry_source" type="xs:string" minOccurs="0"/>
+                        <xs:element name="param" maxOccurs="unbounded" minOccurs="0">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute name="name" type="xs:string" use="required"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="id" type="xs:string" use="required"/>
+                    <xs:attribute name="type" use="required">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="file"/>
+                                <xs:enumeration value="procedural"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Fonts section -->
+    <xs:complexType name="FontsType">
+        <xs:sequence>
+            <xs:element name="font" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="source" type="xs:string"/>
+                        <xs:element name="size" type="xs:positiveInteger" minOccurs="0"/>
+                        <xs:element name="charset" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                    <xs:attribute name="id" type="xs:string" use="required"/>
+                    <xs:attribute name="type" type="xs:string" use="required"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Audio section -->
+    <xs:complexType name="AudioType">
+        <xs:sequence>
+            <xs:element name="sound" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="source" type="xs:string" minOccurs="0"/>
+                        <xs:element name="format" type="xs:string" minOccurs="0"/>
+                        <xs:element name="loop" type="xs:boolean" minOccurs="0"/>
+                        <xs:element name="param" maxOccurs="unbounded" minOccurs="0">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute name="name" type="xs:string" use="required"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="id" type="xs:string" use="required"/>
+                    <xs:attribute name="type" use="required">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="file"/>
+                                <xs:enumeration value="procedural"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Scenes section -->
+    <xs:complexType name="ScenesType">
+        <xs:sequence>
+            <xs:element name="scene" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="description" type="xs:string" minOccurs="0"/>
+                        <xs:element name="environment" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="atmosphere" minOccurs="0">
+                                        <xs:complexType>
+                                            <xs:attribute name="enabled" type="xs:boolean"/>
+                                            <xs:attribute name="material_id" type="xs:string"/>
+                                            <xs:attribute name="mesh_id" type="xs:string"/>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="clouds" minOccurs="0">
+                                        <xs:complexType>
+                                            <xs:attribute name="enabled" type="xs:boolean"/>
+                                            <xs:attribute name="material_id" type="xs:string"/>
+                                            <xs:attribute name="mesh_id" type="xs:string"/>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="lighting" minOccurs="0">
+                                        <xs:complexType>
+                                            <xs:attribute name="type" type="xs:string"/>
+                                            <xs:attribute name="intensity" type="xs:decimal"/>
+                                            <xs:attribute name="direction" type="xs:string"/>
+                                            <xs:attribute name="position" type="xs:string"/>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="background_color" type="xs:string" minOccurs="0"/>
+                                    <xs:element name="wind" minOccurs="0">
+                                        <xs:complexType>
+                                            <xs:attribute name="enabled" type="xs:boolean"/>
+                                            <xs:attribute name="base_speed" type="xs:decimal"/>
+                                            <xs:attribute name="turbulence" type="xs:decimal"/>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:any maxOccurs="unbounded" minOccurs="0" processContents="lax"/>
+                    </xs:sequence>
+                    <xs:attribute name="id" type="xs:string" use="required"/>
+                    <xs:attribute name="type" type="xs:string" use="required"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

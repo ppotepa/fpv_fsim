@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://fpvfsim.com/scene-schema"
+           xmlns:tns="http://fpvfsim.com/scene-schema"
+           elementFormDefault="qualified">
+
+    <!-- Root scene element -->
+    <xs:element name="scene">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="metadata" type="tns:MetadataType" minOccurs="0"/>
+                <xs:element name="environment" type="tns:EnvironmentType" minOccurs="0"/>
+                <xs:element name="terrain" type="tns:TerrainType" minOccurs="0"/>
+                <xs:element name="entities" type="tns:EntitiesType" minOccurs="0"/>
+                <xs:element name="cameras" type="tns:CamerasType" minOccurs="0"/>
+                <xs:element name="lights" type="tns:LightsType" minOccurs="0"/>
+                <xs:element name="audio" type="tns:AudioType" minOccurs="0"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:string" use="required"/>
+            <xs:attribute name="name" type="xs:string"/>
+            <xs:attribute name="version" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Metadata section -->
+    <xs:complexType name="MetadataType">
+        <xs:sequence>
+            <xs:element name="title" type="xs:string" minOccurs="0"/>
+            <xs:element name="description" type="xs:string" minOccurs="0"/>
+            <xs:element name="author" type="xs:string" minOccurs="0"/>
+            <xs:element name="created" type="xs:dateTime" minOccurs="0"/>
+            <xs:element name="modified" type="xs:dateTime" minOccurs="0"/>
+            <xs:element name="tags" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="tag" type="xs:string" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Environment section -->
+    <xs:complexType name="EnvironmentType">
+        <xs:sequence>
+            <xs:element name="atmosphere" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="enabled" type="xs:boolean" default="true"/>
+                    <xs:attribute name="material_id" type="xs:string"/>
+                    <xs:attribute name="mesh_id" type="xs:string"/>
+                    <xs:attribute name="density" type="xs:decimal"/>
+                    <xs:attribute name="scale_height" type="xs:decimal"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="clouds" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="enabled" type="xs:boolean" default="true"/>
+                    <xs:attribute name="material_id" type="xs:string"/>
+                    <xs:attribute name="mesh_id" type="xs:string"/>
+                    <xs:attribute name="coverage" type="xs:decimal"/>
+                    <xs:attribute name="altitude" type="xs:decimal"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="sky" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="type" type="xs:string"/>
+                    <xs:attribute name="color" type="xs:string"/>
+                    <xs:attribute name="horizon_color" type="xs:string"/>
+                    <xs:attribute name="zenith_color" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="wind" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="enabled" type="xs:boolean" default="false"/>
+                    <xs:attribute name="base_speed" type="xs:decimal"/>
+                    <xs:attribute name="direction" type="xs:string"/>
+                    <xs:attribute name="turbulence" type="xs:decimal"/>
+                    <xs:attribute name="altitude_factor" type="xs:decimal"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="fog" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="enabled" type="xs:boolean" default="false"/>
+                    <xs:attribute name="color" type="xs:string"/>
+                    <xs:attribute name="density" type="xs:decimal"/>
+                    <xs:attribute name="start_distance" type="xs:decimal"/>
+                    <xs:attribute name="end_distance" type="xs:decimal"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Terrain section -->
+    <xs:complexType name="TerrainType">
+        <xs:sequence>
+            <xs:element name="surface" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="material_id" type="xs:string"/>
+                    <xs:attribute name="mesh_id" type="xs:string"/>
+                    <xs:attribute name="texture_scale" type="xs:decimal"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="height_map" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="texture_id" type="xs:string"/>
+                    <xs:attribute name="scale" type="xs:decimal"/>
+                    <xs:attribute name="offset" type="xs:decimal"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="collision" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="enabled" type="xs:boolean" default="true"/>
+                    <xs:attribute name="precision" type="xs:string"/>
+                    <xs:attribute name="material" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Entities section -->
+    <xs:complexType name="EntitiesType">
+        <xs:sequence>
+            <xs:element name="entity" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="position" type="tns:Vector3Type" minOccurs="0"/>
+                        <xs:element name="rotation" type="tns:Vector3Type" minOccurs="0"/>
+                        <xs:element name="scale" type="tns:Vector3Type" minOccurs="0"/>
+                        <xs:element name="mesh_id" type="xs:string" minOccurs="0"/>
+                        <xs:element name="material_id" type="xs:string" minOccurs="0"/>
+                        <xs:element name="physics" minOccurs="0">
+                            <xs:complexType>
+                                <xs:attribute name="enabled" type="xs:boolean" default="false"/>
+                                <xs:attribute name="mass" type="xs:decimal"/>
+                                <xs:attribute name="friction" type="xs:decimal"/>
+                                <xs:attribute name="restitution" type="xs:decimal"/>
+                                <xs:attribute name="kinematic" type="xs:boolean"/>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="controls" minOccurs="0">
+                            <xs:complexType>
+                                <xs:attribute name="enabled" type="xs:boolean" default="false"/>
+                                <xs:attribute name="input_device" type="xs:string"/>
+                                <xs:attribute name="control_scheme" type="xs:string"/>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="animation" minOccurs="0">
+                            <xs:complexType>
+                                <xs:attribute name="type" type="xs:string"/>
+                                <xs:attribute name="speed" type="xs:decimal"/>
+                                <xs:attribute name="loop" type="xs:boolean"/>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="size" type="tns:Vector2Type" minOccurs="0"/>
+                        <xs:element name="building_density" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="building_height_range" type="tns:Vector2Type" minOccurs="0"/>
+                        <xs:element name="default_material" type="xs:string" minOccurs="0"/>
+                        <xs:element name="road_network" minOccurs="0">
+                            <xs:complexType>
+                                <xs:attribute name="enabled" type="xs:boolean"/>
+                                <xs:attribute name="width" type="xs:decimal"/>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="id" type="xs:string" use="required"/>
+                    <xs:attribute name="type" type="xs:string" use="required"/>
+                    <xs:attribute name="name" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Cameras section -->
+    <xs:complexType name="CamerasType">
+        <xs:sequence>
+            <xs:element name="camera" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="position" type="tns:Vector3Type" minOccurs="0"/>
+                        <xs:element name="rotation" type="tns:Vector3Type" minOccurs="0"/>
+                        <xs:element name="look_at" type="tns:Vector3Type" minOccurs="0"/>
+                        <xs:element name="attach_to" type="xs:string" minOccurs="0"/>
+                        <xs:element name="offset" type="tns:Vector3Type" minOccurs="0"/>
+                        <xs:element name="fov" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="near" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="far" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="orthographic" type="xs:boolean" minOccurs="0"/>
+                        <xs:element name="ortho_size" type="xs:decimal" minOccurs="0"/>
+                    </xs:sequence>
+                    <xs:attribute name="id" type="xs:string" use="required"/>
+                    <xs:attribute name="type" use="required">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="perspective"/>
+                                <xs:enumeration value="orthographic"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                    <xs:attribute name="active" type="xs:boolean" default="false"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Lights section -->
+    <xs:complexType name="LightsType">
+        <xs:sequence>
+            <xs:element name="light" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="position" type="tns:Vector3Type" minOccurs="0"/>
+                        <xs:element name="direction" type="tns:Vector3Type" minOccurs="0"/>
+                        <xs:element name="color" type="tns:Vector3Type" minOccurs="0"/>
+                        <xs:element name="intensity" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="range" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="spot_angle" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="shadows" type="xs:boolean" minOccurs="0"/>
+                    </xs:sequence>
+                    <xs:attribute name="id" type="xs:string" use="required"/>
+                    <xs:attribute name="type" use="required">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="directional"/>
+                                <xs:enumeration value="point"/>
+                                <xs:enumeration value="spot"/>
+                                <xs:enumeration value="area"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                    <xs:attribute name="enabled" type="xs:boolean" default="true"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Audio section -->
+    <xs:complexType name="AudioType">
+        <xs:sequence>
+            <xs:element name="ambient" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="sound_id" type="xs:string"/>
+                    <xs:attribute name="volume" type="xs:decimal"/>
+                    <xs:attribute name="loop" type="xs:boolean"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="music" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="sound_id" type="xs:string"/>
+                    <xs:attribute name="volume" type="xs:decimal"/>
+                    <xs:attribute name="loop" type="xs:boolean"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Vector types -->
+    <xs:simpleType name="Vector3Type">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Vector2Type">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

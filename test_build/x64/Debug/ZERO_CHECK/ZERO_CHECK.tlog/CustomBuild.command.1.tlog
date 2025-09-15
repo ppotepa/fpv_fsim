@@ -1,0 +1,10 @@
+^C:\USERS\PAWEL\DESKTOP\DRONE_SIM_GGL\TEST_BUILD\CMAKEFILES\5ED80F2F91F02E9396E0F55E046F4D75\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/pawel/Desktop/drone_sim_ggl/test_build -BC:/Users/pawel/Desktop/drone_sim_ggl/test_build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/pawel/Desktop/drone_sim_ggl/test_build/math_test.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
