@@ -4,13 +4,31 @@
 #include <fstream>
 #include <sstream>
 
+/**
+ * @brief Construct an asset pack loader with a reference to the registry.
+ *
+ * @param registry Reference to the asset registry where loaded assets will be stored
+ */
 AssetPackLoader::AssetPackLoader(AssetRegistry &registry)
     : registry_(registry)
 {
 }
 
+/**
+ * @brief Destroy the asset pack loader.
+ */
 AssetPackLoader::~AssetPackLoader() {}
 
+/**
+ * @brief Load a package from an XML file.
+ *
+ * This method reads the XML file from disk, extracts the package name from the path,
+ * and parses both the assets and configurations sections. If parsing succeeds,
+ * the package is marked as loaded in the registry.
+ *
+ * @param packagePath Path to the XML package file
+ * @return true if loading and parsing succeeded, false otherwise
+ */
 bool AssetPackLoader::loadPackage(const std::string &packagePath)
 {
     // Read XML file
@@ -49,11 +67,30 @@ bool AssetPackLoader::loadPackage(const std::string &packagePath)
     return true;
 }
 
+/**
+ * @brief Load the developer package specifically.
+ *
+ * Convenience method that loads the developer package from the
+ * standard location (assets/packages/DeveloperPackage/package.xml).
+ *
+ * @return true if loading succeeded, false otherwise
+ */
 bool AssetPackLoader::loadDeveloperPackage()
 {
     return loadPackage("assets/packages/DeveloperPackage/package.xml");
 }
 
+/**
+ * @brief Parse the assets section from XML content and register them with the asset registry.
+ *
+ * This method extracts asset definitions from the XML content and registers them
+ * with the asset registry. Currently supports font assets, with placeholders for
+ * other asset types (textures, materials, mesh recipes).
+ *
+ * @param xmlContent The complete XML content of the package file
+ * @param packageName The name of the package being loaded (used for asset ID prefixing)
+ * @return true if parsing succeeded (or no assets section found), false on parsing errors
+ */
 bool AssetPackLoader::parseAssets(const std::string &xmlContent, const std::string &packageName)
 {
     // Simple XML parsing - in a real implementation this would use pugixml properly
@@ -97,6 +134,17 @@ bool AssetPackLoader::parseAssets(const std::string &xmlContent, const std::stri
     return true;
 }
 
+/**
+ * @brief Parse the configurations section from XML content and register scene configurations.
+ *
+ * This method extracts scene configuration definitions from the XML content and
+ * registers them with the asset registry. Special handling is provided for the
+ * DefaultSphereWorldScene which is automatically set as the default scene.
+ *
+ * @param xmlContent The complete XML content of the package file
+ * @param packageName The name of the package being loaded (used for scene ID prefixing)
+ * @return true if parsing succeeded (or no configurations section found), false on parsing errors
+ */
 bool AssetPackLoader::parseConfigurations(const std::string &xmlContent, const std::string &packageName)
 {
     // Find the configurations section
@@ -119,7 +167,7 @@ bool AssetPackLoader::parseConfigurations(const std::string &xmlContent, const s
             break;
 
         std::string sceneXml = configSection.substr(pos, endPos - pos + 15);
-        
+
         // Extract scene ID
         size_t idStart = sceneXml.find("id=\"") + 4;
         size_t idEnd = sceneXml.find("\"", idStart);
@@ -139,6 +187,15 @@ bool AssetPackLoader::parseConfigurations(const std::string &xmlContent, const s
     return true;
 }
 
+/**
+ * @brief Parse a font asset from an XML node.
+ *
+ * Extracts font asset properties including file path, size, and antialiasing
+ * settings from the provided XML node string.
+ *
+ * @param xmlNode The XML node string containing font asset definition
+ * @return A unique pointer to the parsed FontAsset, or nullptr on parsing failure
+ */
 std::unique_ptr<FontAsset> AssetPackLoader::parseFontAsset(const std::string &xmlNode)
 {
     auto asset = std::make_unique<FontAsset>();
@@ -170,6 +227,15 @@ std::unique_ptr<FontAsset> AssetPackLoader::parseFontAsset(const std::string &xm
     return asset;
 }
 
+/**
+ * @brief Parse a texture asset from an XML node.
+ *
+ * Extracts texture asset properties including file path, format, mipmaps setting,
+ * and filtering mode from the provided XML node string.
+ *
+ * @param xmlNode The XML node string containing texture asset definition
+ * @return A unique pointer to the parsed TextureAsset, or nullptr on parsing failure
+ */
 std::unique_ptr<TextureAsset> AssetPackLoader::parseTextureAsset(const std::string &xmlNode)
 {
     auto asset = std::make_unique<TextureAsset>();
@@ -209,6 +275,15 @@ std::unique_ptr<TextureAsset> AssetPackLoader::parseTextureAsset(const std::stri
     return asset;
 }
 
+/**
+ * @brief Parse a material asset from an XML node.
+ *
+ * Extracts material asset properties including shader ID and material parameters
+ * from the provided XML node string. Parameter parsing is currently simplified.
+ *
+ * @param xmlNode The XML node string containing material asset definition
+ * @return A unique pointer to the parsed MaterialAsset, or nullptr on parsing failure
+ */
 std::unique_ptr<MaterialAsset> AssetPackLoader::parseMaterialAsset(const std::string &xmlNode)
 {
     auto asset = std::make_unique<MaterialAsset>();
@@ -233,6 +308,15 @@ std::unique_ptr<MaterialAsset> AssetPackLoader::parseMaterialAsset(const std::st
     return asset;
 }
 
+/**
+ * @brief Parse a mesh recipe asset from an XML node.
+ *
+ * Extracts mesh recipe asset properties including generator type and parameters
+ * from the provided XML node string. Parameter parsing is currently simplified.
+ *
+ * @param xmlNode The XML node string containing mesh recipe asset definition
+ * @return A unique pointer to the parsed MeshRecipeAsset, or nullptr on parsing failure
+ */
 std::unique_ptr<MeshRecipeAsset> AssetPackLoader::parseMeshRecipeAsset(const std::string &xmlNode)
 {
     auto asset = std::make_unique<MeshRecipeAsset>();
