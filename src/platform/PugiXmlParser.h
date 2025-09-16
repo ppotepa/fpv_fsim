@@ -52,7 +52,8 @@ public:
     std::string getLastError() const override;
 
 private:
-    std::string lastError_; /**< Last error message */
+    std::string lastError_;         /**< Last error message */
+    std::string lastLoadedContent_; /**< Raw XML content last loaded (for best-effort validation/query) */
 };
 
 #endif // PUGI_XML_PARSER_H

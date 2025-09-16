@@ -28,4 +28,5 @@ private:
 
     bool CheckForAssetPackages();
     bool LoadAvailablePackages();
+    void InitializeAssetCompilation();
 };

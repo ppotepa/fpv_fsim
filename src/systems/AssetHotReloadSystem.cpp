@@ -76,6 +76,53 @@ void AssetHotReloadSystem::watchPackage(const std::string &packagePath)
 }
 
 /**
+ * @brief Automatically discover and watch all packages in the packages directory.
+ *
+ * Scans the packages directory for package.xml files and automatically
+ * adds them to the watch list, making the engine package-agnostic.
+ *
+ * @param packagesDirectory Path to the packages directory
+ * @return Number of packages discovered and added to watch list
+ */
+int AssetHotReloadSystem::watchAllPackages(const std::string &packagesDirectory)
+{
+    int packageCount = 0;
+
+    try
+    {
+        if (!std::filesystem::exists(packagesDirectory))
+        {
+            std::cout << "Packages directory not found: " << packagesDirectory << std::endl;
+            return 0;
+        }
+
+        // Iterate through all subdirectories in the packages directory
+        for (const auto &entry : std::filesystem::directory_iterator(packagesDirectory))
+        {
+            if (entry.is_directory())
+            {
+                // Look for package.xml in each subdirectory
+                std::string packagePath = entry.path().string() + "/package.xml";
+                if (std::filesystem::exists(packagePath))
+                {
+                    watchPackage(packagePath);
+                    packageCount++;
+                    std::cout << "Auto-discovered package: " << packagePath << std::endl;
+                }
+            }
+        }
+
+        std::cout << "Auto-discovered " << packageCount << " packages for hot-reload monitoring" << std::endl;
+    }
+    catch (const std::filesystem::filesystem_error &e)
+    {
+        std::cerr << "Error discovering packages: " << e.what() << std::endl;
+    }
+
+    return packageCount;
+}
+
+/**
  * @brief Check if any watched files have been modified.
  *
  * Iterates through all watched files and compares their current modification

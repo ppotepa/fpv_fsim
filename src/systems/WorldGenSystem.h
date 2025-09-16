@@ -5,6 +5,7 @@
 #include "core/AssetRegistry.h"
 #include "events/WorldGenEvents.h"
 #include "../config/SceneConfigParser.h"
+#include "../factory/EntityFactory.h"
 #include "../generators/VoxelMeshGenerator.h"
 #include "../generators/ProceduralTextureGenerator.h"
 #include "MaterialManager.h"
@@ -18,7 +19,7 @@
 class WorldGenSystem : public ISystem
 {
 public:
-    WorldGenSystem(EventBus &eventBus, World &world, AssetRegistry &assetRegistry);
+    WorldGenSystem(EventBus &eventBus, World &world, AssetRegistry &assetRegistry, Material::MaterialManager &materialManager);
     virtual ~WorldGenSystem() = default;
 
     void update(World &world, float deltaTime) override;
@@ -37,7 +38,8 @@ private:
     std::unique_ptr<VoxelMeshGenerator> meshGenerator_;
     std::unique_ptr<ProceduralTexture::ProceduralTextureGenerator> textureGenerator_;
     std::unique_ptr<SceneConfig::SceneConfigParser> sceneParser_;
-    std::unique_ptr<Material::MaterialManager> materialManager_;
+    std::unique_ptr<EntityFactory::EntityFactory> entityFactory_;
+    Material::MaterialManager &materialManager_; // Reference to shared MaterialManager
 
     // Core scene loading methods
     void LoadScene(const std::string &sceneType);
@@ -48,6 +50,10 @@ private:
     // Event handlers
     void OnNoPackagesFound(const NoPackagesFoundEvent &event);
     void OnDefaultWorldRequested(const DefaultWorldGeneratedEvent &event);
+
+    // XML-based entity creation helpers
+    void CreateLoadingIndicatorEntitiesFromXmlStructure(unsigned int &nextEntityId, int &entitiesCreated);
+    void CreateDefaultSphereEntitiesFromXmlStructure(unsigned int &nextEntityId, int &entitiesCreated);
 
     // Legacy material methods (will be removed when MaterialManager is fully integrated)
     AssetId GetEarthMaterialId();

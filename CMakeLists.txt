@@ -19,6 +19,7 @@ set(SOURCES
     src/core/SimClock.cpp
     src/core/AssetRegistry.cpp
     src/core/AssetPackLoader.cpp
+    src/assets/AssetCompilerService.cpp
     src/physics/ExponentialAirDensityModel.cpp
     src/physics/PerlinWindModel.cpp
     src/physics/ImpulseCollisionResolver.cpp
@@ -33,6 +34,12 @@ set(SOURCES
     src/systems/WorldGenSystem.cpp
     src/systems/MaterialManager.cpp
     src/config/SceneConfigParser.cpp
+    src/config/PhysicsConfigParser.cpp
+    src/config/RenderConfigParser.cpp
+    src/config/InputConfig.cpp
+    src/config/InputConfigParser.cpp
+    src/config/EntityConfigParser.cpp
+    src/factory/EntityFactory.cpp
     src/systems/ConsoleSystem.cpp
     src/systems/VisualizationSystem.cpp
     src/systems/AssetHotReloadSystem.cpp

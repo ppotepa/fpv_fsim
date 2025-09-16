@@ -1,5 +1,6 @@
 #include "BootstrapSystem.h"
 #include "events/WorldGenEvents.h"
+#include "../assets/AssetCompilerService.h"
 #include <iostream>
 #include <filesystem>
 
@@ -19,6 +20,9 @@ void BootstrapSystem::Init()
         return;
 
     std::cout << "Initializing bootstrap system..." << std::endl;
+
+    // Initialize and run asset compilation
+    InitializeAssetCompilation();
 
     // Try to load available packages
     bool packagesLoaded = LoadAvailablePackages();
@@ -133,4 +137,97 @@ bool BootstrapSystem::LoadAvailablePackages()
     }
 
     return loadedAny;
+}
+
+void BootstrapSystem::InitializeAssetCompilation()
+{
+    std::cout << "Initializing asset compilation pipeline..." << std::endl;
+
+    try
+    {
+        // Create asset compiler service
+        AssetCompilation::AssetCompilerService compiler;
+        compiler.setDebugMode(true);
+        compiler.setOptimizationLevel(1);
+        compiler.setOutputDirectory("runtime/data/compiled");
+
+        // Compile assets from main assets directory
+        if (std::filesystem::exists("assets"))
+        {
+            std::cout << "Compiling assets from 'assets' directory..." << std::endl;
+            auto results = compiler.compileDirectory("assets", true);
+
+            int successful = 0;
+            int failed = 0;
+            int skipped = 0;
+
+            for (const auto &result : results)
+            {
+                if (result.success)
+                {
+                    if (result.errorMessage.find("skipped") != std::string::npos)
+                    {
+                        skipped++;
+                    }
+                    else
+                    {
+                        successful++;
+                    }
+                }
+                else
+                {
+                    failed++;
+                    std::cerr << "Asset compilation failed: " << result.errorMessage << std::endl;
+                }
+            }
+
+            std::cout << "Asset compilation completed: "
+                      << successful << " compiled, "
+                      << skipped << " skipped, "
+                      << failed << " failed" << std::endl;
+        }
+
+        // Compile assets from packages
+        std::string packagesDir = "assets/packages";
+        if (std::filesystem::exists(packagesDir))
+        {
+            std::cout << "Compiling package assets..." << std::endl;
+
+            for (const auto &entry : std::filesystem::directory_iterator(packagesDir))
+            {
+                if (entry.is_directory())
+                {
+                    std::string packagePath = entry.path().string();
+                    std::cout << "Compiling package: " << packagePath << std::endl;
+
+                    auto results = compiler.compileAssetPackage(packagePath);
+
+                    for (const auto &result : results)
+                    {
+                        if (!result.success && result.errorMessage.find("skipped") == std::string::npos)
+                        {
+                            std::cerr << "Package asset compilation failed: " << result.errorMessage << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Print compilation statistics
+        const auto &stats = compiler.getStatistics();
+        std::cout << "Asset compilation statistics:" << std::endl;
+        std::cout << "  Assets compiled: " << stats.assetsCompiled << std::endl;
+        std::cout << "  Assets skipped: " << stats.assetsSkipped << std::endl;
+        std::cout << "  Total compilation time: " << stats.totalCompilationTime << "ms" << std::endl;
+
+        if (stats.totalInputSize > 0)
+        {
+            double compressionRatio = (double)stats.totalOutputSize / stats.totalInputSize;
+            std::cout << "  Compression ratio: " << (compressionRatio * 100.0) << "%" << std::endl;
+        }
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Error during asset compilation: " << e.what() << std::endl;
+    }
 }

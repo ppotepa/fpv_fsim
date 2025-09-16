@@ -62,6 +62,17 @@ public:
     void watchPackage(const std::string &packagePath);
 
     /**
+     * @brief Automatically discover and watch all packages in the packages directory.
+     *
+     * Scans the packages directory for package.xml files and automatically
+     * adds them to the watch list. This makes the engine package-agnostic.
+     *
+     * @param packagesDirectory Path to the packages directory (default: "assets/packages")
+     * @return Number of packages discovered and added to watch list
+     */
+    int watchAllPackages(const std::string &packagesDirectory = "assets/packages");
+
+    /**
      * @brief Check if any watched files have been modified.
      *
      * Scans all watched files and updates their modification status.

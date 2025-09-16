@@ -321,6 +321,9 @@ namespace SceneConfig
         ParseResult parseSceneString(const std::string &xmlContent);
         ParseResult parseSceneData(const void *xmlData, size_t dataSize);
 
+        // Enhanced XML-based scene loading
+        ParseResult loadXmlScene(const std::string &sceneId);
+
         // Validation methods
         bool validateSceneFile(const std::string &filePath, std::vector<std::string> &errors);
         bool validateSceneString(const std::string &xmlContent, std::vector<std::string> &errors);
@@ -406,6 +409,10 @@ namespace SceneConfig
                                            const std::string &elementName,
                                            const std::string &attributeName,
                                            const std::string &defaultValue);
+
+        // XML validation helpers
+        bool validateXmlStructure(const std::string &xmlContent);
+        bool isWellFormedXml(const std::string &xmlContent);
 
         // Parse counters for ID generation
         uint32_t entityCounter_ = 0;

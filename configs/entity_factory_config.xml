@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity_factory_config>
+    <!-- Factory settings -->
+    <settings>
+        <validate_components>true</validate_components>
+        <log_creation>true</log_creation>
+        <enable_pooling>false</enable_pooling>
+        <max_pool_size>100</max_pool_size>
+    </settings>
+
+    <!-- Entity templates -->
+    <templates>
+        <!-- Drone entities -->
+        <template id="basic_drone" category="drone">
+            <name>Basic Drone</name>
+            <description>Standard quadcopter drone with basic flight capabilities</description>
+            <entity_type>drone</entity_type>
+            <start_active>true</start_active>
+            
+            <transform>
+                <position x="0.0" y="0.0" z="0.0"/>
+                <rotation x="0.0" y="0.0" z="0.0" w="1.0"/>
+                <scale x="1.0" y="1.0" z="1.0"/>
+            </transform>
+            
+            <renderable>
+                <mesh_id>sphere_mesh</mesh_id>
+                <material_id>drone_material</material_id>
+                <visible>true</visible>
+                <opacity>1.0</opacity>
+                <render_layer>0</render_layer>
+            </renderable>
+            
+            <vehicle>
+                <vehicle_type>drone</vehicle_type>
+                <max_speed>50.0</max_speed>
+                <acceleration>15.0</acceleration>
+                <maneuverability>8.0</maneuverability>
+                <controller_type>manual</controller_type>
+            </vehicle>
+        </template>
+
+        <!-- Environmental entities -->
+        <template id="earth_sphere" category="environment">
+            <name>Earth Sphere</name>
+            <description>Large earth sphere for world background</description>
+            <entity_type>environment</entity_type>
+            <start_active>true</start_active>
+            
+            <transform>
+                <position x="0.0" y="0.0" z="0.0"/>
+                <rotation x="0.0" y="0.0" z="0.0" w="1.0"/>
+                <scale x="100.0" y="100.0" z="100.0"/>
+            </transform>
+            
+            <renderable>
+                <mesh_id>sphere_mesh</mesh_id>
+                <material_id>EarthSurfaceMaterial</material_id>
+                <visible>true</visible>
+                <opacity>1.0</opacity>
+                <render_layer>0</render_layer>
+            </renderable>
+        </template>
+
+        <template id="cloud_object" category="environment">
+            <name>Cloud Object</name>
+            <description>Atmospheric cloud for environmental effects</description>
+            <entity_type>environment</entity_type>
+            <start_active>true</start_active>
+            
+            <transform>
+                <position x="0.0" y="5.0" z="0.0"/>
+                <rotation x="0.0" y="0.0" z="0.0" w="1.0"/>
+                <scale x="5.0" y="2.0" z="5.0"/>
+            </transform>
+            
+            <renderable>
+                <mesh_id>sphere_mesh</mesh_id>
+                <material_id>CloudMaterial</material_id>
+                <visible>true</visible>
+                <opacity>0.7</opacity>
+                <render_layer>1</render_layer>
+            </renderable>
+        </template>
+
+        <template id="aircraft_contrail" category="effect">
+            <name>Aircraft Contrail</name>
+            <description>Contrail effect for aircraft</description>
+            <entity_type>effect</entity_type>
+            <start_active>true</start_active>
+            <lifetime>30.0</lifetime>
+            
+            <transform>
+                <position x="0.0" y="0.0" z="0.0"/>
+                <rotation x="0.0" y="0.0" z="0.0" w="1.0"/>
+                <scale x="1.0" y="0.2" z="10.0"/>
+            </transform>
+            
+            <renderable>
+                <mesh_id>sphere_mesh</mesh_id>
+                <material_id>ContrailMaterial</material_id>
+                <visible>true</visible>
+                <opacity>0.5</opacity>
+                <render_layer>2</render_layer>
+            </renderable>
+        </template>
+
+        <!-- Aircraft entities -->
+        <template id="generic_aircraft" category="vehicle">
+            <name>Generic Aircraft</name>
+            <description>Generic aircraft for air traffic simulation</description>
+            <entity_type>aircraft</entity_type>
+            <start_active>true</start_active>
+            
+            <transform>
+                <position x="0.0" y="10.0" z="0.0"/>
+                <rotation x="0.0" y="0.0" z="0.0" w="1.0"/>
+                <scale x="2.0" y="0.5" z="4.0"/>
+            </transform>
+            
+            <renderable>
+                <mesh_id>sphere_mesh</mesh_id>
+                <material_id>aircraft_material</material_id>
+                <visible>true</visible>
+                <opacity>1.0</opacity>
+                <render_layer>0</render_layer>
+            </renderable>
+            
+            <vehicle>
+                <vehicle_type>aircraft</vehicle_type>
+                <max_speed>200.0</max_speed>
+                <acceleration>5.0</acceleration>
+                <maneuverability>3.0</maneuverability>
+                <controller_type>ai</controller_type>
+            </vehicle>
+        </template>
+    </templates>
+
+    <!-- Resource mappings -->
+    <material_mappings>
+        <mapping id="drone_material" file="drone.xml"/>
+        <mapping id="aircraft_material" file="aircraft.xml"/>
+    </material_mappings>
+
+    <mesh_mappings>
+        <mapping id="sphere_mesh" file="sphere.obj"/>
+        <mapping id="cube_mesh" file="cube.obj"/>
+        <mapping id="aircraft_mesh" file="aircraft.obj"/>
+    </mesh_mappings>
+
+    <audio_mappings>
+        <mapping id="drone_hum" file="drone_propeller.wav"/>
+        <mapping id="jet_engine" file="jet_engine.wav"/>
+    </audio_mappings>
+</entity_factory_config>

@@ -62,6 +62,37 @@ public:
     const std::vector<std::unique_ptr<ISystem>> &getSystems() const { return systems_; }
 
     /**
+     * @brief Get mutable access to all systems in the world.
+     *
+     * @return Reference to the vector of systems
+     */
+    std::vector<std::unique_ptr<ISystem>> &getSystems() { return systems_; }
+
+    /**
+     * @brief Get a system of a specific type from the world.
+     *
+     * This method searches for the first system of the specified type T
+     * and returns a pointer to it. This provides type-safe system access
+     * without relying on magic indices.
+     *
+     * @tparam T The system type to search for
+     * @return Pointer to the system of type T, or nullptr if not found
+     */
+    template <typename T>
+    T *getSystem()
+    {
+        for (auto &system : systems_)
+        {
+            T *typedSystem = dynamic_cast<T *>(system.get());
+            if (typedSystem != nullptr)
+            {
+                return typedSystem;
+            }
+        }
+        return nullptr;
+    }
+
+    /**
      * @brief Get read-only access to all entities in the world.
      *
      * @return Const reference to the vector of entities

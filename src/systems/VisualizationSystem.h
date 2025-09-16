@@ -6,6 +6,8 @@
 #include "core/World.h"
 #include "events/InputEvents.h"
 #include "events/WorldGenEvents.h"
+#include "MaterialManager.h"
+#include "config/RenderConfig.h"
 #include <windows.h>
 #include <string>
 #include <vector>
@@ -14,7 +16,7 @@
 class VisualizationSystem : public ISystem
 {
 public:
-    VisualizationSystem(EventBus &eventBus, World &world, HWND hwnd);
+    VisualizationSystem(EventBus &eventBus, World &world, HWND hwnd, Material::MaterialManager &materialManager, const Render::RenderConfiguration &renderConfig);
     ~VisualizationSystem();
 
     void update(World &world, float deltaTime) override;
@@ -24,13 +26,12 @@ private:
     World &worldRef;
     HWND hwnd;
     HDC hdc;
+    Material::MaterialManager &materialManager_;
+    const Render::RenderConfiguration &renderConfig_;
 
     bool displayNoPackagesMessage;
     bool consoleVisible;
     float rotationAngle;
-
-    // Precompiled material color lookup table
-    std::unordered_map<std::string, COLORREF> materialColors;
 
     void OnNoPackagesFound(const NoPackagesFoundEvent &event);
     void OnConsoleVisibilityChanged(const ConsoleVisibilityChangedEvent &event);
@@ -40,6 +41,14 @@ private:
     void RenderNoPackagesMessage();
     void DrawSphere(float x, float y, float radius, COLORREF color);
     void DrawText(float x, float y, const std::string &text, COLORREF color);
+
+    /**
+     * @brief Get RGB color from material properties loaded from XML.
+     *
+     * @param materialId The material ID to look up
+     * @return COLORREF color value, or default green if material not found
+     */
+    COLORREF GetMaterialColor(const std::string &materialId);
 };
 
 #endif

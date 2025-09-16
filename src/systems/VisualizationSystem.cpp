@@ -42,31 +42,11 @@ struct RenderableC : public IComponent
         : meshId(mesh), materialId(material), isVisible(visible) {}
 };
 
-VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND windowHandle)
-    : eventBus(eventBus), worldRef(world), hwnd(windowHandle),
+VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND windowHandle, Material::MaterialManager &materialManager, const Render::RenderConfiguration &renderConfig)
+    : eventBus(eventBus), worldRef(world), hwnd(windowHandle), materialManager_(materialManager), renderConfig_(renderConfig),
       displayNoPackagesMessage(false), consoleVisible(false), rotationAngle(0.0f)
 {
     hdc = GetDC(hwnd);
-
-    // Initialize material color lookup table using precompiled asset IDs
-    materialColors = {
-        // Earth/Land materials (forest green)
-        {"earth_material_1000", RGB(34, 139, 34)},
-        {"LandMaterial", RGB(34, 139, 34)},
-
-        // Aircraft materials (red for body, gray for wings)
-        {"AircraftBodyMaterial", RGB(204, 51, 51)},
-        {"AircraftWingMaterial", RGB(128, 128, 128)},
-
-        // Contrail materials (white)
-        {"contrail_material_1001", RGB(255, 255, 255)},
-
-        // Cloud materials (light gray)
-        {"CloudMaterial", RGB(220, 220, 220)},
-
-        // Atmosphere materials (sky blue)
-        {"AtmosphereMaterial", RGB(135, 206, 235)},
-        {"atmosphere_material", RGB(135, 206, 235)}};
 
     // Subscribe to events
     eventBus.subscribe(EventType::NoPackagesFound, [this](const IEvent &event)
@@ -142,19 +122,13 @@ void VisualizationSystem::RenderEntities()
 
         if (transform && renderable && renderable->isVisible)
         {
-            // Simple 2D projection for now - just draw circles at positions
-            float screenX = 400 + transform->position.x * 0.01f; // Simple scaling
-            float screenY = 300 + transform->position.z * 0.01f;
-            float radius = 50.0f; // Fixed radius for now
+            // Use configurable 2D projection parameters instead of hardcoded values
+            float screenX = renderConfig_.getScreenCenterX() + transform->position.x * renderConfig_.getWorldToScreenScale();
+            float screenY = renderConfig_.getScreenCenterY() + transform->position.z * renderConfig_.getWorldToScreenScale();
+            float radius = renderConfig_.getDefaultEntityRadius();
 
-            // Fast O(1) lookup using precompiled material colors
-            COLORREF color = RGB(0, 255, 0); // Default green
-
-            auto colorIter = materialColors.find(renderable->materialId);
-            if (colorIter != materialColors.end())
-            {
-                color = colorIter->second;
-            }
+            // Load color dynamically from MaterialManager using XML-defined material properties
+            COLORREF color = GetMaterialColor(renderable->materialId);
 
             DrawSphere(screenX, screenY, radius, color);
         }
@@ -163,25 +137,34 @@ void VisualizationSystem::RenderEntities()
 
 void VisualizationSystem::RenderConsole()
 {
-    // Simple console rendering at the bottom of the screen
+    // Console rendering using configurable parameters from render_config.xml
     RECT rect;
     GetClientRect(hwnd, &rect);
 
-    // Draw semi-transparent background
-    HBRUSH bgBrush = CreateSolidBrush(RGB(0, 0, 0));
-    RECT consoleRect = {0, rect.bottom - 200, rect.right, rect.bottom};
+    // Draw semi-transparent background using configured colors
+    const auto &bgColor = renderConfig_.getConsoleBackgroundColor();
+    HBRUSH bgBrush = CreateSolidBrush(RGB(bgColor.r, bgColor.g, bgColor.b));
+    RECT consoleRect = {0, rect.bottom - renderConfig_.getConsoleHeight(), rect.right, rect.bottom};
     FillRect(hdc, &consoleRect, bgBrush);
     DeleteObject(bgBrush);
 
-    // Draw border
-    HPEN pen = CreatePen(PS_SOLID, 2, RGB(255, 255, 255));
+    // Draw border using configured color and width
+    const auto &borderColor = renderConfig_.getConsoleBorderColor();
+    HPEN pen = CreatePen(PS_SOLID, renderConfig_.getConsoleBorderWidth(), RGB(borderColor.r, borderColor.g, borderColor.b));
     SelectObject(hdc, pen);
     Rectangle(hdc, consoleRect.left, consoleRect.top, consoleRect.right, consoleRect.bottom);
     DeleteObject(pen);
 
-    // Draw console text
-    DrawText(10, rect.bottom - 180, "Developer Console", RGB(255, 255, 0));
-    DrawText(10, rect.bottom - 160, "Press ~ to toggle", RGB(255, 255, 255));
+    // Draw console text using configured colors and margins
+    const auto &titleColor = renderConfig_.getConsoleTitleColor();
+    const auto &textColor = renderConfig_.getConsoleTextColor();
+    int marginX = renderConfig_.getConsoleMarginX();
+    int marginY = renderConfig_.getConsoleMarginY();
+
+    DrawText(marginX, rect.bottom - renderConfig_.getConsoleHeight() + marginY,
+             "Developer Console", RGB(titleColor.r, titleColor.g, titleColor.b));
+    DrawText(marginX, rect.bottom - renderConfig_.getConsoleHeight() + marginY * 2,
+             "Press ~ to toggle", RGB(textColor.r, textColor.g, textColor.b));
 }
 
 void VisualizationSystem::RenderNoPackagesMessage()
@@ -211,4 +194,43 @@ void VisualizationSystem::DrawText(float x, float y, const std::string &text, CO
     SetTextColor(hdc, color);
     SetBkMode(hdc, TRANSPARENT);
     TextOutA(hdc, x, y, text.c_str(), text.length());
+}
+
+/**
+ * @brief Get RGB color from material properties loaded from XML.
+ *
+ * Dynamically retrieves material color from MaterialManager instead of
+ * using hardcoded lookup table. This allows colors to be configured via XML.
+ *
+ * @param materialId The material ID to look up
+ * @return COLORREF color value, or default green if material not found
+ */
+COLORREF VisualizationSystem::GetMaterialColor(const std::string &materialId)
+{
+    // Try to get material from MaterialManager
+    auto materialOpt = materialManager_.GetMaterial(materialId);
+    if (materialOpt.has_value())
+    {
+        const auto &material = materialOpt.value();
+        const auto &albedo = material.properties.albedo;
+
+        // Convert from normalized float RGB (0.0-1.0) to Windows COLORREF (0-255)
+        int r = static_cast<int>(albedo.x * 255.0f);
+        int g = static_cast<int>(albedo.y * 255.0f);
+        int b = static_cast<int>(albedo.z * 255.0f);
+
+        // Clamp values to valid range (using Windows macros since std::min/max conflict)
+        r = (r < 0) ? 0 : (r > 255) ? 255
+                                    : r;
+        g = (g < 0) ? 0 : (g > 255) ? 255
+                                    : g;
+        b = (b < 0) ? 0 : (b > 255) ? 255
+                                    : b;
+
+        return RGB(r, g, b);
+    }
+
+    // Fallback to default green if material not found
+    std::cout << "Warning: Material '" << materialId << "' not found, using default green color" << std::endl;
+    return RGB(0, 255, 0);
 }

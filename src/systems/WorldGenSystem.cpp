@@ -1,6 +1,7 @@
 #include "WorldGenSystem.h"
 #include "MaterialManager.h"
 #include "core/Entity.h"
+#include "../factory/EntityFactory.h"
 #include "../math/MathUtils.h"
 #include <iostream>
 #include <cmath>
@@ -32,18 +33,20 @@ struct RenderableC : public IComponent
         : meshId(mesh), materialId(material), isVisible(visible) {}
 };
 
-WorldGenSystem::WorldGenSystem(EventBus &eventBus, World &world, AssetRegistry &assetRegistry)
-    : eventBus(eventBus), worldRef(world), assetRegistry_(assetRegistry), sceneLoaded(false)
+WorldGenSystem::WorldGenSystem(EventBus &eventBus, World &world, AssetRegistry &assetRegistry, Material::MaterialManager &materialManager)
+    : eventBus(eventBus), worldRef(world), assetRegistry_(assetRegistry), materialManager_(materialManager), sceneLoaded(false)
 {
     // Initialize generic backend systems
     meshGenerator_ = std::make_unique<VoxelMeshGenerator>();
     textureGenerator_ = std::make_unique<ProceduralTexture::ProceduralTextureGenerator>();
     sceneParser_ = std::make_unique<SceneConfig::SceneConfigParser>();
-    materialManager_ = std::make_unique<Material::MaterialManager>();
+
+    // Initialize EntityFactory
+    entityFactory_ = std::make_unique<EntityFactory::EntityFactory>(eventBus, materialManager);
+    entityFactory_->loadConfiguration("configs/entity_factory_config.xml");
 
     // Connect systems together
-    materialManager_->SetTextureGenerator(textureGenerator_.get());
-    materialManager_->LoadDefaultMaterials();
+    materialManager_.SetTextureGenerator(textureGenerator_.get());
 
     // Subscribe to no packages found event
     eventBus.subscribe(EventType::NoPackagesFound, [this](const IEvent &event)
@@ -70,6 +73,22 @@ void WorldGenSystem::LoadScene(const std::string &sceneType)
 
     std::cout << "Loading scene of type: " << sceneType << std::endl;
 
+    // Try to load XML scene configuration first
+    auto parseResult = sceneParser_->loadXmlScene(sceneType);
+
+    if (parseResult.success && parseResult.scene)
+    {
+        std::cout << "Successfully loaded XML scene: " << parseResult.scene->name << std::endl;
+        LoadSceneEntities(*parseResult.scene);
+        sceneLoaded = true;
+        eventBus.publish(DefaultWorldGeneratedEvent{});
+        return;
+    }
+
+    std::cout << "XML scene loading failed: " << parseResult.errorMessage << std::endl;
+    std::cout << "Falling back to hardcoded scene generation..." << std::endl;
+
+    // Fallback to hardcoded generation
     if (sceneType == "loading_indicator")
     {
         std::cout << "Creating loading indicator scene with central globe and orbiting objects..." << std::endl;
@@ -91,78 +110,90 @@ void WorldGenSystem::GenerateLoadingIndicatorWorld()
 
     static unsigned int nextEntityId = 1;
 
-    // Create central globe entity (larger, different color)
-    auto globeEntity = std::make_unique<Entity>(nextEntityId++);
-    globeEntity->addComponent(std::make_unique<TransformC>(
-        Math::float3(0.0f, 0.0f, 0.0f),
-        Math::float4(0.0f, 0.0f, 0.0f, 1.0f),
-        Math::float3(2.0f, 2.0f, 2.0f))); // Larger globe
+    // Create central globe entity using EntityFactory
+    auto globeEntity = entityFactory_->createFromTemplate("earth_sphere", "LoadingGlobe", nextEntityId++);
+    if (globeEntity)
+    {
+        // Override default settings for loading indicator
+        if (auto transform = globeEntity->getComponent<TransformC>())
+        {
+            transform->position = {0.0f, 0.0f, 0.0f};
+            transform->scale = {2.0f, 2.0f, 2.0f}; // Larger globe
+        }
 
-    // Use green material for the globe (different from default)
-    std::string globeMaterialId = materialManager_->HasMaterial("LandMaterial") ? "LandMaterial" : materialManager_->CreateEarthMaterial(2.0f, 1);
+        // Use green material for the globe (different from default)
+        if (auto renderable = globeEntity->getComponent<RenderableC>())
+        {
+            renderable->materialId = materialManager_.HasMaterial("LandMaterial") ? "LandMaterial" : materialManager_.CreateEarthMaterial(2.0f, 1);
+        }
 
-    globeEntity->addComponent(std::make_unique<RenderableC>(
-        "earth_sphere_mesh",
-        globeMaterialId,
-        true));
+        worldRef.addEntity(std::move(globeEntity));
+    }
 
-    worldRef.addEntity(std::move(globeEntity));
+    // Create first orbiting aircraft entity using EntityFactory
+    auto aircraft1Entity = entityFactory_->createFromTemplate("basic_drone", "OrbitingAircraft1", nextEntityId++);
+    if (aircraft1Entity)
+    {
+        // Override settings for orbiting aircraft
+        if (auto transform = aircraft1Entity->getComponent<TransformC>())
+        {
+            transform->position = {4.5f, 0.0f, 0.0f}; // Start at radius 4.5
+            transform->scale = {0.5f, 0.5f, 0.5f};    // Aircraft scale
+        }
 
-    // Create first orbiting aircraft entity
-    auto aircraft1Entity = std::make_unique<Entity>(nextEntityId++);
-    aircraft1Entity->addComponent(std::make_unique<TransformC>(
-        Math::float3(4.5f, 0.0f, 0.0f), // Start at radius 4.5
-        Math::float4(0.0f, 0.0f, 0.0f, 1.0f),
-        Math::float3(0.5f, 0.5f, 0.5f))); // Aircraft scale
+        if (auto renderable = aircraft1Entity->getComponent<RenderableC>())
+        {
+            renderable->materialId = materialManager_.HasMaterial("AircraftBodyMaterial") ? "AircraftBodyMaterial" : materialManager_.CreateContrailMaterial({0.8f, 0.2f, 0.2f}); // Red
+        }
 
-    std::string aircraftMaterialId = materialManager_->HasMaterial("AircraftBodyMaterial") ? "AircraftBodyMaterial" : materialManager_->CreateContrailMaterial({0.8f, 0.2f, 0.2f}); // Red
+        worldRef.addEntity(std::move(aircraft1Entity));
+    }
 
-    aircraft1Entity->addComponent(std::make_unique<RenderableC>(
-        "earth_sphere_mesh",
-        aircraftMaterialId,
-        true));
+    // Create second orbiting aircraft entity using EntityFactory
+    auto aircraft2Entity = entityFactory_->createFromTemplate("basic_drone", "OrbitingAircraft2", nextEntityId++);
+    if (aircraft2Entity)
+    {
+        // Override settings for second aircraft
+        if (auto transform = aircraft2Entity->getComponent<TransformC>())
+        {
+            transform->position = {-5.2f, 1.0f, 0.0f}; // Start at different position
+            transform->scale = {0.4f, 0.4f, 0.4f};
+        }
 
-    worldRef.addEntity(std::move(aircraft1Entity));
+        if (auto renderable = aircraft2Entity->getComponent<RenderableC>())
+        {
+            renderable->materialId = materialManager_.HasMaterial("AircraftBodyMaterial") ? "AircraftBodyMaterial" : materialManager_.CreateContrailMaterial({0.8f, 0.2f, 0.2f}); // Red
+        }
 
-    // Create second orbiting aircraft entity
-    auto aircraft2Entity = std::make_unique<Entity>(nextEntityId++);
-    aircraft2Entity->addComponent(std::make_unique<TransformC>(
-        Math::float3(-5.2f, 1.0f, 0.0f), // Start at different position
-        Math::float4(0.0f, 0.0f, 0.0f, 1.0f),
-        Math::float3(0.4f, 0.4f, 0.4f)));
+        worldRef.addEntity(std::move(aircraft2Entity));
+    }
 
-    aircraft2Entity->addComponent(std::make_unique<RenderableC>(
-        "earth_sphere_mesh",
-        aircraftMaterialId,
-        true));
-
-    worldRef.addEntity(std::move(aircraft2Entity));
-
-    // Create some cloud entities around the globe
+    // Create some cloud entities around the globe using EntityFactory
     for (int i = 0; i < 6; i++)
     {
-        auto cloudEntity = std::make_unique<Entity>(nextEntityId++);
+        auto cloudEntity = entityFactory_->createFromTemplate("cloud_object", "LoadingCloud" + std::to_string(i), nextEntityId++);
+        if (cloudEntity)
+        {
+            // Distribute clouds in a circle around the globe
+            float angle = (i / 6.0f) * 2.0f * 3.14159f;
+            float radius = 6.0f + (i * 0.3f); // Varying distances
+            float x = radius * cos(angle);
+            float z = radius * sin(angle);
+            float y = -1.0f + (i * 0.3f); // Varying heights
 
-        // Distribute clouds in a circle around the globe
-        float angle = (i / 6.0f) * 2.0f * 3.14159f;
-        float radius = 6.0f + (i * 0.3f); // Varying distances
-        float x = radius * cos(angle);
-        float z = radius * sin(angle);
-        float y = -1.0f + (i * 0.3f); // Varying heights
+            if (auto transform = cloudEntity->getComponent<TransformC>())
+            {
+                transform->position = {x, y, z};
+                transform->scale = {0.6f, 0.6f, 0.6f};
+            }
 
-        cloudEntity->addComponent(std::make_unique<TransformC>(
-            Math::float3(x, y, z),
-            Math::float4(0.0f, 0.0f, 0.0f, 1.0f),
-            Math::float3(0.6f, 0.6f, 0.6f)));
+            if (auto renderable = cloudEntity->getComponent<RenderableC>())
+            {
+                renderable->materialId = materialManager_.HasMaterial("CloudMaterial") ? "CloudMaterial" : materialManager_.CreateCloudMaterial(0.8f, 0.4f);
+            }
 
-        std::string cloudMaterialId = materialManager_->HasMaterial("CloudMaterial") ? "CloudMaterial" : materialManager_->CreateCloudMaterial(0.8f, 0.4f);
-
-        cloudEntity->addComponent(std::make_unique<RenderableC>(
-            "earth_sphere_mesh",
-            cloudMaterialId,
-            true));
-
-        worldRef.addEntity(std::move(cloudEntity));
+            worldRef.addEntity(std::move(cloudEntity));
+        }
     }
 
     sceneLoaded = true;
@@ -172,8 +203,73 @@ void WorldGenSystem::GenerateLoadingIndicatorWorld()
 
 void WorldGenSystem::LoadSceneEntities(const SceneConfig::Scene &sceneData)
 {
-    // TODO: Implement when SceneConfig API is properly defined
     std::cout << "Loading scene entities from XML configuration..." << std::endl;
+    std::cout << "Scene: " << sceneData.name << " (ID: " << sceneData.id << ")" << std::endl;
+
+    static unsigned int nextEntityId = 1;
+    int entitiesCreated = 0;
+
+    // If scene has parsed entities, use them
+    if (!sceneData.rootEntities.empty())
+    {
+        for (const auto &entityPtr : sceneData.rootEntities)
+        {
+            if (!entityPtr)
+                continue;
+
+            const auto &entityData = *entityPtr;
+
+            try
+            {
+                // Create ECS entity with transform component
+                auto entity = std::make_unique<Entity>(nextEntityId++);
+
+                // Add transform component
+                entity->addComponent(std::make_unique<TransformC>(
+                    Math::float3(entityData.transform.position.x,
+                                 entityData.transform.position.y,
+                                 entityData.transform.position.z),
+                    Math::float4(entityData.transform.rotation.x,
+                                 entityData.transform.rotation.y,
+                                 entityData.transform.rotation.z,
+                                 entityData.transform.rotation.w),
+                    Math::float3(entityData.transform.scale.x,
+                                 entityData.transform.scale.y,
+                                 entityData.transform.scale.z)));
+
+                // Add entity to world
+                worldRef.addEntity(std::move(entity));
+                entitiesCreated++;
+
+                std::cout << "Created entity: " << entityData.id << " (type: " << entityData.type << ")" << std::endl;
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << "Error creating entity " << entityData.id << ": " << e.what() << std::endl;
+            }
+        }
+    }
+    else
+    {
+        // Scene parser didn't create entities yet, create based on scene type
+        std::cout << "No parsed entities found, creating entities based on scene ID..." << std::endl;
+
+        if (sceneData.id == "loading_indicator")
+        {
+            // Create loading indicator entities programmatically based on XML structure
+            CreateLoadingIndicatorEntitiesFromXmlStructure(nextEntityId, entitiesCreated);
+        }
+        else if (sceneData.id == "default_sphere_world")
+        {
+            CreateDefaultSphereEntitiesFromXmlStructure(nextEntityId, entitiesCreated);
+        }
+        else
+        {
+            std::cout << "Unknown scene type for entity creation: " << sceneData.id << std::endl;
+        }
+    }
+
+    std::cout << "Successfully created " << entitiesCreated << " entities from XML scene data" << std::endl;
 }
 
 AssetId WorldGenSystem::GenerateVoxelMesh(const SceneConfig::CompoundMesh &meshConfig)
@@ -277,52 +373,66 @@ void WorldGenSystem::GenerateDefaultSphereWorld()
 
     static unsigned int nextEntityId = 1;
 
-    // Create Earth entity using MaterialManager
-    auto earthEntity = std::make_unique<Entity>(nextEntityId++);
-    earthEntity->addComponent(std::make_unique<TransformC>(
-        Math::float3(0.0f, -6371000.0f, 0.0f),
-        Math::float4(0.0f, 0.0f, 0.0f, 1.0f),
-        Math::float3(1.0f, 1.0f, 1.0f)));
+    // Create Earth entity using EntityFactory
+    auto earthEntity = entityFactory_->createFromTemplate("earth_sphere", "Earth", nextEntityId++);
+    if (earthEntity)
+    {
+        // Override position and scale for Earth
+        if (auto transform = earthEntity->getComponent<TransformC>())
+        {
+            transform->position = {0.0f, -6371000.0f, 0.0f};
+            transform->scale = {1.0f, 1.0f, 1.0f};
+        }
 
-    // Use MaterialManager to create dynamic Earth material
-    std::string earthMaterialId = materialManager_->HasMaterial("EarthSurfaceMaterial") ? "EarthSurfaceMaterial" : materialManager_->CreateEarthMaterial(6371000.0f, 2);
+        // Use MaterialManager to create dynamic Earth material
+        if (auto renderable = earthEntity->getComponent<RenderableC>())
+        {
+            renderable->materialId = materialManager_.HasMaterial("EarthSurfaceMaterial") ? "EarthSurfaceMaterial" : materialManager_.CreateEarthMaterial(6371000.0f, 2);
+            renderable->meshId = "earth_sphere_mesh";
+        }
 
-    // For now, use placeholder mesh ID
-    earthEntity->addComponent(std::make_unique<RenderableC>(
-        "earth_sphere_mesh",
-        earthMaterialId,
-        true));
-    worldRef.addEntity(std::move(earthEntity));
+        worldRef.addEntity(std::move(earthEntity));
+    }
 
-    // Create atmosphere entity
-    auto atmosphereEntity = std::make_unique<Entity>(nextEntityId++);
-    atmosphereEntity->addComponent(std::make_unique<TransformC>(
-        Math::float3(0.0f, -6371000.0f, 0.0f),
-        Math::float4(0.0f, 0.0f, 0.0f, 1.0f),
-        Math::float3(1.0f, 1.0f, 1.0f)));
+    // Create atmosphere entity using EntityFactory
+    auto atmosphereEntity = entityFactory_->createFromTemplate("earth_sphere", "Atmosphere", nextEntityId++);
+    if (atmosphereEntity)
+    {
+        // Override settings for atmosphere
+        if (auto transform = atmosphereEntity->getComponent<TransformC>())
+        {
+            transform->position = {0.0f, -6371000.0f, 0.0f};
+            transform->scale = {1.0f, 1.0f, 1.0f};
+        }
 
-    std::string atmosphereMaterialId = materialManager_->HasMaterial("AtmosphereMaterial") ? "AtmosphereMaterial" : materialManager_->CreateAtmosphereMaterial(1, 0.1f);
+        if (auto renderable = atmosphereEntity->getComponent<RenderableC>())
+        {
+            renderable->materialId = materialManager_.HasMaterial("AtmosphereMaterial") ? "AtmosphereMaterial" : materialManager_.CreateAtmosphereMaterial(1, 0.1f);
+            renderable->meshId = "atmosphere_sphere_mesh";
+        }
 
-    atmosphereEntity->addComponent(std::make_unique<RenderableC>(
-        "atmosphere_sphere_mesh",
-        atmosphereMaterialId,
-        true));
-    worldRef.addEntity(std::move(atmosphereEntity));
+        worldRef.addEntity(std::move(atmosphereEntity));
+    }
 
-    // Create cloud entity
-    auto cloudEntity = std::make_unique<Entity>(nextEntityId++);
-    cloudEntity->addComponent(std::make_unique<TransformC>(
-        Math::float3(0.0f, -6371000.0f, 0.0f),
-        Math::float4(0.0f, 0.0f, 0.0f, 1.0f),
-        Math::float3(1.0f, 1.0f, 1.0f)));
+    // Create cloud entity using EntityFactory
+    auto cloudEntity = entityFactory_->createFromTemplate("cloud_object", "GlobalClouds", nextEntityId++);
+    if (cloudEntity)
+    {
+        // Override settings for global cloud layer
+        if (auto transform = cloudEntity->getComponent<TransformC>())
+        {
+            transform->position = {0.0f, -6371000.0f, 0.0f};
+            transform->scale = {1.0f, 1.0f, 1.0f};
+        }
 
-    std::string cloudMaterialId = materialManager_->HasMaterial("CloudMaterial") ? "CloudMaterial" : materialManager_->CreateCloudMaterial(0.6f, 0.3f);
+        if (auto renderable = cloudEntity->getComponent<RenderableC>())
+        {
+            renderable->materialId = materialManager_.HasMaterial("CloudMaterial") ? "CloudMaterial" : materialManager_.CreateCloudMaterial(0.6f, 0.3f);
+            renderable->meshId = "cloud_sphere_mesh";
+        }
 
-    cloudEntity->addComponent(std::make_unique<RenderableC>(
-        "cloud_sphere_mesh",
-        cloudMaterialId,
-        true));
-    worldRef.addEntity(std::move(cloudEntity));
+        worldRef.addEntity(std::move(cloudEntity));
+    }
 
     sceneLoaded = true;
     eventBus.publish(DefaultWorldGeneratedEvent{});
@@ -372,19 +482,151 @@ AssetId WorldGenSystem::MaterialIdToAssetId(const std::string &materialId)
 // Legacy material methods (placeholder implementations)
 AssetId WorldGenSystem::GetEarthMaterialId()
 {
-    std::string materialId = materialManager_->HasMaterial("EarthSurfaceMaterial") ? "EarthSurfaceMaterial" : materialManager_->CreateEarthMaterial(6371000.0f, 1);
+    std::string materialId = materialManager_.HasMaterial("EarthSurfaceMaterial") ? "EarthSurfaceMaterial" : materialManager_.CreateEarthMaterial(6371000.0f, 1);
     return MaterialIdToAssetId(materialId);
 }
 
 AssetId WorldGenSystem::GetAtmosphereMaterialId(int layer)
 {
     std::string materialName = "AtmosphereMaterial_Layer" + std::to_string(layer);
-    std::string materialId = materialManager_->HasMaterial(materialName) ? materialName : materialManager_->CreateAtmosphereMaterial(layer, 0.1f);
+    std::string materialId = materialManager_.HasMaterial(materialName) ? materialName : materialManager_.CreateAtmosphereMaterial(layer, 0.1f);
     return MaterialIdToAssetId(materialId);
 }
 
 AssetId WorldGenSystem::GetCloudMaterialId()
 {
-    std::string materialId = materialManager_->HasMaterial("CloudMaterial") ? "CloudMaterial" : materialManager_->CreateCloudMaterial(0.6f, 0.3f);
+    std::string materialId = materialManager_.HasMaterial("CloudMaterial") ? "CloudMaterial" : materialManager_.CreateCloudMaterial(0.6f, 0.3f);
     return MaterialIdToAssetId(materialId);
+}
+
+void WorldGenSystem::CreateLoadingIndicatorEntitiesFromXmlStructure(unsigned int &nextEntityId, int &entitiesCreated)
+{
+    std::cout << "Creating loading indicator entities based on XML structure..." << std::endl;
+
+    // Create central globe entity (from XML: central_globe)
+    auto globeEntity = std::make_unique<Entity>(nextEntityId++);
+    globeEntity->addComponent(std::make_unique<TransformC>(
+        Math::float3(0.0f, 0.0f, 0.0f),
+        Math::float4(0.0f, 0.0f, 0.0f, 1.0f),
+        Math::float3(2.0f, 2.0f, 2.0f))); // Scale from XML
+
+    std::string globeMaterialId = materialManager_.HasMaterial("LandMaterial") ? "LandMaterial" : materialManager_.CreateEarthMaterial(2.0f, 1);
+    globeEntity->addComponent(std::make_unique<RenderableC>(
+        "earth_sphere_mesh",
+        globeMaterialId,
+        true));
+    worldRef.addEntity(std::move(globeEntity));
+    entitiesCreated++;
+
+    // Create 2 aircraft entities (from XML: aircraft_1, aircraft_2)
+    for (int i = 0; i < 2; ++i)
+    {
+        auto aircraftEntity = std::make_unique<Entity>(nextEntityId++);
+        float xPos = (i == 0) ? 5.0f : -5.0f; // From XML positions
+        aircraftEntity->addComponent(std::make_unique<TransformC>(
+            Math::float3(xPos, 0.0f, 0.0f),
+            Math::float4(0.0f, 0.0f, 0.0f, 1.0f),
+            Math::float3(0.5f, 0.5f, 0.5f))); // Scale from XML
+
+        std::string aircraftMaterialId = materialManager_.HasMaterial("AircraftBodyMaterial") ? "AircraftBodyMaterial" : materialManager_.CreateContrailMaterial({0.8f, 0.2f, 0.2f});
+        aircraftEntity->addComponent(std::make_unique<RenderableC>(
+            "aircraft_mesh",
+            aircraftMaterialId,
+            true));
+        worldRef.addEntity(std::move(aircraftEntity));
+        entitiesCreated++;
+    }
+
+    // Create 6 cloud entities (from XML: cloud_1 to cloud_6)
+    Math::float3 cloudPositions[] = {
+        {3.0f, 2.0f, 1.0f}, {-3.0f, 2.0f, -1.0f}, {1.0f, -2.0f, 3.0f}, {-1.0f, -2.0f, -3.0f}, {2.0f, 0.0f, 4.0f}, {-2.0f, 0.0f, -4.0f}};
+
+    for (int i = 0; i < 6; ++i)
+    {
+        auto cloudEntity = std::make_unique<Entity>(nextEntityId++);
+        cloudEntity->addComponent(std::make_unique<TransformC>(
+            cloudPositions[i],
+            Math::float4(0.0f, 0.0f, 0.0f, 1.0f),
+            Math::float3(1.0f, 1.0f, 1.0f)));
+
+        std::string cloudMaterialId = materialManager_.HasMaterial("CloudMaterial") ? "CloudMaterial" : materialManager_.CreateCloudMaterial(0.8f, 0.4f);
+        cloudEntity->addComponent(std::make_unique<RenderableC>(
+            "cloud_mesh",
+            cloudMaterialId,
+            true));
+        worldRef.addEntity(std::move(cloudEntity));
+        entitiesCreated++;
+    }
+
+    std::cout << "Created " << entitiesCreated << " entities based on loading_indicator.xml structure" << std::endl;
+}
+
+void WorldGenSystem::CreateDefaultSphereEntitiesFromXmlStructure(unsigned int &nextEntityId, int &entitiesCreated)
+{
+    std::cout << "Creating default sphere entities based on XML structure..." << std::endl;
+
+    // Create earth sphere entity using EntityFactory (from XML: earth_sphere)
+    auto earthEntity = entityFactory_->createFromTemplate("earth_sphere", "Earth", nextEntityId++);
+    if (earthEntity)
+    {
+        // Override settings based on XML structure
+        if (auto transform = earthEntity->getComponent<TransformC>())
+        {
+            transform->position = {0.0f, 0.0f, 0.0f};
+            transform->scale = {1.0f, 1.0f, 1.0f};
+        }
+
+        if (auto renderable = earthEntity->getComponent<RenderableC>())
+        {
+            renderable->materialId = materialManager_.HasMaterial("EarthSurfaceMaterial") ? "EarthSurfaceMaterial" : materialManager_.CreateEarthMaterial(6371000.0f, 2);
+            renderable->meshId = "earth_sphere_mesh";
+        }
+
+        worldRef.addEntity(std::move(earthEntity));
+        entitiesCreated++;
+    }
+
+    // Create atmosphere layer using EntityFactory (from XML: atmosphere_layer_1)
+    auto atmosphereEntity = entityFactory_->createFromTemplate("earth_sphere", "Atmosphere", nextEntityId++);
+    if (atmosphereEntity)
+    {
+        // Override settings based on XML structure
+        if (auto transform = atmosphereEntity->getComponent<TransformC>())
+        {
+            transform->position = {0.0f, 0.0f, 0.0f};
+            transform->scale = {1.1f, 1.1f, 1.1f}; // Scale from XML
+        }
+
+        if (auto renderable = atmosphereEntity->getComponent<RenderableC>())
+        {
+            renderable->materialId = materialManager_.HasMaterial("AtmosphereMaterial") ? "AtmosphereMaterial" : materialManager_.CreateAtmosphereMaterial(1, 0.1f);
+            renderable->meshId = "atmosphere_mesh";
+        }
+
+        worldRef.addEntity(std::move(atmosphereEntity));
+        entitiesCreated++;
+    }
+
+    // Create cloud layer using EntityFactory (from XML: cloud_layer)
+    auto cloudEntity = entityFactory_->createFromTemplate("cloud_object", "Clouds", nextEntityId++);
+    if (cloudEntity)
+    {
+        // Override settings based on XML structure
+        if (auto transform = cloudEntity->getComponent<TransformC>())
+        {
+            transform->position = {0.0f, 0.0f, 0.0f};
+            transform->scale = {1.05f, 1.05f, 1.05f}; // Scale from XML
+        }
+
+        if (auto renderable = cloudEntity->getComponent<RenderableC>())
+        {
+            renderable->materialId = materialManager_.HasMaterial("CloudMaterial") ? "CloudMaterial" : materialManager_.CreateCloudMaterial(0.6f, 0.3f);
+            renderable->meshId = "cloud_mesh";
+        }
+
+        worldRef.addEntity(std::move(cloudEntity));
+        entitiesCreated++;
+    }
+
+    std::cout << "Created " << entitiesCreated << " entities based on default_sphere_world.xml structure" << std::endl;
 }
