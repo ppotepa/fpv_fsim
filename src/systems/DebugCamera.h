@@ -24,46 +24,58 @@ public:
         float x, y, z;
         Vector3(float x = 0.0f, float y = 0.0f, float z = 0.0f) : x(x), y(y), z(z) {}
 
-        Vector3 operator+(const Vector3& other) const {
+        Vector3 operator+(const Vector3 &other) const
+        {
             return Vector3(x + other.x, y + other.y, z + other.z);
         }
 
-        Vector3 operator-(const Vector3& other) const {
+        Vector3 operator-(const Vector3 &other) const
+        {
             return Vector3(x - other.x, y - other.y, z - other.z);
         }
 
-        Vector3 operator*(float scalar) const {
+        Vector3 operator*(float scalar) const
+        {
             return Vector3(x * scalar, y * scalar, z * scalar);
         }
 
-        Vector3& operator+=(const Vector3& other) {
-            x += other.x; y += other.y; z += other.z;
+        Vector3 &operator+=(const Vector3 &other)
+        {
+            x += other.x;
+            y += other.y;
+            z += other.z;
             return *this;
         }
 
-        Vector3& operator-=(const Vector3& other) {
-            x -= other.x; y -= other.y; z -= other.z;
+        Vector3 &operator-=(const Vector3 &other)
+        {
+            x -= other.x;
+            y -= other.y;
+            z -= other.z;
             return *this;
         }
 
-        float length() const {
+        float length() const
+        {
             return sqrt(x * x + y * y + z * z);
         }
 
-        Vector3 normalized() const {
+        Vector3 normalized() const
+        {
             float len = length();
-            if (len > 0.001f) {
+            if (len > 0.001f)
+            {
                 return Vector3(x / len, y / len, z / len);
             }
             return Vector3(0, 0, 0);
         }
 
-        Vector3 cross(const Vector3& other) const {
+        Vector3 cross(const Vector3 &other) const
+        {
             return Vector3(
                 y * other.z - z * other.y,
                 z * other.x - x * other.z,
-                x * other.y - y * other.x
-            );
+                x * other.y - y * other.x);
         }
     };
 
@@ -72,17 +84,17 @@ public:
         Vector3 position;
         Vector3 direction;
         Vector3 up;
-        float pitch;  // Rotation around X axis
-        float yaw;    // Rotation around Y axis
-        float speed;  // Movement speed
+        float pitch;       // Rotation around X axis
+        float yaw;         // Rotation around Y axis
+        float speed;       // Movement speed
         float sensitivity; // Mouse sensitivity
     };
 
 private:
-    EventBus& eventBus_;
+    EventBus &eventBus_;
     CameraState state_;
     bool debugModeActive_;
-    
+
     // Mouse tracking for look controls
     POINT lastMousePos_;
     bool mouseInitialized_;
@@ -103,7 +115,7 @@ public:
      * @brief Construct a new Debug Camera
      * @param eventBus Reference to the event bus for listening to debug mode events
      */
-    DebugCamera(EventBus& eventBus);
+    DebugCamera(EventBus &eventBus);
 
     /**
      * @brief Update camera based on input (called each frame when debug mode is active)
@@ -115,15 +127,15 @@ public:
      * @brief Get current camera state
      * @return Current camera position, direction, and up vectors
      */
-    const CameraState& getCameraState() const { return state_; }
+    const CameraState &getCameraState() const { return state_; }
 
     /**
      * @brief Set camera state (used to sync with normal camera when entering debug mode)
      * @param position Camera position
-     * @param direction Camera direction  
+     * @param direction Camera direction
      * @param up Camera up vector
      */
-    void setCameraState(const Vector3& position, const Vector3& direction, const Vector3& up);
+    void setCameraState(const Vector3 &position, const Vector3 &direction, const Vector3 &up);
 
     /**
      * @brief Check if debug mode is currently active
@@ -142,7 +154,7 @@ private:
      * @brief Handle debug mode toggle events
      * @param event Debug mode toggle event
      */
-    void onDebugModeToggled(const DebugModeToggled& event);
+    void onDebugModeToggled(const DebugModeToggled &event);
 
     /**
      * @brief Process WASD movement input
@@ -181,7 +193,7 @@ private:
      * @param t Interpolation factor (0.0 to 1.0)
      * @return Interpolated vector
      */
-    Vector3 lerp(const Vector3& a, const Vector3& b, float t) const;
+    Vector3 lerp(const Vector3 &a, const Vector3 &b, float t) const;
 };
 
 #endif // DEBUGCAMERA_H

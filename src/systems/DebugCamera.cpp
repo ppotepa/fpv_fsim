@@ -3,7 +3,7 @@
 #include <cmath>
 #include <algorithm>
 
-DebugCamera::DebugCamera(EventBus& eventBus) 
+DebugCamera::DebugCamera(EventBus &eventBus)
     : eventBus_(eventBus), debugModeActive_(false), mouseInitialized_(false),
       transitionTime_(0.0f), transitionDuration_(1.0f), isTransitioning_(false), transitioningToDebug_(false)
 {
@@ -12,8 +12,8 @@ DebugCamera::DebugCamera(EventBus& eventBus)
     state_.direction = Vector3(0.0f, 0.0f, -1.0f);
     state_.up = Vector3(0.0f, 1.0f, 0.0f);
     state_.pitch = 0.0f;
-    state_.yaw = -90.0f; // Start looking forward (negative Z)
-    state_.speed = 10.0f; // Units per second
+    state_.yaw = -90.0f;       // Start looking forward (negative Z)
+    state_.speed = 10.0f;      // Units per second
     state_.sensitivity = 0.1f; // Mouse sensitivity
 
     // Initialize debug target position (looking at origin from above and behind)
@@ -21,10 +21,10 @@ DebugCamera::DebugCamera(EventBus& eventBus)
     debugTargetDirection_ = (Vector3(0.0f, 0.0f, 0.0f) - debugTargetPosition_).normalized();
 
     // Subscribe to debug mode events
-    eventBus_.subscribe(EventType::DebugModeToggled, [this](const IEvent &event) {
+    eventBus_.subscribe(EventType::DebugModeToggled, [this](const IEvent &event)
+                        {
         const auto& debugEvent = static_cast<const DebugModeToggled&>(event);
-        onDebugModeToggled(debugEvent);
-    });
+        onDebugModeToggled(debugEvent); });
 
     DEBUG_LOG("DebugCamera initialized");
 }
@@ -32,12 +32,14 @@ DebugCamera::DebugCamera(EventBus& eventBus)
 void DebugCamera::update(float deltaTime)
 {
     // Always update transition if it's active
-    if (isTransitioning_) {
+    if (isTransitioning_)
+    {
         updateTransition(deltaTime);
         return; // Don't process input while transitioning
     }
 
-    if (!debugModeActive_) {
+    if (!debugModeActive_)
+    {
         return;
     }
 
@@ -46,7 +48,7 @@ void DebugCamera::update(float deltaTime)
     updateDirectionVectors();
 }
 
-void DebugCamera::setCameraState(const Vector3& position, const Vector3& direction, const Vector3& up)
+void DebugCamera::setCameraState(const Vector3 &position, const Vector3 &direction, const Vector3 &up)
 {
     state_.position = position;
     state_.direction = direction.normalized();
@@ -59,9 +61,10 @@ void DebugCamera::setCameraState(const Vector3& position, const Vector3& directi
     DEBUG_LOG("Debug camera state set - Position: (" << position.x << ", " << position.y << ", " << position.z << ")");
 }
 
-void DebugCamera::onDebugModeToggled(const DebugModeToggled& event)
+void DebugCamera::onDebugModeToggled(const DebugModeToggled &event)
 {
-    if (event.isActive) {
+    if (event.isActive)
+    {
         // Store current camera state as original
         originalPosition_ = state_.position;
         originalDirection_ = state_.direction;
@@ -71,14 +74,16 @@ void DebugCamera::onDebugModeToggled(const DebugModeToggled& event)
         transitionTime_ = 0.0f;
         isTransitioning_ = true;
         transitioningToDebug_ = true;
-        
+
         DEBUG_LOG("Debug camera activated - starting transition to origin");
-    } else {
+    }
+    else
+    {
         // Start transition back to original position
         transitionTime_ = 0.0f;
         isTransitioning_ = true;
         transitioningToDebug_ = false;
-        
+
         DEBUG_LOG("Debug camera deactivated - starting transition back to original");
     }
 
@@ -91,26 +96,32 @@ void DebugCamera::processMovementInput(float deltaTime)
     float speed = state_.speed * deltaTime;
 
     // WASD movement
-    if (isKeyPressed('W')) {
+    if (isKeyPressed('W'))
+    {
         movement += state_.direction * speed;
     }
-    if (isKeyPressed('S')) {
+    if (isKeyPressed('S'))
+    {
         movement -= state_.direction * speed;
     }
-    if (isKeyPressed('A')) {
+    if (isKeyPressed('A'))
+    {
         Vector3 right = state_.direction.cross(state_.up).normalized();
         movement -= right * speed;
     }
-    if (isKeyPressed('D')) {
+    if (isKeyPressed('D'))
+    {
         Vector3 right = state_.direction.cross(state_.up).normalized();
         movement += right * speed;
     }
 
     // Optional: Q/E for up/down movement
-    if (isKeyPressed('Q')) {
+    if (isKeyPressed('Q'))
+    {
         movement.y -= speed;
     }
-    if (isKeyPressed('E')) {
+    if (isKeyPressed('E'))
+    {
         movement.y += speed;
     }
 
@@ -120,11 +131,13 @@ void DebugCamera::processMovementInput(float deltaTime)
 void DebugCamera::processMouseLookInput(float deltaTime)
 {
     POINT currentMousePos;
-    if (!GetCursorPos(&currentMousePos)) {
+    if (!GetCursorPos(&currentMousePos))
+    {
         return;
     }
 
-    if (!mouseInitialized_) {
+    if (!mouseInitialized_)
+    {
         lastMousePos_ = currentMousePos;
         mouseInitialized_ = true;
         return;
@@ -146,8 +159,10 @@ void DebugCamera::processMouseLookInput(float deltaTime)
     state_.pitch = std::max(-89.0f, std::min(89.0f, state_.pitch));
 
     // Keep yaw in 0-360 range
-    if (state_.yaw > 360.0f) state_.yaw -= 360.0f;
-    if (state_.yaw < 0.0f) state_.yaw += 360.0f;
+    if (state_.yaw > 360.0f)
+        state_.yaw -= 360.0f;
+    if (state_.yaw < 0.0f)
+        state_.yaw += 360.0f;
 
     lastMousePos_ = currentMousePos;
 }
@@ -161,7 +176,7 @@ void DebugCamera::updateDirectionVectors()
     state_.direction.x = cos(pitchRad) * sin(yawRad);
     state_.direction.y = sin(pitchRad);
     state_.direction.z = -cos(pitchRad) * cos(yawRad);
-    
+
     state_.direction = state_.direction.normalized();
 
     // Recalculate up vector to maintain orthogonal basis
@@ -178,13 +193,15 @@ void DebugCamera::updateTransition(float deltaTime)
 {
     transitionTime_ += deltaTime;
     float t = transitionTime_ / transitionDuration_;
-    
-    if (t >= 1.0f) {
+
+    if (t >= 1.0f)
+    {
         // Transition complete
         t = 1.0f;
         isTransitioning_ = false;
-        
-        if (transitioningToDebug_) {
+
+        if (transitioningToDebug_)
+        {
             // Reset mouse tracking when entering debug mode
             mouseInitialized_ = false;
         }
@@ -193,15 +210,18 @@ void DebugCamera::updateTransition(float deltaTime)
     // Smooth ease-in-out interpolation
     t = t * t * (3.0f - 2.0f * t);
 
-    if (transitioningToDebug_) {
+    if (transitioningToDebug_)
+    {
         // Transition to debug position (looking at origin)
         state_.position = lerp(originalPosition_, debugTargetPosition_, t);
         state_.direction = lerp(originalDirection_, debugTargetDirection_, t).normalized();
-        
+
         // Recalculate up vector to maintain orthogonal basis
         Vector3 right = state_.direction.cross(Vector3(0.0f, 1.0f, 0.0f)).normalized();
         state_.up = right.cross(state_.direction).normalized();
-    } else {
+    }
+    else
+    {
         // Transition back to original position
         state_.position = lerp(debugTargetPosition_, originalPosition_, t);
         state_.direction = lerp(debugTargetDirection_, originalDirection_, t).normalized();
@@ -213,11 +233,10 @@ void DebugCamera::updateTransition(float deltaTime)
     state_.pitch = asin(state_.direction.y) * 180.0f / 3.14159f;
 }
 
-DebugCamera::Vector3 DebugCamera::lerp(const Vector3& a, const Vector3& b, float t) const
+DebugCamera::Vector3 DebugCamera::lerp(const Vector3 &a, const Vector3 &b, float t) const
 {
     return Vector3(
         a.x + t * (b.x - a.x),
         a.y + t * (b.y - a.y),
-        a.z + t * (b.z - a.z)
-    );
+        a.z + t * (b.z - a.z));
 }

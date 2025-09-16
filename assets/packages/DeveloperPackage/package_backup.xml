@@ -265,21 +265,6 @@
                 </parts>
             </params>
         </asset>
-
-        <!-- Simple Red Cube Material -->
-        <asset type="material" id="RedCubeMaterial">
-            <shader_id>BasicShader</shader_id>
-            <params>
-                <albedo r="1.0" g="0.0" b="0.0" a="1.0" />
-                <roughness>0.8</roughness>
-                <metallic>0.0</metallic>
-            </params>
-        </asset>
-
-        <!-- Simple Cube Mesh -->
-        <asset type="mesh" id="CubeMesh">
-            <primitive type="cube" size="1.0" />
-        </asset>
     </assets>
 
     <!--
@@ -438,35 +423,6 @@
                         </transform>
                         <components>
                             <spawner spawn_rate="0.08" max_entities="8" entity_lifetime="25.0" spawn_radius="7.0"/>
-                        </components>
-                    </entity>
-                </entities>
-            </scene>
-
-            <!-- Simple Developer Scene with Red Cube -->
-            <scene name="DeveloperScene" type="simple_test" budget_memory_mb="1">
-                <lighting>
-                    <directional_light direction="0.5 -1.0 0.5" color="1.0 1.0 1.0" intensity="1.0"/>
-                    <ambient_light color="0.2 0.2 0.2"/>
-                </lighting>
-                <camera>
-                    <position x="0" y="0" z="5"/>
-                    <target x="0" y="0" z="0"/>
-                    <up x="0" y="1" z="0"/>
-                    <fov>45.0</fov>
-                </camera>
-                <background color="0.0 0.0 0.0"/> <!-- Black background -->
-                <entities>
-                    <entity id="red_cube" name="RedCube">
-                        <transform>
-                            <position x="0" y="0" z="0"/>
-                            <rotation x="0" y="0" z="0" w="1"/>
-                            <scale x="2" y="2" z="2"/>
-                        </transform>
-                        <components>
-                            <mesh asset_id="CubeMesh"/>
-                            <material asset_id="RedCubeMaterial"/>
-                            <renderable visible="true"/>
                         </components>
                     </entity>
                 </entities>

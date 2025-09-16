@@ -80,4 +80,3 @@ struct DebugModeToggled : public IEvent
     /** @brief The current debug mode state */
     bool isActive;
 };
-
