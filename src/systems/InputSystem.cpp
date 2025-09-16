@@ -3,6 +3,7 @@
 #include "events/InputEvents.h"
 #include "platform/PugiXmlParser.h"
 #include <iostream>
+#include <algorithm>
 #include <windows.h>
 #include "../debug.h"
 
@@ -346,4 +347,3 @@ void InputSystem::initializeDefaultConfiguration()
     flightContext.activeBindings = {"ToggleDebugConsole"};
     config_.contexts.push_back(flightContext);
 }
-

@@ -94,6 +94,13 @@ public:
     bool loadAndDisplayScene(const std::string &sceneId);
 
     /**
+     * @brief Update the window title to reflect the current scene
+     *
+     * @param sceneName The name of the currently loaded scene
+     */
+    void updateWindowTitle(const std::string &sceneName);
+
+    /**
      * @brief Run the engine's main loop
      *
      * @return Exit code (0 for success)

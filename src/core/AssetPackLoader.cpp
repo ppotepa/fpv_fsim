@@ -424,5 +424,3 @@ AssetId AssetPackLoader::stringToAssetId(const std::string &packageName, const s
     // Ensure we don't return 0 (reserved for invalid/empty ID)
     return (hash == 0) ? 1 : hash;
 }
-
-

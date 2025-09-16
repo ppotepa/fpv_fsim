@@ -157,11 +157,11 @@ void BootstrapSystem::InitializeAssetCompilation()
         compiler.setOptimizationLevel(1);
         compiler.setOutputDirectory("runtime/data/compiled");
 
-        // Compile assets from main assets directory
-        if (std::filesystem::exists("assets"))
+        // Compile assets from packages directory only
+        if (std::filesystem::exists("assets/packages"))
         {
-            DEBUG_LOG("Compiling assets from 'assets' directory...");
-            auto results = compiler.compileDirectory("assets", true);
+            DEBUG_LOG("Compiling assets from 'assets/packages' directory...");
+            auto results = compiler.compileDirectory("assets/packages", true);
 
             int successful = 0;
             int failed = 0;
@@ -237,5 +237,3 @@ void BootstrapSystem::InitializeAssetCompilation()
         std::cerr << "Error during asset compilation: " << e.what() << std::endl;
     }
 }
-
-

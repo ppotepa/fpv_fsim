@@ -555,4 +555,3 @@ namespace Math
     }
 
 } // namespace Math
-

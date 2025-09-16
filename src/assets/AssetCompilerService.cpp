@@ -5,6 +5,8 @@
 #include <chrono>
 #include <sstream>
 #include <iomanip>
+#include <cstring>
+#include <algorithm>
 #include "../debug.h"
 
 namespace AssetCompilation
@@ -175,7 +177,7 @@ namespace AssetCompilation
         if (debugMode_ && Debug())
         {
             DEBUG_LOG("Compilation " << (result.success ? "succeeded" : "failed")
-                      << " in " << result.compilationTimeMs << "ms");
+                                     << " in " << result.compilationTimeMs << "ms");
             if (!result.success)
             {
                 DEBUG_LOG("Error: " << result.errorMessage);
@@ -191,7 +193,7 @@ namespace AssetCompilation
 
         if (debugMode_ && Debug())
         {
-            DEBUG_LOG("Compiling asset package: " << packagePath);
+            DEBUG_LOG("Compiling asset package: " << normalizePath(packagePath));
         }
 
         try
@@ -206,7 +208,8 @@ namespace AssetCompilation
             }
 
             // Look for package.xml to get asset list
-            std::string packageXml = packagePath + "/package.xml";
+            std::filesystem::path packagePath_fs(packagePath);
+            std::filesystem::path packageXml = packagePath_fs / "package.xml";
             if (std::filesystem::exists(packageXml))
             {
                 // TODO: Parse package.xml to get asset list
@@ -236,7 +239,7 @@ namespace AssetCompilation
 
         if (debugMode_ && Debug())
         {
-            DEBUG_LOG("Compiling directory: " << sourcePath << (recursive ? " (recursive)" : ""));
+            DEBUG_LOG("Compiling directory: " << normalizePath(sourcePath) << (recursive ? " (recursive)" : ""));
         }
 
         try
@@ -247,7 +250,21 @@ namespace AssetCompilation
                 {
                     if (entry.is_regular_file())
                     {
-                        std::string filePath = entry.path().string();
+                        std::filesystem::path entryPath = entry.path();
+                        std::string filePath = entryPath.make_preferred().string();
+
+                        // Skip files that are inside package directories
+                        // Packages should only be compiled via compileAssetPackage()
+                        std::string packageSeparator = "packages" + std::string(1, std::filesystem::path::preferred_separator);
+                        if (filePath.find(packageSeparator) != std::string::npos)
+                        {
+                            if (debugMode_ && Debug())
+                            {
+                                DEBUG_LOG("Skipping package file during general scan: " << normalizePath(filePath));
+                            }
+                            continue;
+                        }
+
                         AssetType type = detectAssetType(filePath);
 
                         if (type != AssetType::Unknown)
@@ -264,7 +281,21 @@ namespace AssetCompilation
                 {
                     if (entry.is_regular_file())
                     {
-                        std::string filePath = entry.path().string();
+                        std::filesystem::path entryPath = entry.path();
+                        std::string filePath = entryPath.make_preferred().string();
+
+                        // Skip files that are inside package directories
+                        // Packages should only be compiled via compileAssetPackage()
+                        std::string packageSeparator = "packages" + std::string(1, std::filesystem::path::preferred_separator);
+                        if (filePath.find(packageSeparator) != std::string::npos)
+                        {
+                            if (debugMode_ && Debug())
+                            {
+                                DEBUG_LOG("Skipping package file during general scan: " << normalizePath(filePath));
+                            }
+                            continue;
+                        }
+
                         AssetType type = detectAssetType(filePath);
 
                         if (type != AssetType::Unknown)
@@ -295,14 +326,48 @@ namespace AssetCompilation
         {
             if (!std::filesystem::exists(sourceFile))
             {
-                errors.push_back("Source file does not exist");
+                errors.push_back("Source file does not exist: " + sourceFile);
+                return false;
+            }
+
+            // Check file permissions
+            try
+            {
+                std::filesystem::file_status status = std::filesystem::status(sourceFile);
+                if (status.type() != std::filesystem::file_type::regular)
+                {
+                    errors.push_back("Source path is not a regular file: " + sourceFile);
+                    return false;
+                }
+            }
+            catch (const std::exception &e)
+            {
+                errors.push_back("Cannot check file status for '" + sourceFile + "': " + std::string(e.what()));
                 return false;
             }
 
             AssetType type = detectAssetType(sourceFile);
             if (type == AssetType::Unknown)
             {
-                errors.push_back("Unknown or unsupported asset type");
+                std::filesystem::path path(sourceFile);
+                errors.push_back("Unknown or unsupported asset type for extension '" + path.extension().string() + "' in file: " + sourceFile);
+                return false;
+            }
+
+            // Check file size first for all types
+            size_t fileSize = 0;
+            try
+            {
+                fileSize = std::filesystem::file_size(sourceFile);
+                if (fileSize == 0)
+                {
+                    errors.push_back("Asset file is empty (0 bytes): " + sourceFile);
+                    return false;
+                }
+            }
+            catch (const std::exception &e)
+            {
+                errors.push_back("Cannot determine file size for '" + sourceFile + "': " + std::string(e.what()));
                 return false;
             }
 
@@ -310,43 +375,96 @@ namespace AssetCompilation
             switch (type)
             {
             case AssetType::Texture:
-                // Basic texture validation - check if it's a valid image file
-                if (std::filesystem::file_size(sourceFile) == 0)
+                // Basic texture validation
+                if (debugMode_ && Debug())
                 {
-                    errors.push_back("Texture file is empty");
-                    return false;
+                    DEBUG_LOG("Validating texture file: " << sourceFile << " (size: " << fileSize << " bytes)");
                 }
+                // Could add more sophisticated image format validation here
                 break;
 
             case AssetType::Scene:
             case AssetType::Entity:
             {
+                if (debugMode_ && Debug())
+                {
+                    DEBUG_LOG("Validating XML file: " << sourceFile << " (size: " << fileSize << " bytes)");
+                }
+
                 // XML validation for scene/entity files
                 std::ifstream file(sourceFile);
-                if (file.is_open())
+                if (!file.is_open())
+                {
+                    errors.push_back("Cannot open XML file for reading: " + sourceFile + " (errno: " + std::strerror(errno) + ")");
+                    return false;
+                }
+
+                try
                 {
                     std::string content((std::istreambuf_iterator<char>(file)),
                                         std::istreambuf_iterator<char>());
-                    if (content.find('<') == std::string::npos)
+
+                    if (content.empty())
                     {
-                        errors.push_back("XML file does not contain valid XML content");
+                        errors.push_back("XML file content is empty after reading: " + sourceFile);
                         return false;
                     }
+
+                    // Basic XML structure validation
+                    if (content.find('<') == std::string::npos)
+                    {
+                        errors.push_back("XML file does not contain any XML tags: " + sourceFile);
+                        return false;
+                    }
+
+                    // Check for basic XML structure
+                    size_t openTags = std::count(content.begin(), content.end(), '<');
+                    size_t closeTags = std::count(content.begin(), content.end(), '>');
+
+                    if (openTags != closeTags)
+                    {
+                        errors.push_back("XML file has mismatched angle brackets (< vs >): " + sourceFile +
+                                         " (found " + std::to_string(openTags) + " '<' and " +
+                                         std::to_string(closeTags) + " '>' characters)");
+                        return false;
+                    }
+
+                    // Check for XML declaration or root element
+                    if (content.find("<?xml") == std::string::npos &&
+                        content.find("<scene") == std::string::npos &&
+                        content.find("<entity") == std::string::npos &&
+                        content.find("<root") == std::string::npos)
+                    {
+                        errors.push_back("XML file does not contain recognizable XML declaration or root element: " + sourceFile);
+                        return false;
+                    }
+
+                    if (debugMode_ && Debug())
+                    {
+                        DEBUG_LOG("XML validation passed for: " << sourceFile);
+                    }
                 }
-                else
+                catch (const std::exception &e)
                 {
-                    errors.push_back("Cannot read XML file");
+                    errors.push_back("Exception while reading XML file '" + sourceFile + "': " + std::string(e.what()));
                     return false;
                 }
             }
             break;
 
+            case AssetType::Audio:
+                if (debugMode_ && Debug())
+                {
+                    DEBUG_LOG("Validating audio file: " << sourceFile << " (size: " << fileSize << " bytes)");
+                }
+                // Could add audio format validation here
+                break;
+
             default:
                 // Basic file validation for other types
-                if (std::filesystem::file_size(sourceFile) == 0)
+                if (debugMode_ && Debug())
                 {
-                    errors.push_back("Asset file is empty");
-                    return false;
+                    DEBUG_LOG("Validating generic asset file: " << sourceFile << " (size: " << fileSize << " bytes)");
                 }
                 break;
             }
@@ -355,7 +473,7 @@ namespace AssetCompilation
         }
         catch (const std::exception &e)
         {
-            errors.push_back("Exception during validation: " + std::string(e.what()));
+            errors.push_back("Exception during validation of '" + sourceFile + "': " + std::string(e.what()));
             return false;
         }
     }
@@ -437,10 +555,10 @@ namespace AssetCompilation
     {
         clearCache();
 
-        // Rebuild cache by compiling all assets in the assets directory
-        if (std::filesystem::exists("assets"))
+        // Rebuild cache by compiling only asset packages
+        if (std::filesystem::exists("assets/packages"))
         {
-            compileDirectory("assets", true);
+            compileDirectory("assets/packages", true);
         }
     }
 
@@ -487,36 +605,164 @@ namespace AssetCompilation
 
         try
         {
+            if (debugMode_ && Debug())
+            {
+                DEBUG_LOG("Starting texture compilation for: " << sourceFile);
+            }
+
             // Simple texture compilation - copy file with optimized format
             std::string outputPath = getCompiledPath(sourceFile, ".tex");
 
-            // For demo purposes, just copy the file with metadata
-            std::ifstream source(sourceFile, std::ios::binary);
-            std::ofstream dest(outputPath, std::ios::binary);
+            if (debugMode_ && Debug())
+            {
+                DEBUG_LOG("Output path determined: " << normalizePath(outputPath));
+            }
 
-            if (source && dest)
+            // Ensure output directory exists
+            std::filesystem::path outputDir = std::filesystem::path(outputPath).parent_path();
+            try
+            {
+                if (!std::filesystem::exists(outputDir))
+                {
+                    std::filesystem::create_directories(outputDir);
+                    if (debugMode_ && Debug())
+                    {
+                        DEBUG_LOG("Created output directory: " << outputDir.string());
+                    }
+                }
+            }
+            catch (const std::exception &e)
+            {
+                result.success = false;
+                result.errorMessage = "Failed to create output directory '" + outputDir.string() + "': " + std::string(e.what());
+                if (debugMode_ && Debug())
+                {
+                    DEBUG_LOG("Directory creation failed: " << result.errorMessage);
+                }
+                return result;
+            }
+
+            // Open source file
+            std::ifstream source(sourceFile, std::ios::binary);
+            if (!source.is_open())
+            {
+                result.success = false;
+                result.errorMessage = "Failed to open source texture file '" + sourceFile + "': " + std::strerror(errno);
+                if (debugMode_ && Debug())
+                {
+                    DEBUG_LOG("Source file open failed: " << result.errorMessage);
+                }
+                return result;
+            }
+
+            if (debugMode_ && Debug())
+            {
+                DEBUG_LOG("Source texture file opened successfully");
+            }
+
+            // Open destination file
+            std::ofstream dest(outputPath, std::ios::binary);
+            if (!dest.is_open())
+            {
+                result.success = false;
+                result.errorMessage = "Failed to create destination texture file '" + outputPath + "': " + std::strerror(errno);
+                if (debugMode_ && Debug())
+                {
+                    DEBUG_LOG("Destination file creation failed: " << result.errorMessage);
+                }
+                return result;
+            }
+
+            if (debugMode_ && Debug())
+            {
+                DEBUG_LOG("Destination texture file created successfully");
+            }
+
+            // Copy file content
+            try
             {
                 dest << source.rdbuf();
 
+                // Check for stream errors
+                if (source.bad())
+                {
+                    result.success = false;
+                    result.errorMessage = "Error reading from source texture file '" + sourceFile + "' during copy operation";
+                    if (debugMode_ && Debug())
+                    {
+                        DEBUG_LOG("Source read error: " << result.errorMessage);
+                    }
+                    return result;
+                }
+
+                if (dest.bad())
+                {
+                    result.success = false;
+                    result.errorMessage = "Error writing to destination texture file '" + outputPath + "' during copy operation";
+                    if (debugMode_ && Debug())
+                    {
+                        DEBUG_LOG("Destination write error: " << result.errorMessage);
+                    }
+                    return result;
+                }
+
+                // Close files explicitly
+                source.close();
+                dest.close();
+
+                // Verify the output file was created and has content
+                if (!std::filesystem::exists(outputPath))
+                {
+                    result.success = false;
+                    result.errorMessage = "Output texture file '" + outputPath + "' was not created despite successful copy operation";
+                    if (debugMode_ && Debug())
+                    {
+                        DEBUG_LOG("Output file verification failed: " << result.errorMessage);
+                    }
+                    return result;
+                }
+
+                auto outputSize = std::filesystem::file_size(outputPath);
+                if (outputSize == 0)
+                {
+                    result.success = false;
+                    result.errorMessage = "Output texture file '" + outputPath + "' is empty after copy operation";
+                    if (debugMode_ && Debug())
+                    {
+                        DEBUG_LOG("Output file size verification failed: " << result.errorMessage);
+                    }
+                    return result;
+                }
+
                 result.success = true;
                 result.outputPath = outputPath;
-                result.outputSizeBytes = std::filesystem::file_size(outputPath);
+                result.outputSizeBytes = outputSize;
 
                 if (debugMode_ && Debug())
                 {
-                    DEBUG_LOG("Compiled texture: " << sourceFile << " -> " << outputPath);
+                    DEBUG_LOG("Texture compilation successful: " << normalizePath(sourceFile) << " -> " << normalizePath(outputPath)
+                                                                 << " (size: " << outputSize << " bytes)");
                 }
             }
-            else
+            catch (const std::exception &e)
             {
                 result.success = false;
-                result.errorMessage = "Failed to copy texture file";
+                result.errorMessage = "Texture file copy operation failed: " + std::string(e.what());
+                if (debugMode_ && Debug())
+                {
+                    DEBUG_LOG("File copy exception: " << result.errorMessage);
+                }
+                return result;
             }
         }
         catch (const std::exception &e)
         {
             result.success = false;
             result.errorMessage = "Texture compilation error: " + std::string(e.what());
+            if (debugMode_ && Debug())
+            {
+                DEBUG_LOG("Texture compilation exception: " << result.errorMessage);
+            }
         }
 
         return result;
@@ -562,7 +808,7 @@ namespace AssetCompilation
 
                 if (debugMode_ && Debug())
                 {
-                    DEBUG_LOG("Compiled material: " << sourceFile << " -> " << outputPath);
+                    DEBUG_LOG("Compiled material: " << normalizePath(sourceFile) << " -> " << normalizePath(outputPath));
                 }
             }
             else
@@ -603,44 +849,190 @@ namespace AssetCompilation
 
         try
         {
+            if (debugMode_ && Debug())
+            {
+                DEBUG_LOG("Starting scene compilation for: " << normalizePath(sourceFile));
+            }
+
             // Scene compilation - validate and optimize XML
             std::string outputPath = getCompiledPath(sourceFile, ".scene");
+
+            if (debugMode_ && Debug())
+            {
+                DEBUG_LOG("Output path determined: " << normalizePath(outputPath));
+            }
 
             // For now, copy with validation
             std::vector<std::string> errors;
             if (!validateAsset(sourceFile, errors))
             {
                 result.success = false;
-                result.errorMessage = "Scene validation failed: " + errors[0];
-                return result;
-            }
-
-            std::ifstream source(sourceFile, std::ios::binary);
-            std::ofstream dest(outputPath, std::ios::binary);
-
-            if (source && dest)
-            {
-                dest << source.rdbuf();
-
-                result.success = true;
-                result.outputPath = outputPath;
-                result.outputSizeBytes = std::filesystem::file_size(outputPath);
+                std::string allErrors = "Scene validation failed: ";
+                for (size_t i = 0; i < errors.size(); ++i)
+                {
+                    if (i > 0)
+                        allErrors += "; ";
+                    allErrors += errors[i];
+                }
+                result.errorMessage = allErrors;
 
                 if (debugMode_ && Debug())
                 {
-                    DEBUG_LOG("Compiled scene: " << sourceFile << " -> " << outputPath);
+                    DEBUG_LOG("Scene validation failed: " << allErrors);
+                }
+                return result;
+            }
+
+            if (debugMode_ && Debug())
+            {
+                DEBUG_LOG("Scene validation passed, starting file I/O operations");
+            }
+
+            // Ensure output directory exists
+            std::filesystem::path outputDir = std::filesystem::path(outputPath).parent_path();
+            try
+            {
+                if (!std::filesystem::exists(outputDir))
+                {
+                    std::filesystem::create_directories(outputDir);
+                    if (debugMode_ && Debug())
+                    {
+                        DEBUG_LOG("Created output directory: " << outputDir.string());
+                    }
                 }
             }
-            else
+            catch (const std::exception &e)
             {
                 result.success = false;
-                result.errorMessage = "Failed to compile scene file";
+                result.errorMessage = "Failed to create output directory '" + outputDir.string() + "': " + std::string(e.what());
+                if (debugMode_ && Debug())
+                {
+                    DEBUG_LOG("Directory creation failed: " << result.errorMessage);
+                }
+                return result;
+            }
+
+            // Open source file
+            std::ifstream source(sourceFile, std::ios::binary);
+            if (!source.is_open())
+            {
+                result.success = false;
+                result.errorMessage = "Failed to open source file '" + sourceFile + "': " + std::strerror(errno);
+                if (debugMode_ && Debug())
+                {
+                    DEBUG_LOG("Source file open failed: " << result.errorMessage);
+                }
+                return result;
+            }
+
+            if (debugMode_ && Debug())
+            {
+                DEBUG_LOG("Source file opened successfully");
+            }
+
+            // Open destination file
+            std::ofstream dest(outputPath, std::ios::binary);
+            if (!dest.is_open())
+            {
+                result.success = false;
+                result.errorMessage = "Failed to create destination file '" + outputPath + "': " + std::strerror(errno);
+                if (debugMode_ && Debug())
+                {
+                    DEBUG_LOG("Destination file creation failed: " << result.errorMessage);
+                }
+                return result;
+            }
+
+            if (debugMode_ && Debug())
+            {
+                DEBUG_LOG("Destination file created successfully");
+            }
+
+            // Copy file content
+            try
+            {
+                dest << source.rdbuf();
+
+                // Check for stream errors
+                if (source.bad())
+                {
+                    result.success = false;
+                    result.errorMessage = "Error reading from source file '" + sourceFile + "' during copy operation";
+                    if (debugMode_ && Debug())
+                    {
+                        DEBUG_LOG("Source read error: " << result.errorMessage);
+                    }
+                    return result;
+                }
+
+                if (dest.bad())
+                {
+                    result.success = false;
+                    result.errorMessage = "Error writing to destination file '" + outputPath + "' during copy operation";
+                    if (debugMode_ && Debug())
+                    {
+                        DEBUG_LOG("Destination write error: " << result.errorMessage);
+                    }
+                    return result;
+                }
+
+                // Close files explicitly
+                source.close();
+                dest.close();
+
+                // Verify the output file was created and has content
+                if (!std::filesystem::exists(outputPath))
+                {
+                    result.success = false;
+                    result.errorMessage = "Output file '" + outputPath + "' was not created despite successful copy operation";
+                    if (debugMode_ && Debug())
+                    {
+                        DEBUG_LOG("Output file verification failed: " << result.errorMessage);
+                    }
+                    return result;
+                }
+
+                auto outputSize = std::filesystem::file_size(outputPath);
+                if (outputSize == 0)
+                {
+                    result.success = false;
+                    result.errorMessage = "Output file '" + outputPath + "' is empty after copy operation";
+                    if (debugMode_ && Debug())
+                    {
+                        DEBUG_LOG("Output file size verification failed: " << result.errorMessage);
+                    }
+                    return result;
+                }
+
+                result.success = true;
+                result.outputPath = outputPath;
+                result.outputSizeBytes = outputSize;
+
+                if (debugMode_ && Debug())
+                {
+                    DEBUG_LOG("Scene compilation successful: " << normalizePath(sourceFile) << " -> " << normalizePath(outputPath)
+                                                               << " (size: " << outputSize << " bytes)");
+                }
+            }
+            catch (const std::exception &e)
+            {
+                result.success = false;
+                result.errorMessage = "File copy operation failed: " + std::string(e.what());
+                if (debugMode_ && Debug())
+                {
+                    DEBUG_LOG("File copy exception: " << result.errorMessage);
+                }
+                return result;
             }
         }
         catch (const std::exception &e)
         {
             result.success = false;
             result.errorMessage = "Scene compilation error: " + std::string(e.what());
+            if (debugMode_ && Debug())
+            {
+                DEBUG_LOG("Scene compilation exception: " << result.errorMessage);
+            }
         }
 
         return result;
@@ -713,9 +1105,13 @@ namespace AssetCompilation
         std::filesystem::path outputPath = std::filesystem::path(outputDirectory_) / relativePath;
         outputPath.replace_extension(extension);
 
-        return outputPath.string();
+        // Normalize path separators for consistent display
+        return outputPath.make_preferred().string();
+    }
+
+    std::string AssetCompilerService::normalizePath(const std::string &path)
+    {
+        return std::filesystem::path(path).make_preferred().string();
     }
 
 } // namespace AssetCompilation
-
-

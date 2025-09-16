@@ -6,6 +6,7 @@
 #include "core/Quaternion.h"
 #include "loaders/EntityXmlParser.h"
 #include "config/EntityConfigParser.h"
+#include "components/TransformC.h"
 #include "components/RenderableC.h"
 #include "components/PhysicsC.h"
 #include "components/VehicleC.h"
@@ -33,8 +34,26 @@ namespace EntityFactory
         EntityConfig::EntityFactoryConfiguration config =
             EntityConfig::EntityConfigParser::loadFromFile(configFilePath);
 
-        // Store entity templates
-        entityTemplates_ = std::move(config.templates);
+        // Append loaded templates to existing ones instead of replacing them
+        // This preserves default templates created in initializeDefaultTemplates()
+        for (auto &loadedTemplate : config.templates)
+        {
+            // Check if template already exists
+            bool templateExists = false;
+            for (const auto &existingTemplate : entityTemplates_)
+            {
+                if (existingTemplate.templateId == loadedTemplate.templateId)
+                {
+                    templateExists = true;
+                    break;
+                }
+            }
+
+            if (!templateExists)
+            {
+                entityTemplates_.push_back(std::move(loadedTemplate));
+            }
+        }
 
         // Store any simple name-value templates for backward compatibility
         for (const auto &entityTemplate : entityTemplates_)
@@ -42,6 +61,7 @@ namespace EntityFactory
             templates_[entityTemplate.templateId] = entityTemplate.name;
         }
 
+        DEBUG_LOG("Total templates available: " << entityTemplates_.size());
         return true;
     }
 
@@ -59,7 +79,7 @@ namespace EntityFactory
         auto entity = std::make_unique<Entity>(entityId);
 
         DEBUG_LOG("EntityFactory: Creating entity '" << entityName
-                  << "' from template '" << templateName << "' with ID " << entityId);
+                                                     << "' from template '" << templateName << "' with ID " << entityId);
 
         // Find template in loaded templates
         for (const auto &entityTemplate : entityTemplates_)
@@ -150,7 +170,7 @@ namespace EntityFactory
         auto entity = std::make_unique<Entity>(entityId);
 
         DEBUG_LOG("EntityFactory: Creating entity '" << definition.name
-                  << "' of type '" << definition.entityType << "' with ID " << entityId);
+                                                     << "' of type '" << definition.entityType << "' with ID " << entityId);
 
         // Add components based on the definition
         addEntityComponents(*entity, definition);
@@ -215,6 +235,15 @@ namespace EntityFactory
 
         cloudTemplate.defaultDefinition.entityType = "cloud";
         cloudTemplate.defaultDefinition.name = "Cloud";
+
+        // Add a renderable component for clouds
+        auto cloudRenderable = std::make_unique<EntityConfig::RenderableComponent>();
+        cloudRenderable->meshId = "sphere";
+        cloudRenderable->materialId = "cloud";
+        cloudTemplate.defaultDefinition.renderable = std::move(cloudRenderable);
+
+        // Add the cloud template
+        entityTemplates_.push_back(std::move(cloudTemplate));
     }
 
     void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::EntityDefinition &definition)
@@ -266,6 +295,31 @@ namespace EntityFactory
             definition.transform.scale.y,
             definition.transform.scale.z);
         entity.setScale(scale.x, scale.y, scale.z);
+
+        // Create and add TransformC component with the calculated values
+        DEBUG_LOG("Adding TransformC component to entity " + std::to_string(entity.getId()));
+        auto transformComp = std::make_unique<TransformC>();
+
+        // Set position
+        transformComp->position = Vector3D(
+            definition.transform.position.x,
+            definition.transform.position.y,
+            definition.transform.position.z);
+
+        // Set rotation (convert from definition rotation)
+        transformComp->rotation = Quaternion(
+            definition.transform.rotation.x,
+            definition.transform.rotation.y,
+            definition.transform.rotation.z,
+            definition.transform.rotation.w);
+
+        // Set scale
+        transformComp->scale = Vector3D(
+            definition.transform.scale.x,
+            definition.transform.scale.y,
+            definition.transform.scale.z);
+
+        entity.addComponent<TransformC>(std::move(transformComp));
 
         // Add renderable component if defined
         if (definition.renderable)
@@ -342,4 +396,3 @@ namespace EntityFactory
     }
 
 } // namespace EntityFactory
-

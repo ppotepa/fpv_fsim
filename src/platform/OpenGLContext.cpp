@@ -119,5 +119,3 @@ bool OpenGLContext::SetupPixelFormat()
 
     return true;
 }
-
-

@@ -250,5 +250,3 @@ int ShaderCompiler::GetUniformLocation(unsigned int programId, const std::string
     }
     return -1;
 }
-
-

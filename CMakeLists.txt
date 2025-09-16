@@ -4,16 +4,16 @@ project(fpv_fsim VERSION 1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Enable optimization flags for better performance
+if(CMAKE_GENERATOR MATCHES "MinGW Makefiles")
+    # Optimization flags for better performance
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native -mtune=native")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
+endif()
+
 # Add DEBUG macro for debug builds
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-DDEBUG)
-endif()
-
-# Also check for MSVC debug configuration
-if(MSVC)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        add_definitions(-DDEBUG)
-    endif()
 endif()
 
 # Force DEBUG macro for testing
@@ -81,3 +81,11 @@ target_link_libraries(${PROJECT_NAME} OpenGL::GL)
 if(TARGET SDL2::SDL2)
     target_link_libraries(${PROJECT_NAME} SDL2::SDL2)
 endif()
+
+# Copy assets folder to build directory
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
+    COMMENT "Copying assets to build directory"
+)

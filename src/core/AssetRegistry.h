@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <variant>
+#include <vector>
 #include "AssetIds.h"
 
 // Forward declarations for asset types
@@ -236,4 +237,3 @@ struct MeshRecipeAsset
 };
 
 #endif
-

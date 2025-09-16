@@ -71,7 +71,7 @@ if (-not $SkipBuild) {
         # Build tools
         $BuildConfig = if ($Debug) { "Debug" } else { "Release" }
         Write-Host "Building tools ($BuildConfig)..." -ForegroundColor Cyan
-        & cmake --build . --config $BuildConfig
+        & cmake --build . --config $BuildConfig --parallel $env:NUMBER_OF_PROCESSORS
         if ($LASTEXITCODE -ne 0) { throw "Build failed" }
         
         # Copy executables to expected locations

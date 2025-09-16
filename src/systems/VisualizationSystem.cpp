@@ -5,12 +5,6 @@
 #include <string>
 #include <cmath>
 #include <memory>
-#include <unordered_map>e "VisualizationSystem.h"
-#include "../core/AssetIds.h"
-#include <iostream>
-#include <string>
-#include <cmath>
-#include <memory>
 #include <unordered_map>
 
 // Component definitions

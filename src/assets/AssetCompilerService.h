@@ -107,7 +107,7 @@ namespace AssetCompilation
         std::string generateChecksum(const std::string &filePath);
         bool ensureOutputDirectory();
         std::string getCompiledPath(const std::string &sourceFile, const std::string &extension = ".compiled");
+        std::string normalizePath(const std::string &path);
     };
 
 } // namespace AssetCompilation
-

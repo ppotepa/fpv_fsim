@@ -11,4 +11,4 @@ fi
 mkdir -p "$build_dir"
 cd "$build_dir"
 cmake -DCMAKE_BUILD_TYPE="$build_type" ..
-cmake --build .
+cmake --build . --parallel $(nproc)

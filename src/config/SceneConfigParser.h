@@ -6,6 +6,7 @@
 #include <memory>
 #include <variant>
 #include <optional>
+#include <cstdint>
 
 // Forward declarations for ECS components
 namespace ECS
@@ -465,4 +466,3 @@ namespace SceneConfig
     }
 
 } // namespace SceneConfig
-

@@ -1,5 +1,6 @@
 #include "AssetRegistry.h"
 #include <iostream>
+#include <algorithm>
 
 /**
  * @brief Construct an empty asset registry.
@@ -253,5 +254,3 @@ AssetId AssetRegistry::getDefaultSceneId() const
 {
     return defaultSceneId_;
 }
-
-

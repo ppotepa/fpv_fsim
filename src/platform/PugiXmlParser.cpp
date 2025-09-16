@@ -271,4 +271,3 @@ std::string PugiXmlParser::getLastError() const
 {
     return lastError_;
 }
-

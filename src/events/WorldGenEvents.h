@@ -50,3 +50,23 @@ struct DefaultWorldGeneratedEvent : public IEvent
     EventType getType() const override { return EventType::DefaultWorldGenerated; }
 };
 
+/**
+ * @struct SceneLoadedEvent
+ * @brief Event triggered when a scene has been successfully loaded.
+ *
+ * This event is fired after a scene has been successfully loaded and
+ * contains the name of the loaded scene for UI updates.
+ */
+struct SceneLoadedEvent : public IEvent
+{
+    std::string sceneName;
+
+    /** @brief Constructor with scene name */
+    SceneLoadedEvent(const std::string &name) : sceneName(name) {}
+
+    /**
+     * @brief Get the event type identifier.
+     * @return EventType::SceneLoaded
+     */
+    EventType getType() const override { return EventType::SceneLoaded; }
+};

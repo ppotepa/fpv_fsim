@@ -2,6 +2,7 @@
 #include "../config/PhysicsConfigParser.h"
 #include "../config/RenderConfigParser.h"
 #include "../config/InputConfigParser.h"
+#include "../events/WorldGenEvents.h"
 #include "../physics/ExponentialAirDensityModel.h"
 #include "../physics/PerlinWindModel.h"
 #include "../physics/ImpulseCollisionResolver.h"
@@ -36,6 +37,11 @@ Engine::Engine()
       frameCount(0),
       fpsUpdateInterval(1.0f)
 {
+    // Subscribe to scene loaded events to update window title
+    eventBus.subscribe(EventType::SceneLoaded, [this](const IEvent &event)
+                       {
+        const auto &sceneEvent = static_cast<const SceneLoadedEvent &>(event);
+        updateWindowTitle(sceneEvent.sceneName); });
 }
 
 Engine::~Engine()
@@ -286,6 +292,16 @@ HWND Engine::createWindow()
     }
 
     return hwnd;
+}
+
+void Engine::updateWindowTitle(const std::string &sceneName)
+{
+    if (windowHandle != nullptr)
+    {
+        std::string newTitle = "FPV Flight Sim - " + sceneName;
+        SetWindowTextA(windowHandle, newTitle.c_str());
+        DEBUG_LOG("Updated window title to: " + newTitle);
+    }
 }
 
 LRESULT CALLBACK Engine::windowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

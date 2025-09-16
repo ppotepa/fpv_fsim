@@ -96,6 +96,7 @@ bool WorldGenSystem::LoadScene(const std::string &sceneType)
         }
         LoadSceneEntities(*parseResult.scene);
         sceneLoaded = true;
+        eventBus.publish(SceneLoadedEvent{parseResult.scene->name});
         eventBus.publish(DefaultWorldGeneratedEvent{});
         return true;
     }
@@ -115,6 +116,7 @@ bool WorldGenSystem::LoadScene(const std::string &sceneType)
         }
         GenerateLoadingIndicatorWorld();
         sceneLoaded = true;
+        eventBus.publish(SceneLoadedEvent{"Loading Indicator"});
         return true;
     }
     else
@@ -125,6 +127,7 @@ bool WorldGenSystem::LoadScene(const std::string &sceneType)
         }
         GenerateDefaultSphereWorld();
         sceneLoaded = true;
+        eventBus.publish(SceneLoadedEvent{"Default World"});
         return true;
     }
 
@@ -457,6 +460,7 @@ void WorldGenSystem::GenerateDefaultSphereWorld()
     }
 
     sceneLoaded = true;
+    eventBus.publish(SceneLoadedEvent{"Default Earth World"});
     eventBus.publish(DefaultWorldGeneratedEvent{});
     DEBUG_LOG("Default world generation complete.");
 }

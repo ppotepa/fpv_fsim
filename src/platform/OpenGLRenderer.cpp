@@ -162,7 +162,7 @@ void OpenGLRenderer::DrawSphere(float x, float y, float z, float radius, float r
     if (sphereCount++ % 100 == 0)
     { // Only print every 100th sphere to avoid spam
         DEBUG_LOG("OpenGLRenderer: Drawing sphere at (" << x << ", " << y << ", " << z
-                  << ") radius=" << radius << " color=(" << r << ", " << g << ", " << b << ")");
+                                                        << ") radius=" << radius << " color=(" << r << ", " << g << ", " << b << ")");
     }
 
     glPushMatrix();
@@ -314,4 +314,3 @@ void OpenGLRenderer::UseDefaultShader()
         shaderCompiler.UseShader(defaultShader.programId);
     }
 }
-

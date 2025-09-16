@@ -15,6 +15,7 @@ enum class EventType
     ConsoleVisibilityChanged, /**< Console visibility state change event */
     NoPackagesFound,          /**< No asset packages found during bootstrap */
     DefaultWorldGenerated,    /**< Default world generation completed */
+    SceneLoaded,              /**< Scene successfully loaded with name */
     // Add more as needed
 };
 
@@ -41,4 +42,3 @@ public:
 };
 
 #endif
-

@@ -7,6 +7,10 @@
 #include <sstream>
 #include <chrono>
 #include <iomanip>
+#include <fstream>
+#include <filesystem>
+#include <mutex>
+#include <map>
 
 #ifdef __linux__
 #include <execinfo.h>
@@ -36,6 +40,65 @@ inline std::string getCurrentTimestamp()
     ss << std::put_time(std::localtime(&time_t), "%H:%M:%S");
     ss << '.' << std::setfill('0') << std::setw(3) << ms.count();
     return ss.str();
+}
+
+inline std::string getCurrentDate()
+{
+    auto now = std::chrono::system_clock::now();
+    auto time_t = std::chrono::system_clock::to_time_t(now);
+
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&time_t), "%Y-%m-%d");
+    return ss.str();
+}
+
+inline std::string getMMHHDate()
+{
+    auto now = std::chrono::system_clock::now();
+    auto time_t = std::chrono::system_clock::to_time_t(now);
+
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&time_t), "%M%H-%Y-%m-%d");
+    return ss.str();
+}
+
+inline std::string getLogFilePath(const std::string &className)
+{
+    static std::map<std::string, std::string> logPaths;
+    static std::mutex pathMutex;
+
+    std::lock_guard<std::mutex> lock(pathMutex);
+
+    auto it = logPaths.find(className);
+    if (it != logPaths.end())
+    {
+        return it->second;
+    }
+
+    std::string mmhhDate = getMMHHDate();
+
+    // Create log directory structure: log/mmhh-date/
+    std::filesystem::path logDir = std::filesystem::path("log") / mmhhDate;
+    std::filesystem::create_directories(logDir);
+
+    // Create log file path: log/mmhh-date/className.log
+    std::filesystem::path logFile = logDir / (className + ".log");
+    std::string logPath = logFile.string();
+
+    logPaths[className] = logPath;
+    return logPath;
+}
+
+inline void writeToLogFile(const std::string &message, const std::string &className)
+{
+    static std::mutex logMutex;
+    std::lock_guard<std::mutex> lock(logMutex);
+
+    std::ofstream logFile(getLogFilePath(className), std::ios::app);
+    if (logFile.is_open())
+    {
+        logFile << message << std::endl;
+    }
 }
 
 #ifdef __linux__
@@ -106,25 +169,46 @@ inline std::pair<std::string, std::string> get_caller_class_method(int skip = 2)
 }
 #endif
 
+inline std::string extractClassName(const std::string &functionName)
+{
+    // Extract class name from function signature
+    // Handle patterns like "ClassName::methodName" or just "functionName"
+    size_t colonPos = functionName.find("::");
+    if (colonPos != std::string::npos)
+    {
+        return functionName.substr(0, colonPos);
+    }
+
+    // For global functions or when no class is detected, use "Global"
+    return "Global";
+}
+
 #ifdef DEBUG
 // Use different approaches for Linux vs Windows
 #ifdef __linux__
-#define DEBUG_LOG(message)                                                                                              \
-    do                                                                                                                  \
-    {                                                                                                                   \
-        auto caller = get_caller_class_method();                                                                        \
-        std::stringstream ss;                                                                                           \
+#define DEBUG_LOG(message)                                                                                        \
+    do                                                                                                            \
+    {                                                                                                             \
+        auto caller = get_caller_class_method();                                                                  \
+        std::string className = caller.first.empty() ? "Global" : caller.first;                                   \
+        std::stringstream ss;                                                                                     \
         ss << "[" << getCurrentTimestamp() << "] [" << caller.first << "::" << caller.second << "]: " << message; \
-        std::cout << ss.str() << std::endl;                                                                             \
+        std::string logLine = ss.str();                                                                           \
+        std::cout << logLine << std::endl;                                                                        \
+        writeToLogFile(logLine, className);                                                                       \
     } while (0)
 #else
 // Windows version - use __FUNCTION__ for better caller info
-#define DEBUG_LOG(message)                                                                     \
-    do                                                                                         \
-    {                                                                                          \
-        std::stringstream ss;                                                                  \
-        ss << "[" << getCurrentTimestamp() << "] [" << __FUNCTION__ << "]: " << message; \
-        std::cout << ss.str() << std::endl;                                                    \
+#define DEBUG_LOG(message)                                                               \
+    do                                                                                   \
+    {                                                                                    \
+        std::string functionName = __FUNCTION__;                                         \
+        std::string className = extractClassName(functionName);                          \
+        std::stringstream ss;                                                            \
+        ss << "[" << getCurrentTimestamp() << "] [" << functionName << "]: " << message; \
+        std::string logLine = ss.str();                                                  \
+        std::cout << logLine << std::endl;                                               \
+        writeToLogFile(logLine, className);                                              \
     } while (0)
 #endif
 #else

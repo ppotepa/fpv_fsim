@@ -66,7 +66,7 @@ namespace Render
         config.windowTitle = extractValue(xmlContent, "window_title");
         if (config.windowTitle.empty())
         {
-            config.windowTitle = "FPV Flight Sim - Procedural Earth World";
+            config.windowTitle = "FPV Flight Sim - Scene Loading...";
         }
 
         config.defaultWidth = toInt(extractValue(xmlContent, "default_width"), 800);
@@ -320,5 +320,3 @@ namespace Render
     }
 
 } // namespace Render
-
-
