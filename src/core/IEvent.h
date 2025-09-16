@@ -13,6 +13,7 @@ enum class EventType
     Collision,                /**< Collision detection event */
     ConsoleToggle,            /**< Console visibility toggle event */
     ConsoleVisibilityChanged, /**< Console visibility state change event */
+    DebugModeToggled,         /**< Debug mode activation/deactivation event */
     NoPackagesFound,          /**< No asset packages found during bootstrap */
     DefaultWorldGenerated,    /**< Default world generation completed */
     SceneLoaded,              /**< Scene successfully loaded with name */

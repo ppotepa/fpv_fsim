@@ -8,7 +8,7 @@
 #include "../debug.h"
 
 InputSystem::InputSystem(EventBus &eventBus, IInputDevice &inputDevice)
-    : eventBus_(eventBus), inputDevice_(inputDevice), currentContext_("Flight")
+    : eventBus_(eventBus), inputDevice_(inputDevice), currentContext_("Flight"), debugModeActive_(false)
 {
     DEBUG_LOG("Initializing InputSystem with context 'Flight'");
     // Initialize default configuration
@@ -103,6 +103,14 @@ void InputSystem::update(World &world, float dt)
 
 void InputSystem::processKeyboardInput()
 {
+    // Handle F9 debug mode toggle globally (works in any context)
+    if (isKeyJustPressed(Input::KeyCode::F9))
+    {
+        debugModeActive_ = !debugModeActive_;
+        eventBus_.publish(DebugModeToggled{debugModeActive_});
+        DEBUG_LOG("Debug mode toggled: " << (debugModeActive_ ? "ON" : "OFF"));
+    }
+
     for (const auto &binding : config_.keyBindings)
     {
         if (binding.device == Input::InputDevice::Keyboard &&

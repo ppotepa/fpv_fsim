@@ -61,6 +61,7 @@ set(SOURCES
     src/factory/EntityFactory.cpp
     src/systems/ConsoleSystem.cpp
     src/systems/VisualizationSystem.cpp
+    src/systems/DebugCamera.cpp
     src/systems/AssetHotReloadSystem.cpp
     src/platform/WinInputDevice.cpp
     src/platform/OpenGLContext.cpp

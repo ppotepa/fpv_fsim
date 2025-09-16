@@ -64,6 +64,7 @@ private:
     IInputDevice &inputDevice_;
     Input::InputConfiguration config_;
     std::string currentContext_;
+    bool debugModeActive_;
 
     // Input state tracking
     std::unordered_map<Input::KeyCode, bool> keyStates_;

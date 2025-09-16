@@ -45,7 +45,7 @@ struct RenderableC : public IComponent
 
 VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND windowHandle, Material::MaterialManager &materialManager, const Render::RenderConfiguration &renderConfig)
     : eventBus(eventBus), worldRef(world), hwnd(windowHandle), materialManager_(materialManager), renderConfig_(renderConfig),
-      displayNoPackagesMessage(false), consoleVisible(false), rotationAngle(0.0f)
+      debugModeActive(false), displayNoPackagesMessage(false), consoleVisible(false), rotationAngle(0.0f)
 {
     DEBUG_LOG("Initializing VisualizationSystem with OpenGL rendering...");
 
@@ -75,6 +75,16 @@ VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND 
     DEBUG_LOG("Camera initialized at position (" + std::to_string(camera->position.x) + ", " +
               std::to_string(camera->position.y) + ", " + std::to_string(camera->position.z) + ")");
 
+    // Initialize debug camera
+    debugCamera = std::make_unique<DebugCamera>(eventBus);
+    debugCamera->setCameraState(
+        DebugCamera::Vector3(camera->position.x, camera->position.y, camera->position.z),
+        DebugCamera::Vector3(camera->direction.x, camera->direction.y, camera->direction.z),
+        DebugCamera::Vector3(camera->up.x, camera->up.y, camera->up.z)
+    );
+
+    DEBUG_LOG("Debug camera initialized");
+
     DEBUG_LOG("OpenGL-based VisualizationSystem initialized successfully");
 
     // Subscribe to events
@@ -87,6 +97,11 @@ VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND 
                        {
         const auto& visibilityEvent = static_cast<const ConsoleVisibilityChangedEvent&>(event);
         OnConsoleVisibilityChanged(visibilityEvent); });
+
+    eventBus.subscribe(EventType::DebugModeToggled, [this](const IEvent &event)
+                       {
+        const auto& debugEvent = static_cast<const DebugModeToggled&>(event);
+        OnDebugModeToggled(debugEvent); });
 }
 
 VisualizationSystem::~VisualizationSystem()
@@ -98,6 +113,11 @@ void VisualizationSystem::update(World &world, float deltaTime)
 {
     // Ensure OpenGL context is current
     glContext.MakeCurrent();
+
+    // Update debug camera if active
+    if (debugCamera) {
+        debugCamera->update(deltaTime);
+    }
 
     // Get window dimensions for camera setup
     RECT rect;
@@ -112,28 +132,51 @@ void VisualizationSystem::update(World &world, float deltaTime)
                   std::to_string(rect.bottom - rect.top) + " (aspect: " + std::to_string(aspect) + ")");
     }
 
-    // Setup 3D camera using our camera object
+    // Setup 3D camera - use debug camera if debug mode is active, otherwise use normal camera
     if (camera)
     {
         glRenderer.SetupCamera(camera->fov, aspect, camera->nearPlane, camera->farPlane);
 
-        // Calculate look-at point based on camera position and direction
-        float lookAtX = camera->position.x + camera->direction.x;
-        float lookAtY = camera->position.y + camera->direction.y;
-        float lookAtZ = camera->position.z + camera->direction.z;
+        // Use debug camera coordinates if debug mode is active
+        if (debugModeActive && debugCamera) {
+            const auto& debugState = debugCamera->getCameraState();
+            
+            // Calculate look-at point based on debug camera position and direction
+            float lookAtX = debugState.position.x + debugState.direction.x;
+            float lookAtY = debugState.position.y + debugState.direction.y;
+            float lookAtZ = debugState.position.z + debugState.direction.z;
 
-        glRenderer.SetCameraView(
-            camera->position.x, camera->position.y, camera->position.z, // Eye position
-            lookAtX, lookAtY, lookAtZ,                                  // Look at point
-            camera->up.x, camera->up.y, camera->up.z                    // Up vector
-        );
+            glRenderer.SetCameraView(
+                debugState.position.x, debugState.position.y, debugState.position.z,
+                lookAtX, lookAtY, lookAtZ,
+                debugState.up.x, debugState.up.y, debugState.up.z
+            );
 
-        // Every 300 frames, output camera debug info
-        if (frameCount % 300 == 0)
-        {
-            DEBUG_LOG("Camera position: (" + std::to_string(camera->position.x) + ", " +
-                      std::to_string(camera->position.y) + ", " + std::to_string(camera->position.z) + ")");
-            DEBUG_LOG("Looking at: (" + std::to_string(lookAtX) + ", " + std::to_string(lookAtY) + ", " + std::to_string(lookAtZ) + ")");
+            // Debug output for debug camera
+            if (frameCount % 300 == 0) {
+                DEBUG_LOG("Debug Camera position: (" + std::to_string(debugState.position.x) + ", " +
+                          std::to_string(debugState.position.y) + ", " + std::to_string(debugState.position.z) + ")");
+                DEBUG_LOG("Debug Camera looking at: (" + std::to_string(lookAtX) + ", " + std::to_string(lookAtY) + ", " + std::to_string(lookAtZ) + ")");
+            }
+        } else {
+            // Use normal camera
+            // Calculate look-at point based on camera position and direction
+            float lookAtX = camera->position.x + camera->direction.x;
+            float lookAtY = camera->position.y + camera->direction.y;
+            float lookAtZ = camera->position.z + camera->direction.z;
+
+            glRenderer.SetCameraView(
+                camera->position.x, camera->position.y, camera->position.z, // Eye position
+                lookAtX, lookAtY, lookAtZ,                                  // Look at point
+                camera->up.x, camera->up.y, camera->up.z                    // Up vector
+            );
+
+            // Debug output for normal camera
+            if (frameCount % 300 == 0) {
+                DEBUG_LOG("Camera position: (" + std::to_string(camera->position.x) + ", " +
+                          std::to_string(camera->position.y) + ", " + std::to_string(camera->position.z) + ")");
+                DEBUG_LOG("Looking at: (" + std::to_string(lookAtX) + ", " + std::to_string(lookAtY) + ", " + std::to_string(lookAtZ) + ")");
+            }
         }
     }
     else
@@ -155,6 +198,12 @@ void VisualizationSystem::update(World &world, float deltaTime)
     if (consoleVisible)
     {
         RenderConsole();
+    }
+
+    // Render debug mode indicator if debug mode is active
+    if (debugModeActive)
+    {
+        RenderDebugModeIndicator();
     }
 
     // Render no packages message if needed (simplified for OpenGL transition)
@@ -179,6 +228,25 @@ void VisualizationSystem::OnNoPackagesFound(const NoPackagesFoundEvent &event)
 void VisualizationSystem::OnConsoleVisibilityChanged(const ConsoleVisibilityChangedEvent &event)
 {
     consoleVisible = event.isVisible;
+}
+
+void VisualizationSystem::OnDebugModeToggled(const DebugModeToggled &event)
+{
+    debugModeActive = event.isActive;
+    
+    if (debugModeActive) {
+        // Sync debug camera with current camera position when entering debug mode
+        if (camera && debugCamera) {
+            debugCamera->setCameraState(
+                DebugCamera::Vector3(camera->position.x, camera->position.y, camera->position.z),
+                DebugCamera::Vector3(camera->direction.x, camera->direction.y, camera->direction.z),
+                DebugCamera::Vector3(camera->up.x, camera->up.y, camera->up.z)
+            );
+        }
+        DEBUG_LOG("Debug mode activated - free camera enabled");
+    } else {
+        DEBUG_LOG("Debug mode deactivated - normal camera resumed");
+    }
 }
 
 void VisualizationSystem::RenderEntities()
@@ -292,6 +360,79 @@ void VisualizationSystem::RenderConsole()
     DEBUG_LOG("Console visible (OpenGL text rendering to be implemented)");
 }
 
+void VisualizationSystem::RenderDebugModeIndicator()
+{
+    // Render debug mode indicator in upper right corner
+    // Since text rendering is not fully implemented, we'll draw a simple colored rectangle
+    
+    // Get window dimensions
+    RECT rect;
+    GetClientRect(hwnd, &rect);
+    float screenWidth = static_cast<float>(rect.right - rect.left);
+    float screenHeight = static_cast<float>(rect.bottom - rect.top);
+    
+    // Switch to 2D rendering mode
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0.0, screenWidth, screenHeight, 0.0, -1.0, 1.0);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    // Disable depth testing for UI overlay
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    // Draw a red rectangle in the upper right corner as debug indicator
+    float indicatorWidth = 120.0f;
+    float indicatorHeight = 30.0f;
+    float margin = 10.0f;
+    
+    float x = screenWidth - indicatorWidth - margin;
+    float y = margin;
+    
+    glColor4f(1.0f, 0.0f, 0.0f, 0.7f); // Semi-transparent red
+    glBegin(GL_QUADS);
+        glVertex2f(x, y);
+        glVertex2f(x + indicatorWidth, y);
+        glVertex2f(x + indicatorWidth, y + indicatorHeight);
+        glVertex2f(x, y + indicatorHeight);
+    glEnd();
+    
+    // Draw border
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f); // White border
+    glLineWidth(2.0f);
+    glBegin(GL_LINE_LOOP);
+        glVertex2f(x, y);
+        glVertex2f(x + indicatorWidth, y);
+        glVertex2f(x + indicatorWidth, y + indicatorHeight);
+        glVertex2f(x, y + indicatorHeight);
+    glEnd();
+    
+    // Restore 3D rendering mode
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
+    // Render the debug cube at origin (0, 0, 0) in 3D world space
+    DrawCube(0.0f, 0.0f, 0.0f, 2.0f, 1.0f, 1.0f, 1.0f); // White cube with 2 unit size
+    
+    // Log debug info occasionally
+    static int frameCount = 0;
+    if (frameCount++ % 300 == 0) // Log every 5 seconds at 60fps
+    {
+        DEBUG_LOG("DEBUG_MODE indicator rendered in upper right corner at (" << x << ", " << y << ")");
+        DEBUG_LOG("Debug white cube rendered at origin (0, 0, 0)");
+    }
+}
+
 void VisualizationSystem::RenderNoPackagesMessage()
 {
     // No packages message - simplified for OpenGL transition
@@ -324,6 +465,61 @@ void VisualizationSystem::DrawSphere(float x, float y, float z, float radius, fl
 
     // Draw the sphere using the OpenGL renderer
     glRenderer.DrawSphere(x, y, z, radius, r, g, b);
+}
+
+void VisualizationSystem::DrawCube(float x, float y, float z, float size, float r, float g, float b)
+{
+    // Debug output cube positions occasionally
+    static int debugCounter = 0;
+    if (debugCounter++ % 300 == 0)
+    {
+        DEBUG_LOG("Drawing debug cube at position (" << x << ", " << y << ", " << z
+                                                     << ") with size " << size);
+    }
+
+    // Draw the cube using OpenGL immediate mode
+    float halfSize = size * 0.5f;
+    
+    glColor3f(r, g, b);
+    glBegin(GL_QUADS);
+    
+    // Front face
+    glVertex3f(x - halfSize, y - halfSize, z + halfSize);
+    glVertex3f(x + halfSize, y - halfSize, z + halfSize);
+    glVertex3f(x + halfSize, y + halfSize, z + halfSize);
+    glVertex3f(x - halfSize, y + halfSize, z + halfSize);
+    
+    // Back face
+    glVertex3f(x - halfSize, y - halfSize, z - halfSize);
+    glVertex3f(x - halfSize, y + halfSize, z - halfSize);
+    glVertex3f(x + halfSize, y + halfSize, z - halfSize);
+    glVertex3f(x + halfSize, y - halfSize, z - halfSize);
+    
+    // Top face
+    glVertex3f(x - halfSize, y + halfSize, z - halfSize);
+    glVertex3f(x - halfSize, y + halfSize, z + halfSize);
+    glVertex3f(x + halfSize, y + halfSize, z + halfSize);
+    glVertex3f(x + halfSize, y + halfSize, z - halfSize);
+    
+    // Bottom face
+    glVertex3f(x - halfSize, y - halfSize, z - halfSize);
+    glVertex3f(x + halfSize, y - halfSize, z - halfSize);
+    glVertex3f(x + halfSize, y - halfSize, z + halfSize);
+    glVertex3f(x - halfSize, y - halfSize, z + halfSize);
+    
+    // Right face
+    glVertex3f(x + halfSize, y - halfSize, z - halfSize);
+    glVertex3f(x + halfSize, y + halfSize, z - halfSize);
+    glVertex3f(x + halfSize, y + halfSize, z + halfSize);
+    glVertex3f(x + halfSize, y - halfSize, z + halfSize);
+    
+    // Left face
+    glVertex3f(x - halfSize, y - halfSize, z - halfSize);
+    glVertex3f(x - halfSize, y - halfSize, z + halfSize);
+    glVertex3f(x - halfSize, y + halfSize, z + halfSize);
+    glVertex3f(x - halfSize, y + halfSize, z - halfSize);
+    
+    glEnd();
 }
 
 /**

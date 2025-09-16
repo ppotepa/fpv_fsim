@@ -56,3 +56,28 @@ struct ConsoleVisibilityChangedEvent : public IEvent
     bool isVisible;
 };
 
+/**
+ * @struct DebugModeToggled
+ * @brief Event triggered when debug mode is toggled on or off.
+ *
+ * This event is fired when the user presses F9 to toggle debug mode.
+ * It includes the new debug mode state (active/inactive).
+ */
+struct DebugModeToggled : public IEvent
+{
+    /**
+     * @brief Construct a new DebugModeToggled event.
+     * @param active The new debug mode state
+     */
+    DebugModeToggled(bool active) : isActive(active) {}
+
+    /**
+     * @brief Get the event type identifier.
+     * @return EventType::DebugModeToggled
+     */
+    EventType getType() const override { return EventType::DebugModeToggled; }
+
+    /** @brief The current debug mode state */
+    bool isActive;
+};
+

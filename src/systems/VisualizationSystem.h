@@ -10,6 +10,7 @@
 #include "config/RenderConfig.h"
 #include "platform/OpenGLContext.h"
 #include "platform/OpenGLRenderer.h"
+#include "DebugCamera.h"
 #include <windows.h>
 #include <string>
 #include <vector>
@@ -52,6 +53,8 @@ private:
     };
 
     std::shared_ptr<CameraConfig> camera;
+    std::unique_ptr<DebugCamera> debugCamera;
+    bool debugModeActive;
 
     bool displayNoPackagesMessage;
     bool consoleVisible;
@@ -59,11 +62,14 @@ private:
 
     void OnNoPackagesFound(const NoPackagesFoundEvent &event);
     void OnConsoleVisibilityChanged(const ConsoleVisibilityChangedEvent &event);
+    void OnDebugModeToggled(const DebugModeToggled &event);
 
     void RenderEntities();
     void RenderConsole();
+    void RenderDebugModeIndicator();
     void RenderNoPackagesMessage();
     void DrawSphere(float x, float y, float z, float radius, float r, float g, float b);
+    void DrawCube(float x, float y, float z, float size, float r, float g, float b);
 
     /**
      * @brief Get RGB color from material properties loaded from XML.
