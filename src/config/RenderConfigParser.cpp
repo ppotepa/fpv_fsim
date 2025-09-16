@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
+#include "../debug.h"
 
 namespace Render
 {
@@ -12,7 +13,10 @@ namespace Render
         std::ifstream file(filePath);
         if (!file.is_open())
         {
-            std::cout << "Warning: Cannot open render config file '" << filePath << "', using defaults" << std::endl;
+            if (Debug())
+            {
+                std::cout << "Warning: Cannot open render config file '" << filePath << "', using defaults" << std::endl;
+            }
             return RenderConfiguration{};
         }
 
@@ -38,11 +42,17 @@ namespace Render
             config.quality = parseQualityConfig(xmlContent);
             config.debug = parseDebugConfig(xmlContent);
 
-            std::cout << "Render configuration loaded successfully" << std::endl;
+            if (Debug())
+            {
+                std::cout << "Render configuration loaded successfully" << std::endl;
+            }
         }
         catch (const std::exception &e)
         {
-            std::cout << "Warning: Error parsing render config: " << e.what() << ", using defaults" << std::endl;
+            if (Debug())
+            {
+                std::cout << "Warning: Error parsing render config: " << e.what() << ", using defaults" << std::endl;
+            }
             config = RenderConfiguration{}; // Reset to defaults
         }
 

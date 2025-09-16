@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include "debug.h"
 
 // Track frame rateinclude "../physics/PerlinWindModel.h"
 #include "../physics/ImpulseCollisionResolver.h"
@@ -48,7 +49,10 @@ bool Engine::initialize(const std::string &physicsConfigPath,
                         const std::string &renderConfigPath,
                         const std::string &inputConfigPath)
 {
-    std::cout << "Initializing FPV Flight Simulator Engine..." << std::endl;
+    if (Debug())
+    {
+        std::cout << "Initializing FPV Flight Simulator Engine..." << std::endl;
+    }
 
     // Load configuration files
     physicsConfig = PhysicsConfigParser::loadFromFile(physicsConfigPath);

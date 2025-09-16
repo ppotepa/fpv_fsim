@@ -8,6 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include "../debug.h"
 
 /**
  * @brief Load physics configuration from XML file.
@@ -31,7 +32,10 @@ Physics::PhysicsConfig PhysicsConfigParser::loadFromFile(const std::string &conf
     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();
 
-    std::cout << "Loading physics configuration from: " << configPath << std::endl;
+    if (Debug())
+    {
+        std::cout << "Loading physics configuration from: " << configPath << std::endl;
+    }
     return parseConfig(content);
 }
 
@@ -81,11 +85,14 @@ Physics::PhysicsConfig PhysicsConfigParser::parseConfig(const std::string &xmlCo
         config.restitution = extractFloatValue(xmlContent, "Restitution", config.restitution);
         config.friction = extractFloatValue(xmlContent, "Friction", config.friction);
 
-        std::cout << "Physics configuration loaded successfully:" << std::endl;
-        std::cout << "  - Fixed timestep: " << config.fixedTimestep << "s (" << (1.0f / config.fixedTimestep) << " Hz)" << std::endl;
-        std::cout << "  - Air density (sea level): " << config.seaLevelDensity << " kg/m³" << std::endl;
-        std::cout << "  - Wind base speed: " << config.baseWindSpeed << " m/s" << std::endl;
-        std::cout << "  - Collision restitution: " << config.restitution << std::endl;
+        if (Debug())
+        {
+            std::cout << "Physics configuration loaded successfully:" << std::endl;
+            std::cout << "  - Fixed timestep: " << config.fixedTimestep << "s (" << (1.0f / config.fixedTimestep) << " Hz)" << std::endl;
+            std::cout << "  - Air density (sea level): " << config.seaLevelDensity << " kg/m³" << std::endl;
+            std::cout << "  - Wind base speed: " << config.baseWindSpeed << " m/s" << std::endl;
+            std::cout << "  - Collision restitution: " << config.restitution << std::endl;
+        }
     }
     catch (const std::exception &e)
     {

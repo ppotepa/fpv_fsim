@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
+#include "../debug.h"
 
 namespace EntityConfig
 {
@@ -12,7 +13,10 @@ namespace EntityConfig
         std::ifstream file(filePath);
         if (!file.is_open())
         {
-            std::cout << "Warning: Cannot open entity factory config file '" << filePath << "', using defaults" << std::endl;
+            if (Debug())
+            {
+                std::cout << "Warning: Cannot open entity factory config file '" << filePath << "', using defaults" << std::endl;
+            }
             return EntityFactoryConfiguration{};
         }
 
@@ -33,12 +37,18 @@ namespace EntityConfig
             parseTemplates(xmlContent, config);
             parseResourceMappings(xmlContent, config);
 
-            std::cout << "Entity factory configuration loaded successfully: "
-                      << config.templates.size() << " templates" << std::endl;
+            if (Debug())
+            {
+                std::cout << "Entity factory configuration loaded successfully: "
+                          << config.templates.size() << " templates" << std::endl;
+            }
         }
         catch (const std::exception &e)
         {
-            std::cout << "Warning: Error parsing entity factory config: " << e.what() << ", using defaults" << std::endl;
+            if (Debug())
+            {
+                std::cout << "Warning: Error parsing entity factory config: " << e.what() << ", using defaults" << std::endl;
+            }
             config = EntityFactoryConfiguration{};
         }
 
@@ -66,7 +76,10 @@ namespace EntityConfig
             }
             catch (const std::exception &e)
             {
-                std::cout << "Warning: Failed to parse entity template: " << e.what() << std::endl;
+                if (Debug())
+                {
+                    std::cout << "Warning: Failed to parse entity template: " << e.what() << std::endl;
+                }
             }
         }
     }

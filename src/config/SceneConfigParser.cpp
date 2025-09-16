@@ -8,6 +8,7 @@
 #include <iostream>
 #include <filesystem>
 #include <stack>
+#include "../debug.h"
 
 namespace SceneConfig
 {
@@ -267,7 +268,10 @@ namespace SceneConfig
         // Construct scene file path based on sceneId
         std::string scenePath = "configs/scenes/" + sceneId + ".xml";
 
-        std::cout << "Loading XML scene: " << sceneId << " from " << scenePath << std::endl;
+        if (Debug())
+        {
+            std::cout << "Loading XML scene: " << sceneId << " from " << scenePath << std::endl;
+        }
 
         // Check if file exists
         if (!std::filesystem::exists(scenePath))
@@ -295,7 +299,10 @@ namespace SceneConfig
         auto endTime = std::chrono::high_resolution_clock::now();
         result.parseTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
 
-        std::cout << "XML scene loading completed in " << result.parseTimeMs << "ms" << std::endl;
+        if (Debug())
+        {
+            std::cout << "XML scene loading completed in " << result.parseTimeMs << "ms" << std::endl;
+        }
         return result;
     }
 
