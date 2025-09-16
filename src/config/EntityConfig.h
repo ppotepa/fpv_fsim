@@ -31,7 +31,7 @@ namespace EntityConfig
     struct Transform
     {
         Vec3 position;
-        Vec4 rotation; // Quaternion 
+        Vec4 rotation; // Quaternion
         Vec3 scale{1.0f, 1.0f, 1.0f};
 
         Transform() = default;
@@ -117,7 +117,7 @@ namespace EntityConfig
         std::string description;
         bool startActive = true;
         float lifetime = -1.0f;
-        
+
         Transform transform;
 
         // Component pointers - parser creates these dynamically

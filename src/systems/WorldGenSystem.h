@@ -1,10 +1,5 @@
 #pragma once
 
-// Forward declarations for circular dependency resolution
-namespace EntityFactory {
-    class EntityFactory;
-}
-
 #include "core/ISystem.h"
 #include "core/EventBus.h"
 #include "core/World.h"
@@ -17,6 +12,11 @@ namespace EntityFactory {
 #include "../math/MathUtils.h"
 #include <memory>
 
+// Forward declaration for EntityFactory
+namespace EntityFactory {
+    class EntityFactory;
+}
+
 /**
  * Generic world generation system using XML-driven scene configuration.
  * Supports all scene types through SceneConfigParser and VoxelMeshGenerator.
@@ -25,7 +25,7 @@ class WorldGenSystem : public ISystem
 {
 public:
     WorldGenSystem(EventBus &eventBus, World &world, AssetRegistry &assetRegistry, Material::MaterialManager &materialManager);
-    virtual ~WorldGenSystem() = default;
+    ~WorldGenSystem();
 
     void update(World &world, float deltaTime) override;
     void GenerateDefaultSphereWorld();

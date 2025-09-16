@@ -61,6 +61,8 @@ WorldGenSystem::WorldGenSystem(EventBus &eventBus, World &world, AssetRegistry &
         OnDefaultWorldRequested(worldEvent); });
 }
 
+WorldGenSystem::~WorldGenSystem() = default;
+
 void WorldGenSystem::update(World &world, float deltaTime)
 {
     // World generation is event-driven, no continuous updates needed
