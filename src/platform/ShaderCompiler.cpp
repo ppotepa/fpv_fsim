@@ -1,5 +1,6 @@
 #include "ShaderCompiler.h"
 #include <iostream>
+#include "../debug.h"
 
 // Define GLchar if not defined
 #ifndef GLchar
@@ -74,11 +75,11 @@ ShaderCompiler::ShaderCompiler()
     // Check if critical functions are available
     if (!glCreateShader || !glCreateProgram)
     {
-        std::cout << "Warning: OpenGL shader extensions not available - shader compilation disabled" << std::endl;
+        DEBUG_LOG("Warning: OpenGL shader extensions not available - shader compilation disabled");
     }
     else
     {
-        std::cout << "OpenGL shader compiler initialized successfully" << std::endl;
+        DEBUG_LOG("OpenGL shader compiler initialized successfully");
     }
 }
 
@@ -133,7 +134,7 @@ bool ShaderCompiler::CompileShader(ShaderAsset &shaderAsset)
     shaderAsset.isCompiled = true;
     shaderAsset.compilationErrors.clear();
 
-    std::cout << "Shader compiled successfully: " << shaderAsset.id << std::endl;
+    DEBUG_LOG("Shader compiled successfully: " << shaderAsset.id);
     return true;
 }
 
@@ -249,3 +250,5 @@ int ShaderCompiler::GetUniformLocation(unsigned int programId, const std::string
     }
     return -1;
 }
+
+

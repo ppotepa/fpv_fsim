@@ -4,19 +4,21 @@
 #include "platform/PugiXmlParser.h"
 #include <iostream>
 #include <windows.h>
+#include "../debug.h"
 
 InputSystem::InputSystem(EventBus &eventBus, IInputDevice &inputDevice)
     : eventBus_(eventBus), inputDevice_(inputDevice), currentContext_("Flight")
 {
-
+    DEBUG_LOG("Initializing InputSystem with context 'Flight'");
     // Initialize default configuration
     initializeDefaultConfiguration();
 
-    std::cout << "InputSystem initialized with default configuration" << std::endl;
+    DEBUG_LOG("InputSystem initialized with default configuration");
 }
 
 bool InputSystem::loadConfiguration(const std::string &configPath)
 {
+    DEBUG_LOG("Loading input configuration from '" + configPath + "'");
     try
     {
         auto xmlParser = std::make_unique<PugiXmlParser>();
@@ -26,12 +28,12 @@ bool InputSystem::loadConfiguration(const std::string &configPath)
 
         if (parser.getLastError().empty())
         {
-            std::cout << "Loaded input configuration from: " << configPath << std::endl;
-            std::cout << "Input bindings loaded:" << std::endl;
-            std::cout << "  Key bindings: " << config_.keyBindings.size() << std::endl;
-            std::cout << "  Mouse bindings: " << config_.mouseBindings.size() << std::endl;
-            std::cout << "  Gamepad bindings: " << config_.gamepadBindings.size() << std::endl;
-            std::cout << "  Contexts: " << config_.contexts.size() << std::endl;
+            DEBUG_LOG("Loaded input configuration from: " << configPath);
+            DEBUG_LOG("Input bindings loaded:");
+            DEBUG_LOG("  Key bindings: " << config_.keyBindings.size());
+            DEBUG_LOG("  Mouse bindings: " << config_.mouseBindings.size());
+            DEBUG_LOG("  Gamepad bindings: " << config_.gamepadBindings.size());
+            DEBUG_LOG("  Contexts: " << config_.contexts.size());
 
             // Set the default context
             if (!config_.defaultContext.empty())
@@ -56,6 +58,7 @@ bool InputSystem::loadConfiguration(const std::string &configPath)
 
 void InputSystem::setInputContext(const std::string &contextName)
 {
+    DEBUG_LOG("Setting input context to '" + contextName + "'");
     // Verify the context exists
     bool contextExists = false;
     for (const auto &context : config_.contexts)
@@ -70,7 +73,7 @@ void InputSystem::setInputContext(const std::string &contextName)
     if (contextExists || contextName == config_.defaultContext)
     {
         currentContext_ = contextName;
-        std::cout << "Input context set to: " << contextName << std::endl;
+        DEBUG_LOG("Input context set to: " << contextName);
     }
     else
     {
@@ -176,36 +179,37 @@ void InputSystem::processGamepadInput()
 
 void InputSystem::triggerInputAction(const std::string &action)
 {
+    DEBUG_LOG("Triggering input action '" + action + "'");
     // Handle specific actions
     if (action == "ToggleDebugConsole")
     {
         eventBus_.publish(ConsoleToggleEvent{});
-        std::cout << "Console toggle triggered" << std::endl;
+        DEBUG_LOG("Console toggle triggered");
     }
     else if (action == "ToggleWireframe")
     {
-        std::cout << "Wireframe toggle triggered" << std::endl;
+        DEBUG_LOG("Wireframe toggle triggered");
         // TODO: Implement wireframe toggle event
     }
     else if (action == "TogglePerfMetrics")
     {
-        std::cout << "Performance metrics toggle triggered" << std::endl;
+        DEBUG_LOG("Performance metrics toggle triggered");
         // TODO: Implement performance metrics toggle event
     }
     else if (action == "ReloadAssets")
     {
-        std::cout << "Asset reload triggered" << std::endl;
+        DEBUG_LOG("Asset reload triggered");
         // TODO: Implement asset reload event
     }
     else if (action == "Quit")
     {
-        std::cout << "Quit triggered" << std::endl;
+        DEBUG_LOG("Quit triggered");
         // TODO: Implement quit event
     }
     else
     {
         // For other actions, just log for now
-        std::cout << "Input action triggered: " << action << std::endl;
+        DEBUG_LOG("Input action triggered: " << action);
     }
 }
 
@@ -342,3 +346,4 @@ void InputSystem::initializeDefaultConfiguration()
     flightContext.activeBindings = {"ToggleDebugConsole"};
     config_.contexts.push_back(flightContext);
 }
+

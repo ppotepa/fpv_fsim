@@ -38,3 +38,4 @@ namespace Assets
 } // namespace Assets
 
 #endif // ASSET_IDS_H
+

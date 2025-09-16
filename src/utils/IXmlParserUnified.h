@@ -21,3 +21,4 @@ public:
 };
 
 #endif // IXML_PARSER_UNIFIED_H
+

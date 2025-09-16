@@ -15,7 +15,7 @@ namespace Render
         {
             if (Debug())
             {
-                std::cout << "Warning: Cannot open render config file '" << filePath << "', using defaults" << std::endl;
+                DEBUG_LOG("Warning: Cannot open render config file '" << filePath << "', using defaults");
             }
             return RenderConfiguration{};
         }
@@ -44,14 +44,14 @@ namespace Render
 
             if (Debug())
             {
-                std::cout << "Render configuration loaded successfully" << std::endl;
+                DEBUG_LOG("Render configuration loaded successfully");
             }
         }
         catch (const std::exception &e)
         {
             if (Debug())
             {
-                std::cout << "Warning: Error parsing render config: " << e.what() << ", using defaults" << std::endl;
+                DEBUG_LOG("Warning: Error parsing render config: " << e.what() << ", using defaults");
             }
             config = RenderConfiguration{}; // Reset to defaults
         }
@@ -320,3 +320,5 @@ namespace Render
     }
 
 } // namespace Render
+
+

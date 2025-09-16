@@ -34,3 +34,4 @@ public:
 };
 
 #endif // IXML_LOADER_H
+

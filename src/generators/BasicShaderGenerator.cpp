@@ -1,10 +1,12 @@
 #include "BasicShaderGenerator.h"
 #include <sstream>
 #include <algorithm>
+#include "../debug.h"
 
 ShaderInfo BasicShaderGenerator::generateShader(const std::string &shaderType,
                                                 const std::map<std::string, std::string> &parameters)
 {
+    DEBUG_LOG("Generating shader of type '" + shaderType + "'");
     if (shaderType == "phong")
     {
         return generatePhongShader(parameters);
@@ -30,6 +32,7 @@ ShaderInfo BasicShaderGenerator::generateShader(const std::string &shaderType,
 
 ShaderInfo BasicShaderGenerator::generatePhongShader(const std::map<std::string, std::string> &parameters)
 {
+    DEBUG_LOG("Generating Phong shader");
     ShaderInfo shader;
 
     // Vertex shader
@@ -128,6 +131,7 @@ void main()
 
 ShaderInfo BasicShaderGenerator::generatePBRShader(const std::map<std::string, std::string> &parameters)
 {
+    DEBUG_LOG("Generating PBR shader");
     ShaderInfo shader;
 
     // Basic PBR vertex shader
@@ -242,7 +246,7 @@ void main()
     F0 = mix(F0, albedoColor, metallicValue);
     
     vec3 Lo = vec3(0.0);
-    for(int i = 0; i < numLights && i < 4; ++i)
+    for(int i = 0 i < numLights && i < 4; ++i)
     {
         vec3 L = normalize(lightPositions[i] - FragPos);
         vec3 H = normalize(V + L);
@@ -292,6 +296,7 @@ void main()
 
 ShaderInfo BasicShaderGenerator::generateUnlitShader(const std::map<std::string, std::string> &parameters)
 {
+    DEBUG_LOG("Generating unlit shader");
     ShaderInfo shader;
 
     shader.vertexSource = R"(
@@ -338,6 +343,7 @@ void main()
 
 ShaderInfo BasicShaderGenerator::generateDebugShader(const std::map<std::string, std::string> &parameters)
 {
+    DEBUG_LOG("Generating debug shader");
     ShaderInfo shader;
 
     auto debugType = parameters.find("debug_type");
@@ -402,6 +408,7 @@ std::vector<std::string> BasicShaderGenerator::getSupportedShaderTypes()
 
 std::string BasicShaderGenerator::generateVertexShader(bool includeNormals, bool includeUVs, bool includeColors)
 {
+    DEBUG_LOG("Generating vertex shader with normals=" + std::to_string(includeNormals)+ ", UVs=" + std::to_string(includeUVs) + ", colors=" + std::to_string(includeColors))
     std::ostringstream vs;
 
     vs << "#version 330 core\n\n";
@@ -534,3 +541,6 @@ std::vector<float> BasicShaderGenerator::parseColor(const std::string &colorStr,
 
     return color;
 }
+
+
+

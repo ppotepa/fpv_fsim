@@ -75,14 +75,14 @@ bool WorldGenSystem::LoadScene(const std::string &sceneType)
     {
         if (Debug())
         {
-            std::cout << "Scene already loaded, skipping LoadScene." << std::endl;
+            DEBUG_LOG("Scene already loaded, skipping LoadScene.");
         }
         return true;
     }
 
     if (Debug())
     {
-        std::cout << "Loading scene of type: " << sceneType << std::endl;
+        DEBUG_LOG("Loading scene of type: " << sceneType);
     }
 
     // Try to load XML scene configuration first
@@ -92,7 +92,7 @@ bool WorldGenSystem::LoadScene(const std::string &sceneType)
     {
         if (Debug())
         {
-            std::cout << "Successfully loaded XML scene: " << parseResult.scene->name << std::endl;
+            DEBUG_LOG("Successfully loaded XML scene: " << parseResult.scene->name);
         }
         LoadSceneEntities(*parseResult.scene);
         sceneLoaded = true;
@@ -102,8 +102,8 @@ bool WorldGenSystem::LoadScene(const std::string &sceneType)
 
     if (Debug())
     {
-        std::cout << "XML scene loading failed: " << parseResult.errorMessage << std::endl;
-        std::cout << "Falling back to hardcoded scene generation..." << std::endl;
+        DEBUG_LOG("XML scene loading failed: " << parseResult.errorMessage);
+        DEBUG_LOG("Falling back to hardcoded scene generation...");
     }
 
     // Fallback to hardcoded generation
@@ -111,7 +111,7 @@ bool WorldGenSystem::LoadScene(const std::string &sceneType)
     {
         if (Debug())
         {
-            std::cout << "Creating loading indicator scene with central globe and orbiting objects..." << std::endl;
+            DEBUG_LOG("Creating loading indicator scene with central globe and orbiting objects...");
         }
         GenerateLoadingIndicatorWorld();
         sceneLoaded = true;
@@ -121,7 +121,7 @@ bool WorldGenSystem::LoadScene(const std::string &sceneType)
     {
         if (Debug())
         {
-            std::cout << "Unknown scene type, falling back to default generation..." << std::endl;
+            DEBUG_LOG("Unknown scene type, falling back to default generation...");
         }
         GenerateDefaultSphereWorld();
         sceneLoaded = true;
@@ -139,7 +139,7 @@ void WorldGenSystem::GenerateLoadingIndicatorWorld()
 
     if (Debug())
     {
-        std::cout << "Generating simplified loading indicator world..." << std::endl;
+        DEBUG_LOG("Generating simplified loading indicator world...");
     }
 
     static unsigned int nextEntityId = 1;
@@ -151,7 +151,7 @@ void WorldGenSystem::GenerateLoadingIndicatorWorld()
         worldRef.addEntity(std::move(globeEntity));
         if (Debug())
         {
-            std::cout << "Created LoadingGlobe entity" << std::endl;
+            DEBUG_LOG("Created LoadingGlobe entity");
         }
     }
 
@@ -162,7 +162,7 @@ void WorldGenSystem::GenerateLoadingIndicatorWorld()
         worldRef.addEntity(std::move(aircraft1Entity));
         if (Debug())
         {
-            std::cout << "Created OrbitingAircraft1 entity" << std::endl;
+            DEBUG_LOG("Created OrbitingAircraft1 entity");
         }
     }
 
@@ -173,7 +173,7 @@ void WorldGenSystem::GenerateLoadingIndicatorWorld()
         worldRef.addEntity(std::move(aircraft2Entity));
         if (Debug())
         {
-            std::cout << "Created OrbitingAircraft2 entity" << std::endl;
+            DEBUG_LOG("Created OrbitingAircraft2 entity");
         }
     }
 
@@ -191,7 +191,7 @@ void WorldGenSystem::GenerateLoadingIndicatorWorld()
     eventBus.publish(DefaultWorldGeneratedEvent{});
     if (Debug())
     {
-        std::cout << "Loading indicator scene created successfully with basic entities." << std::endl;
+        DEBUG_LOG("Loading indicator scene created successfully with basic entities.");
     }
 }
 
@@ -199,8 +199,8 @@ void WorldGenSystem::LoadSceneEntities(const SceneConfig::Scene &sceneData)
 {
     if (Debug())
     {
-        std::cout << "Loading scene entities from XML configuration..." << std::endl;
-        std::cout << "Scene: " << sceneData.name << " (ID: " << sceneData.id << ")" << std::endl;
+        DEBUG_LOG("Loading scene entities from XML configuration...");
+        DEBUG_LOG("Scene: " << sceneData.name << " (ID: " << sceneData.id << ")");
     }
 
     static unsigned int nextEntityId = 1;
@@ -240,7 +240,7 @@ void WorldGenSystem::LoadSceneEntities(const SceneConfig::Scene &sceneData)
 
                 if (Debug())
                 {
-                    std::cout << "Created entity: " << entityData.id << " (type: " << entityData.type << ")" << std::endl;
+                    DEBUG_LOG("Created entity: " << entityData.id << " (type: " << entityData.type << ")");
                 }
             }
             catch (const std::exception &e)
@@ -254,11 +254,11 @@ void WorldGenSystem::LoadSceneEntities(const SceneConfig::Scene &sceneData)
         // Scene parser didn't create entities yet, create based on scene type
         if (Debug())
         {
-            std::cout << "No parsed entities found, creating entities based on scene ID..." << std::endl;
+            DEBUG_LOG("No parsed entities found, creating entities based on scene ID...");
         }
         if (Debug())
         {
-            std::cout << "No parsed entities found, creating entities based on scene ID..." << std::endl;
+            DEBUG_LOG("No parsed entities found, creating entities based on scene ID...");
         }
 
         if (sceneData.id == "loading_indicator")
@@ -274,14 +274,14 @@ void WorldGenSystem::LoadSceneEntities(const SceneConfig::Scene &sceneData)
         {
             if (Debug())
             {
-                std::cout << "Unknown scene type for entity creation: " << sceneData.id << std::endl;
+                DEBUG_LOG("Unknown scene type for entity creation: " << sceneData.id);
             }
         }
     }
 
     if (Debug())
     {
-        std::cout << "Successfully created " << entitiesCreated << " entities from XML scene data" << std::endl;
+        DEBUG_LOG("Successfully created " << entitiesCreated << " entities from XML scene data");
     }
 }
 
@@ -289,7 +289,7 @@ AssetId WorldGenSystem::GenerateVoxelMesh(const SceneConfig::CompoundMesh &meshC
 {
     if (Debug())
     {
-        std::cout << "Generating voxel mesh: " << meshConfig.name << " (ID: " << meshConfig.id << ")" << std::endl;
+        DEBUG_LOG("Generating voxel mesh: " << meshConfig.name << " (ID: " << meshConfig.id << ")");
     }
 
     // Convert SceneConfig::CompoundMesh to VoxelMesh::CompoundParams
@@ -357,8 +357,8 @@ AssetId WorldGenSystem::GenerateVoxelMesh(const SceneConfig::CompoundMesh &meshC
     // Store vertex and index data (simplified - in production this would need proper mesh asset structure)
     if (Debug())
     {
-        std::cout << "Generated mesh with " << meshData.vertices.size() << " vertices and "
-                  << meshData.indices.size() << " indices" << std::endl;
+        DEBUG_LOG("Generated mesh with " << meshData.vertices.size() << " vertices and "
+                                         << meshData.indices.size() << " indices");
     }
 
     // Generate numeric asset ID for the mesh using FNV-1a hash
@@ -390,7 +390,7 @@ void WorldGenSystem::GenerateDefaultSphereWorld()
 
     if (Debug())
     {
-        std::cout << "Generating default Earth-like sphere world..." << std::endl;
+        DEBUG_LOG("Generating default Earth-like sphere world...");
     }
 
     static unsigned int nextEntityId = 1;
@@ -458,7 +458,7 @@ void WorldGenSystem::GenerateDefaultSphereWorld()
 
     sceneLoaded = true;
     eventBus.publish(DefaultWorldGeneratedEvent{});
-    std::cout << "Default world generation complete." << std::endl;
+    DEBUG_LOG("Default world generation complete.");
 }
 
 void WorldGenSystem::OnNoPackagesFound(const NoPackagesFoundEvent &event)
@@ -477,7 +477,7 @@ void WorldGenSystem::OnDefaultWorldRequested(const DefaultWorldGeneratedEvent &e
         const std::string *defaultSceneXml = assetRegistry_.getDefaultScene();
         if (defaultSceneXml != nullptr)
         {
-            std::cout << "Loading default scene configuration from package..." << std::endl;
+            DEBUG_LOG("Loading default scene configuration from package...");
 
             // Parse the scene type from the XML (looking for type="procedural_earth_like")
             size_t typeStart = defaultSceneXml->find("type=\"") + 6;
@@ -485,24 +485,24 @@ void WorldGenSystem::OnDefaultWorldRequested(const DefaultWorldGeneratedEvent &e
             if (typeStart != std::string::npos + 6 && typeEnd != std::string::npos)
             {
                 std::string sceneType = defaultSceneXml->substr(typeStart, typeEnd - typeStart);
-                std::cout << "Loading scene of type: " << sceneType << std::endl;
+                DEBUG_LOG("Loading scene of type: " << sceneType);
                 LoadScene(sceneType);
             }
             else
             {
-                std::cout << "Unable to parse scene type from default scene XML, falling back to hardcoded generation..." << std::endl;
+                DEBUG_LOG("Unable to parse scene type from default scene XML, falling back to hardcoded generation...");
                 GenerateDefaultSphereWorld();
             }
         }
         else
         {
-            std::cout << "No default scene registered, falling back to hardcoded generation..." << std::endl;
+            DEBUG_LOG("No default scene registered, falling back to hardcoded generation...");
             GenerateDefaultSphereWorld();
         }
     }
     catch (const std::exception &e)
     {
-        std::cout << "Error loading default scene: " << e.what() << ", falling back to hardcoded generation..." << std::endl;
+        DEBUG_LOG("Error loading default scene: " << e.what() << ", falling back to hardcoded generation...");
         GenerateDefaultSphereWorld();
     }
 }
@@ -547,7 +547,7 @@ AssetId WorldGenSystem::GetCloudMaterialId()
 
 void WorldGenSystem::CreateLoadingIndicatorEntitiesFromXmlStructure(unsigned int &nextEntityId, int &entitiesCreated)
 {
-    std::cout << "Creating loading indicator entities based on XML structure..." << std::endl;
+    DEBUG_LOG("Creating loading indicator entities based on XML structure...");
 
     // Create central globe entity (from XML: central_globe)
     auto globeEntity = std::make_unique<Entity>(nextEntityId++);
@@ -604,12 +604,12 @@ void WorldGenSystem::CreateLoadingIndicatorEntitiesFromXmlStructure(unsigned int
         entitiesCreated++;
     }
 
-    std::cout << "Created " << entitiesCreated << " entities based on loading_indicator.xml structure" << std::endl;
+    DEBUG_LOG("Created " << entitiesCreated << " entities based on loading_indicator.xml structure");
 }
 
 void WorldGenSystem::CreateDefaultSphereEntitiesFromXmlStructure(unsigned int &nextEntityId, int &entitiesCreated)
 {
-    std::cout << "Creating default sphere entities based on XML structure..." << std::endl;
+    DEBUG_LOG("Creating default sphere entities based on XML structure...");
 
     // Create earth sphere entity using EntityFactory (from XML: earth_sphere)
     auto earthEntity = entityFactory_->createFromTemplate("earth_sphere", "Earth", nextEntityId++);
@@ -674,5 +674,5 @@ void WorldGenSystem::CreateDefaultSphereEntitiesFromXmlStructure(unsigned int &n
         entitiesCreated++;
     }
 
-    std::cout << "Created " << entitiesCreated << " entities based on default_sphere_world.xml structure" << std::endl;
+    DEBUG_LOG("Created " << entitiesCreated << " entities based on default_sphere_world.xml structure");
 }

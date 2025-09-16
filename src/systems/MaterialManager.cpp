@@ -4,13 +4,14 @@
 #include <iomanip>
 #include <algorithm>
 #include <fstream>
+#include "../debug.h"
 
 namespace Material
 {
     MaterialManager::MaterialManager()
         : textureGenerator_(nullptr)
     {
-        std::cout << "MaterialManager initialized" << std::endl;
+        DEBUG_LOG("MaterialManager initialized");
     }
 
     bool MaterialManager::LoadMaterial(const std::string &materialId, const Material &material)
@@ -23,7 +24,7 @@ namespace Material
 
         if (HasMaterial(materialId))
         {
-            std::cout << "Warning: Overwriting existing material: " << materialId << std::endl;
+            DEBUG_LOG("Warning: Overwriting existing material: " << materialId);
         }
 
         materials_[materialId] = material;
@@ -34,7 +35,7 @@ namespace Material
             ApplyGlobalCelShadingSettings(materials_[materialId].properties);
         }
 
-        std::cout << "Loaded material: " << materialId << " (type: " << material.type << ")" << std::endl;
+        DEBUG_LOG("Loaded material: " << materialId << " (type: " << material.type << ")");
         return true;
     }
 
@@ -162,8 +163,8 @@ namespace Material
         globalToonThreshold_ = std::max(0.0f, std::min(threshold, 1.0f));
         globalRimLighting_ = enableRim;
 
-        std::cout << "Updated global cel-shading: " << globalToonSteps_ << " steps, "
-                  << globalToonThreshold_ << " threshold, rim: " << (globalRimLighting_ ? "enabled" : "disabled") << std::endl;
+        DEBUG_LOG("Updated global cel-shading: " << globalToonSteps_ << " steps, "
+                                                 << globalToonThreshold_ << " threshold, rim: " << (globalRimLighting_ ? "enabled" : "disabled"));
     }
 
     void MaterialManager::EnableOutlinesForMaterial(const std::string &materialId, float width, const Math::float3 &color)
@@ -174,7 +175,7 @@ namespace Material
             it->second.properties.enableOutlines = true;
             it->second.properties.outlineWidth = std::max(0.001f, std::min(width, 0.1f));
             it->second.properties.outlineColor = color;
-            std::cout << "Enabled outlines for material: " << materialId << std::endl;
+            DEBUG_LOG("Enabled outlines for material: " << materialId);
         }
         else
         {
@@ -190,7 +191,7 @@ namespace Material
             it->second.properties.isAnimated = true;
             it->second.properties.animationType = animType;
             it->second.properties.animationSpeed = std::max(0.1f, std::min(speed, 10.0f));
-            std::cout << "Set animation for material: " << materialId << " (" << animType << ", speed: " << speed << ")" << std::endl;
+            DEBUG_LOG("Set animation for material: " << materialId << " (" << animType << ", speed: " << speed << ")");
         }
         else
         {
@@ -201,7 +202,7 @@ namespace Material
     void MaterialManager::SetTextureGenerator(const ProceduralTexture::ProceduralTextureGenerator *generator)
     {
         textureGenerator_ = generator;
-        std::cout << "Texture generator assigned to MaterialManager" << std::endl;
+        DEBUG_LOG("Texture generator assigned to MaterialManager");
     }
 
     MaterialId MaterialManager::GenerateAndAssignTexture(const std::string &materialId, const std::string &textureType)
@@ -275,7 +276,7 @@ namespace Material
                 it->second.properties.emissionTexture = textureId;
             }
 
-            std::cout << "Generated and assigned " << textureType << " texture to material: " << materialId << std::endl;
+            DEBUG_LOG("Generated and assigned " << textureType << " texture to material: " << materialId);
         }
 
         return textureId;
@@ -283,12 +284,12 @@ namespace Material
 
     void MaterialManager::LoadDefaultMaterials()
     {
-        std::cout << "Loading default materials..." << std::endl;
+        DEBUG_LOG("Loading default materials...");
 
         // Load materials from the developer package
         if (LoadMaterialsFromFile("assets/packages/DeveloperPackage/materials.xml"))
         {
-            std::cout << "Default materials loaded successfully" << std::endl;
+            DEBUG_LOG("Default materials loaded successfully");
             return;
         }
 
@@ -335,7 +336,7 @@ namespace Material
         contrailMaterial.properties.animationType = "wave";
         LoadMaterial("ContrailMaterial", contrailMaterial);
 
-        std::cout << "Hardcoded default materials loaded" << std::endl;
+        DEBUG_LOG("Hardcoded default materials loaded");
     }
 
     bool MaterialManager::LoadMaterialsFromFile(const std::string &filePath)
@@ -440,7 +441,7 @@ namespace Material
             currentPos = materialEnd;
         }
 
-        std::cout << "Loaded materials from file: " << filePath << std::endl;
+        DEBUG_LOG("Loaded materials from file: " << filePath);
         return true;
     }
 
@@ -448,7 +449,7 @@ namespace Material
     {
         size_t count = materials_.size();
         materials_.clear();
-        std::cout << "Cleared " << count << " materials" << std::endl;
+        DEBUG_LOG("Cleared " << count << " materials");
     }
 
     size_t MaterialManager::GetMaterialCount() const
@@ -510,23 +511,23 @@ namespace Material
         auto it = materials_.find(materialId);
         if (it == materials_.end())
         {
-            std::cout << "Material not found: " << materialId << std::endl;
+            DEBUG_LOG("Material not found: " << materialId);
             return;
         }
 
         const auto &material = it->second;
         const auto &props = material.properties;
 
-        std::cout << "\\n=== Material Info: " << materialId << " ===" << std::endl;
-        std::cout << "Type: " << material.type << std::endl;
-        std::cout << "Dynamic: " << (material.isDynamic ? "Yes" : "No") << std::endl;
-        std::cout << "Albedo: (" << props.albedo.x << ", " << props.albedo.y << ", " << props.albedo.z << ")" << std::endl;
-        std::cout << "Metallic: " << props.metallic << ", Roughness: " << props.roughness << std::endl;
-        std::cout << "Toon Steps: " << props.toonSteps << ", Threshold: " << props.toonThreshold << std::endl;
-        std::cout << "Rim Lighting: " << (props.enableRimLighting ? "Enabled" : "Disabled") << std::endl;
-        std::cout << "Outlines: " << (props.enableOutlines ? "Enabled" : "Disabled") << std::endl;
-        std::cout << "Animation: " << (props.isAnimated ? props.animationType + " (speed: " + std::to_string(props.animationSpeed) + ")" : "None") << std::endl;
-        std::cout << "=========================" << std::endl;
+        DEBUG_LOG("\\n=== Material Info: " << materialId << " ===");
+        DEBUG_LOG("Type: " << material.type);
+        DEBUG_LOG("Dynamic: " << (material.isDynamic ? "Yes" : "No"));
+        DEBUG_LOG("Albedo: (" << props.albedo.x << ", " << props.albedo.y << ", " << props.albedo.z << ")");
+        DEBUG_LOG("Metallic: " << props.metallic << ", Roughness: " << props.roughness);
+        DEBUG_LOG("Toon Steps: " << props.toonSteps << ", Threshold: " << props.toonThreshold);
+        DEBUG_LOG("Rim Lighting: " << (props.enableRimLighting ? "Enabled" : "Disabled"));
+        DEBUG_LOG("Outlines: " << (props.enableOutlines ? "Enabled" : "Disabled"));
+        DEBUG_LOG("Animation: " << (props.isAnimated ? props.animationType + " (speed: " + std::to_string(props.animationSpeed) + ")" : "None"));
+        DEBUG_LOG("=========================");
     }
 
     // Private helper methods

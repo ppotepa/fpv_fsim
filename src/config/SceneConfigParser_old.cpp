@@ -734,7 +734,7 @@ namespace SceneConfig
         std::sregex_iterator iter(xml.begin(), xml.end(), pattern);
         std::sregex_iterator end;
 
-        for (; iter != end; ++iter)
+        for ( iter != end; ++iter)
         {
             elements.push_back(iter->str());
         }
@@ -906,3 +906,5 @@ namespace SceneConfig
     }
 
 } // namespace SceneConfig
+
+

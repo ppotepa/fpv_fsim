@@ -243,3 +243,4 @@ private:
      */
     void optimizeMesh(VoxelMesh::MeshData &mesh);
 };
+

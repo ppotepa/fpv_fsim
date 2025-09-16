@@ -4,6 +4,6 @@
 int main()
 {
     EntityConfig::Transform test;
-    std::cout << "EntityConfig test passed" << std::endl;
+    DEBUG_LOG("EntityConfig test passed");
     return 0;
 }

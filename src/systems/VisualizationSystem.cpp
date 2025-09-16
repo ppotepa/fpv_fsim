@@ -1,5 +1,12 @@
 #include "VisualizationSystem.h"
 #include "../core/AssetIds.h"
+#include "../debug.h"
+#include <iostream>
+#include <string>
+#include <cmath>
+#include <memory>
+#include <unordered_map>e "VisualizationSystem.h"
+#include "../core/AssetIds.h"
 #include <iostream>
 #include <string>
 #include <cmath>
@@ -46,7 +53,7 @@ VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND 
     : eventBus(eventBus), worldRef(world), hwnd(windowHandle), materialManager_(materialManager), renderConfig_(renderConfig),
       displayNoPackagesMessage(false), consoleVisible(false), rotationAngle(0.0f)
 {
-    std::cout << "Initializing VisualizationSystem with OpenGL rendering..." << std::endl;
+    DEBUG_LOG("Initializing VisualizationSystem with OpenGL rendering...");
 
     // Initialize OpenGL context
     if (!glContext.Initialize(hwnd))
@@ -71,10 +78,10 @@ VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND 
     camera->nearPlane = 0.1f;
     camera->farPlane = 1000.0f;
 
-    std::cout << "Camera initialized at position (" << camera->position.x << ", "
-              << camera->position.y << ", " << camera->position.z << ")" << std::endl;
+    DEBUG_LOG("Camera initialized at position (" + std::to_string(camera->position.x) + ", " +
+              std::to_string(camera->position.y) + ", " + std::to_string(camera->position.z) + ")");
 
-    std::cout << "OpenGL-based VisualizationSystem initialized successfully" << std::endl;
+    DEBUG_LOG("OpenGL-based VisualizationSystem initialized successfully");
 
     // Subscribe to events
     eventBus.subscribe(EventType::NoPackagesFound, [this](const IEvent &event)
@@ -107,8 +114,8 @@ void VisualizationSystem::update(World &world, float deltaTime)
     static int frameCount = 0;
     if (frameCount++ % 600 == 0)
     {
-        std::cout << "Window dimensions: " << (rect.right - rect.left) << "x"
-                  << (rect.bottom - rect.top) << " (aspect: " << aspect << ")" << std::endl;
+        DEBUG_LOG("Window dimensions: " + std::to_string(rect.right - rect.left) + "x" +
+                  std::to_string(rect.bottom - rect.top) + " (aspect: " + std::to_string(aspect) + ")");
     }
 
     // Setup 3D camera using our camera object
@@ -130,9 +137,9 @@ void VisualizationSystem::update(World &world, float deltaTime)
         // Every 300 frames, output camera debug info
         if (frameCount % 300 == 0)
         {
-            std::cout << "Camera position: (" << camera->position.x << ", "
-                      << camera->position.y << ", " << camera->position.z << ")" << std::endl;
-            std::cout << "Looking at: (" << lookAtX << ", " << lookAtY << ", " << lookAtZ << ")" << std::endl;
+            DEBUG_LOG("Camera position: (" + std::to_string(camera->position.x) + ", " +
+                      std::to_string(camera->position.y) + ", " + std::to_string(camera->position.z) + ")");
+            DEBUG_LOG("Looking at: (" + std::to_string(lookAtX) + ", " + std::to_string(lookAtY) + ", " + std::to_string(lookAtZ) + ")");
         }
     }
     else
@@ -186,7 +193,7 @@ void VisualizationSystem::RenderEntities()
     static int frameCount = 0;
     if (frameCount++ % 60 == 0)
     { // Print more frequently for debugging
-        std::cout << "VisualizationSystem: Rendering " << worldRef.getEntities().size() << " entities" << std::endl;
+        DEBUG_LOG("VisualizationSystem: Rendering " + std::to_string(worldRef.getEntities().size()) + " entities");
 
         // Count entities with required rendering components
         int entitiesWithRenderComponents = 0;
@@ -197,19 +204,19 @@ void VisualizationSystem::RenderEntities()
                 entitiesWithRenderComponents++;
             }
         }
-        std::cout << "Entities with rendering components: " << entitiesWithRenderComponents << std::endl;
+        DEBUG_LOG("Entities with rendering components: " + std::to_string(entitiesWithRenderComponents));
 
         // Output camera position for debugging
         if (camera)
         {
-            std::cout << "Camera position: (" << camera->position.x << ", "
-                      << camera->position.y << ", " << camera->position.z << ")" << std::endl;
-            std::cout << "Camera direction: (" << camera->direction.x << ", "
-                      << camera->direction.y << ", " << camera->direction.z << ")" << std::endl;
+            DEBUG_LOG("Camera position: (" + std::to_string(camera->position.x) + ", " +
+                      std::to_string(camera->position.y) + ", " + std::to_string(camera->position.z) + ")");
+            DEBUG_LOG("Camera direction: (" + std::to_string(camera->direction.x) + ", " +
+                      std::to_string(camera->direction.y) + ", " + std::to_string(camera->direction.z) + ")");
         }
         else
         {
-            std::cout << "WARNING: Camera not initialized!" << std::endl;
+            DEBUG_LOG("WARNING: Camera not initialized!");
         }
     }
 
@@ -218,7 +225,7 @@ void VisualizationSystem::RenderEntities()
     {
         if (frameCount % 60 == 0)
         { // Print more frequently for debugging
-            std::cout << "WARNING: No entities to render in the scene!" << std::endl;
+            DEBUG_LOG("WARNING: No entities to render in the scene!");
         }
         // Draw a simple debug sphere in the center just to show something
         DrawSphere(0.0f, 0.0f, 0.0f, 2.0f, 1.0f, 0.0f, 0.0f); // Red sphere
@@ -236,15 +243,15 @@ void VisualizationSystem::RenderEntities()
         // Debug output for missing components
         if (!transform && frameCount % 300 == 0)
         {
-            std::cout << "Entity " << entity->getId() << " missing TransformC component" << std::endl;
+            DEBUG_LOG("Entity " + std::to_string(entity->getId()) + " missing TransformC component");
         }
         if (!renderable && frameCount % 300 == 0)
         {
-            std::cout << "Entity " << entity->getId() << " missing RenderableC component" << std::endl;
+            DEBUG_LOG("Entity " + std::to_string(entity->getId()) + " missing RenderableC component");
         }
         if (renderable && !renderable->isVisible && frameCount % 300 == 0)
         {
-            std::cout << "Entity " << entity->getId() << " has invisible RenderableC" << std::endl;
+            DEBUG_LOG("Entity " + std::to_string(entity->getId()) + " has invisible RenderableC");
         }
 
         if (transform && renderable && renderable->isVisible)
@@ -261,9 +268,9 @@ void VisualizationSystem::RenderEntities()
             // Debug output for rendered entities (occasional)
             if (frameCount % 600 == 0)
             {
-                std::cout << "Rendering entity: " << entity->getName()
-                          << " at (" << x << ", " << y << ", " << z << ")"
-                          << " with material: " << renderable->materialId << std::endl;
+                DEBUG_LOG("Rendering entity: " + entity->getName() +
+                          " at (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")" +
+                          " with material: " + renderable->materialId);
             }
 
             // Draw 3D sphere at world position
@@ -272,14 +279,14 @@ void VisualizationSystem::RenderEntities()
         else if (frameCount % 300 == 0)
         {
             // Debug for entities missing components
-            std::cout << "Entity " << entity->getName() << " is missing ";
+            std::string missing = "Entity " + entity->getName() + " is missing ";
             if (!transform)
-                std::cout << "transform ";
+                missing += "transform ";
             if (!renderable)
-                std::cout << "renderable ";
+                missing += "renderable ";
             if (renderable && !renderable->isVisible)
-                std::cout << "(not visible) ";
-            std::cout << std::endl;
+                missing += "(not visible) ";
+            DEBUG_LOG(missing);
         }
     }
 }
@@ -288,13 +295,13 @@ void VisualizationSystem::RenderConsole()
 {
     // Console rendering - simplified for OpenGL transition
     // For now, just indicate console is visible
-    std::cout << "Console visible (OpenGL text rendering to be implemented)" << std::endl;
+    DEBUG_LOG("Console visible (OpenGL text rendering to be implemented)");
 }
 
 void VisualizationSystem::RenderNoPackagesMessage()
 {
     // No packages message - simplified for OpenGL transition
-    std::cout << "No Asset Packages Found - Generating Default Earth World..." << std::endl;
+    DEBUG_LOG("No Asset Packages Found - Generating Default Earth World...");
 }
 
 void VisualizationSystem::DrawSphere(float x, float y, float z, float radius, float r, float g, float b)
@@ -306,8 +313,8 @@ void VisualizationSystem::DrawSphere(float x, float y, float z, float radius, fl
         // Only show a few entities to avoid spamming the console
         if (debugCounter < 10000)
         {
-            std::cout << "Drawing entity at position (" << x << ", " << y << ", " << z
-                      << ") with radius " << radius << std::endl;
+            DEBUG_LOG("Drawing entity at position (" << x << ", " << y << ", " << z
+                                                     << ") with radius " << radius);
 
             // If we have a camera, calculate distance from camera
             if (camera)
@@ -316,7 +323,7 @@ void VisualizationSystem::DrawSphere(float x, float y, float z, float radius, fl
                 float dy = camera->position.y - y;
                 float dz = camera->position.z - z;
                 float distance = std::sqrt(dx * dx + dy * dy + dz * dz);
-                std::cout << "  Distance from camera: " << distance << std::endl;
+                DEBUG_LOG("  Distance from camera: " << distance);
             }
         }
     }
@@ -348,6 +355,6 @@ VisualizationSystem::Color VisualizationSystem::GetMaterialColor(const std::stri
     }
 
     // Fallback to default green if material not found
-    std::cout << "Warning: Material '" << materialId << "' not found, using default green color" << std::endl;
+    DEBUG_LOG("Warning: Material '" << materialId << "' not found, using default green color");
     return {0.0f, 1.0f, 0.0f};
 }

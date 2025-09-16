@@ -276,3 +276,4 @@ namespace ProceduralTexture
     };
 
 } // namespace ProceduralTexture
+

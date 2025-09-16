@@ -41,3 +41,4 @@ struct TransformC : public IComponent
     TransformC(Vector3D pos = Vector3D(), Quaternion rot = Quaternion(), Vector3D scl = Vector3D(1.0f, 1.0f, 1.0f))
         : position(pos), rotation(rot), scale(scl) {}
 };
+

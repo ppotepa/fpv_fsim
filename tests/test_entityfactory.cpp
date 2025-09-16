@@ -4,6 +4,6 @@
 int main()
 {
     EntityConfig::Transform test;
-    std::cout << "EntityConfig accessible directly" << std::endl;
+    DEBUG_LOG("EntityConfig accessible directly");
     return 0;
 }

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "../debug.h"
 
 /**
  * @brief Construct an asset pack loader with a reference to the registry.
@@ -31,7 +32,7 @@ AssetPackLoader::~AssetPackLoader() {}
  */
 bool AssetPackLoader::loadPackage(const std::string &packagePath)
 {
-    std::cout << "Attempting to load package from: " << packagePath << std::endl;
+    DEBUG_LOG("Attempting to load package from: " << packagePath);
 
     // Read XML file
     std::ifstream file(packagePath);
@@ -51,17 +52,17 @@ bool AssetPackLoader::loadPackage(const std::string &packagePath)
     size_t secondLastSlash = packagePath.find_last_of("/\\", lastSlash - 1);
     std::string packageName = packagePath.substr(secondLastSlash + 1, lastSlash - secondLastSlash - 1);
 
-    std::cout << "Extracted package name: " << packageName << std::endl;
+    DEBUG_LOG("Extracted package name: " << packageName);
 
     // Parse assets and configurations
-    std::cout << "Parsing assets..." << std::endl;
+    DEBUG_LOG("Parsing assets...");
     if (!parseAssets(xmlContent, packageName))
     {
         std::cerr << "Failed to parse assets from package: " << packageName << std::endl;
         return false;
     }
 
-    std::cout << "Parsing configurations..." << std::endl;
+    DEBUG_LOG("Parsing configurations...");
     if (!parseConfigurations(xmlContent, packageName))
     {
         std::cerr << "Failed to parse configurations from package: " << packageName << std::endl;
@@ -69,7 +70,7 @@ bool AssetPackLoader::loadPackage(const std::string &packagePath)
     }
 
     registry_.markPackageLoaded(packageName);
-    std::cout << "Successfully loaded package: " << packageName << std::endl;
+    DEBUG_LOG("Successfully loaded package: " << packageName);
     return true;
 }
 
@@ -218,7 +219,7 @@ bool AssetPackLoader::parseConfigurations(const std::string &xmlContent, const s
 {
     // Search for scene_config elements throughout the entire XML document
     // (not just within a single configurations section, as there may be multiple)
-    std::cout << "Searching for scene_config elements throughout entire XML..." << std::endl;
+    DEBUG_LOG("Searching for scene_config elements throughout entire XML...");
 
     size_t pos = 0;
     while ((pos = xmlContent.find("<scene_config", pos)) != std::string::npos)
@@ -228,20 +229,20 @@ bool AssetPackLoader::parseConfigurations(const std::string &xmlContent, const s
             break;
 
         std::string sceneXml = xmlContent.substr(pos, endPos - pos + 15);
-        std::cout << "Found scene_config: " << sceneXml.substr(0, 100) << "..." << std::endl;
+        DEBUG_LOG("Found scene_config: " << sceneXml.substr(0, 100) << "...");
 
         // Extract scene ID
         size_t idStart = sceneXml.find("id=\"") + 4;
         size_t idEnd = sceneXml.find("\"", idStart);
         std::string sceneId = sceneXml.substr(idStart, idEnd - idStart);
-        std::cout << "Extracted scene ID: " << sceneId << std::endl;
+        DEBUG_LOG("Extracted scene ID: " << sceneId);
 
         // For DefaultSphereWorldScene, register it as the default scene
         if (sceneId == "DefaultSphereWorldScene")
         {
             registry_.registerSceneConfig(stringToAssetId(packageName, sceneId), sceneXml);
             registry_.setDefaultScene(stringToAssetId(packageName, sceneId));
-            std::cout << "Registered default scene: " << packageName << "::" << sceneId << std::endl;
+            DEBUG_LOG("Registered default scene: " << packageName << "::" << sceneId);
         }
 
         pos = endPos;
@@ -423,3 +424,5 @@ AssetId AssetPackLoader::stringToAssetId(const std::string &packageName, const s
     // Ensure we don't return 0 (reserved for invalid/empty ID)
     return (hash == 0) ? 1 : hash;
 }
+
+

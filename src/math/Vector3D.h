@@ -114,3 +114,4 @@ inline Vector3D operator*(float scalar, const Vector3D &v)
 {
     return v * scalar;
 }
+

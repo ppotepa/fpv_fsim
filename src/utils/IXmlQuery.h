@@ -60,3 +60,4 @@ public:
 };
 
 #endif // IXML_QUERY_H
+

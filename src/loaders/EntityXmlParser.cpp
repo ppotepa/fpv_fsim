@@ -2,19 +2,20 @@
 #include "platform/PugiXmlParser.h"
 #include <iostream>
 #include <memory>
+#include "../debug.h"
 
 namespace EntityLoader
 {
 
     EntityXmlParser::EntityXmlParser()
-        : xmlParser_(std::make_unique<PugiXmlParser>())
-    {
-    }
+        : xmlParser_(std::make_unique<PugiXmlParser>()){
+              DEBUG_LOG("Initializing EntityXmlParser");}
 
-    EntityXmlParser::~EntityXmlParser() = default;
+          EntityXmlParser::~EntityXmlParser() = default;
 
     std::unique_ptr<EntityConfig::EntityDefinition> EntityXmlParser::loadFromFile(const std::string &filePath)
     {
+        DEBUG_LOG("Loading entity from XML file '" + filePath + "'");
         if (!xmlParser_->loadFile(filePath))
         {
             std::cerr << "Failed to load entity XML file: " << filePath << std::endl;
@@ -27,6 +28,7 @@ namespace EntityLoader
 
     std::unique_ptr<EntityConfig::EntityDefinition> EntityXmlParser::loadFromString(const std::string &xmlContent)
     {
+        DEBUG_LOG("Loading entity from XML string");
         if (!xmlParser_->loadString(xmlContent))
         {
             std::cerr << "Failed to parse entity XML string" << std::endl;
@@ -39,6 +41,7 @@ namespace EntityLoader
 
     std::unique_ptr<EntityConfig::EntityDefinition> EntityXmlParser::parseEntity()
     {
+        DEBUG_LOG("Parsing entity from XML");
         auto definition = std::make_unique<EntityConfig::EntityDefinition>();
 
         // Check if it's a valid entity XML
@@ -103,13 +106,14 @@ namespace EntityLoader
         // Parse custom properties
         parseCustomProperties(*definition);
 
-        std::cout << "Successfully parsed entity: " << definition->name << " (Type: " << definition->entityType << ")" << std::endl;
+        DEBUG_LOG("Successfully parsed entity: " << definition->name << " (Type: " << definition->entityType << ")");
 
         return definition;
     }
 
     void EntityXmlParser::parseTransform(EntityConfig::EntityDefinition &definition)
     {
+        DEBUG_LOG("Parsing transform component");
         // Check if transform element exists
         if (!xmlParser_->hasElement("transform", "entity"))
         {
@@ -167,6 +171,7 @@ namespace EntityLoader
 
     void EntityXmlParser::parseRenderableComponent(EntityConfig::EntityDefinition &definition)
     {
+        DEBUG_LOG("Parsing renderable component");
         if (!xmlParser_->hasElement("renderable", "entity"))
         {
             return;
@@ -200,6 +205,7 @@ namespace EntityLoader
 
     void EntityXmlParser::parsePhysicsComponent(EntityConfig::EntityDefinition &definition)
     {
+        DEBUG_LOG("Parsing physics component");
         if (!xmlParser_->hasElement("physics", "entity"))
         {
             return;
@@ -269,6 +275,7 @@ namespace EntityLoader
 
     void EntityXmlParser::parseVehicleComponent(EntityConfig::EntityDefinition &definition)
     {
+        DEBUG_LOG("Parsing vehicle component");
         if (!xmlParser_->hasElement("vehicle", "entity"))
         {
             return;
@@ -311,6 +318,7 @@ namespace EntityLoader
 
     void EntityXmlParser::parseAudioComponent(EntityConfig::EntityDefinition &definition)
     {
+        DEBUG_LOG("Parsing audio component");
         if (!xmlParser_->hasElement("audio", "entity"))
         {
             return;
@@ -342,6 +350,7 @@ namespace EntityLoader
 
     void EntityXmlParser::parseLightComponent(EntityConfig::EntityDefinition &definition)
     {
+        DEBUG_LOG("Parsing light component");
         if (!xmlParser_->hasElement("light", "entity"))
         {
             return;
@@ -387,6 +396,7 @@ namespace EntityLoader
 
     void EntityXmlParser::parseCustomProperties(EntityConfig::EntityDefinition &definition)
     {
+        DEBUG_LOG("Parsing custom properties");
         // First try "properties" element (used in existing XML)
         if (xmlParser_->hasElement("properties", "entity"))
         {
@@ -430,3 +440,6 @@ namespace EntityLoader
     }
 
 } // namespace EntityLoader
+
+
+

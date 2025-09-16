@@ -4,6 +4,6 @@
 int main()
 {
     EntityFactory::EntityFactory test;
-    std::cout << "Minimal EntityFactory test passed" << std::endl;
+    DEBUG_LOG("Minimal EntityFactory test passed");
     return 0;
 }

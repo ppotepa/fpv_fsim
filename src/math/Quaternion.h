@@ -114,3 +114,4 @@ inline Quaternion operator*(const Quaternion &a, const Quaternion &b)
         a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,
         a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
 }
+

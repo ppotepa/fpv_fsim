@@ -344,3 +344,4 @@ private:
         particle->alpha = 1.0f;
     }
 };
+

@@ -253,3 +253,5 @@ AssetId AssetRegistry::getDefaultSceneId() const
 {
     return defaultSceneId_;
 }
+
+

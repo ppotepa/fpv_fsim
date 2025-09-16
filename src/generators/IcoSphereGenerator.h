@@ -383,3 +383,4 @@ private:
         return (static_cast<uint64_t>(x) << 32) | (static_cast<uint64_t>(y) << 16) | z;
     }
 };
+

@@ -3,6 +3,6 @@
 
 int main()
 {
-    std::cout << "MaterialManager header test passed" << std::endl;
+    DEBUG_LOG("MaterialManager header test passed");
     return 0;
 }

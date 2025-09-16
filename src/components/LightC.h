@@ -56,3 +56,4 @@ struct LightC : public IComponent
         color[2] = b;
     }
 };
+

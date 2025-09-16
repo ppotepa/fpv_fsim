@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <array>
+#include "../debug.h"
 
 // ============================================================================
 // Public Generation Methods
@@ -10,6 +11,7 @@
 
 VoxelMesh::MeshData VoxelMeshGenerator::generatePrimitive(const VoxelMesh::VoxelParams &params)
 {
+    DEBUG_LOG("Generating primitive voxel mesh of type " + std::to_string(static_cast<int>(params.type)));
     switch (params.type)
     {
     case VoxelMesh::VoxelType::Cube:
@@ -27,6 +29,7 @@ VoxelMesh::MeshData VoxelMeshGenerator::generatePrimitive(const VoxelMesh::Voxel
 
 VoxelMesh::MeshData VoxelMeshGenerator::generateCompound(const VoxelMesh::CompoundParams &params)
 {
+    DEBUG_LOG("Generating compound voxel mesh with " + std::to_string(params.parts.size()) + " parts");
     std::vector<VoxelMesh::MeshData> meshes;
     meshes.reserve(params.parts.size());
 
@@ -46,6 +49,7 @@ VoxelMesh::MeshData VoxelMeshGenerator::generateCompound(const VoxelMesh::Compou
 VoxelMesh::MeshData VoxelMeshGenerator::generateFromParameters(const std::string &type,
                                                                const std::map<std::string, std::string> &parameters)
 {
+    DEBUG_LOG("Generating voxel mesh from parameters with type '" + type + "'");
     VoxelMesh::VoxelParams params;
     params.type = parseVoxelType(type);
 
@@ -134,6 +138,7 @@ uint32_t VoxelMeshGenerator::estimateVertexCount(const VoxelMesh::VoxelParams &p
 
 VoxelMesh::MeshData VoxelMeshGenerator::generateCube(const VoxelMesh::VoxelParams &params)
 {
+    DEBUG_LOG("Generating cube voxel mesh");
     VoxelMesh::MeshData mesh;
     mesh.name = "cube";
 
@@ -183,6 +188,7 @@ VoxelMesh::MeshData VoxelMeshGenerator::generateCube(const VoxelMesh::VoxelParam
 
 VoxelMesh::MeshData VoxelMeshGenerator::generateSphere(const VoxelMesh::VoxelParams &params)
 {
+    DEBUG_LOG("Generating sphere voxel mesh with " + std::to_string(params.subdivisions) + " subdivisions");
     VoxelMesh::MeshData mesh;
     mesh.name = "sphere";
 
@@ -246,6 +252,7 @@ VoxelMesh::MeshData VoxelMeshGenerator::generateSphere(const VoxelMesh::VoxelPar
 
 VoxelMesh::MeshData VoxelMeshGenerator::generateCylinder(const VoxelMesh::VoxelParams &params)
 {
+    DEBUG_LOG("Generating cylinder voxel mesh with radius " + std::to_string(params.radius) + " and height " + std::to_string(params.height));
     VoxelMesh::MeshData mesh;
     mesh.name = "cylinder";
 
@@ -319,6 +326,7 @@ VoxelMesh::MeshData VoxelMeshGenerator::generateCylinder(const VoxelMesh::VoxelP
 
 VoxelMesh::MeshData VoxelMeshGenerator::generatePlane(const VoxelMesh::VoxelParams &params)
 {
+    DEBUG_LOG("Generating plane voxel mesh with size " + std::to_string(params.size));
     VoxelMesh::MeshData mesh;
     mesh.name = "plane";
 
@@ -557,3 +565,4 @@ void VoxelMeshGenerator::optimizeMesh(VoxelMesh::MeshData &mesh)
     // For now, just ensure normals are properly calculated
     calculateNormals(mesh);
 }
+

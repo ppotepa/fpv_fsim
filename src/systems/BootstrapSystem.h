@@ -30,3 +30,4 @@ private:
     bool LoadAvailablePackages();
     void InitializeAssetCompilation();
 };
+

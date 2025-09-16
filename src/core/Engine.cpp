@@ -5,21 +5,23 @@
 #include "../physics/ExponentialAirDensityModel.h"
 #include "../physics/PerlinWindModel.h"
 #include "../physics/ImpulseCollisionResolver.h"
+#include "../systems/PhysicsSystem.h"
+#include "../systems/InputSystem.h"
+#include "../systems/VehicleControlSystem.h"
+#include "../systems/BootstrapSystem.h"
+#include "../systems/WorldGenSystem.h"
+#include "../systems/VisualizationSystem.h"
+#include "../systems/ConsoleSystem.h"
+#include "../systems/AssetHotReloadSystem.h"
+#include "../systems/MaterialManager.h"
+#include "../platform/WinInputDevice.h"
+#include "../platform/PugiXmlParser.h"
+#include "../debug.h"
+
 #include <filesystem>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
-#include "debug.h"
-
-// Track frame rateinclude "../physics/PerlinWindModel.h"
-#include "../physics/ImpulseCollisionResolver.h"
-#include "../systems/PhysicsSystem.h"
-#include "../systems/InputSystem.h"
-#include "../systems/VehicleControlSystem.h"
-#include "../platform/WinInputDevice.h"
-#include "../platform/PugiXmlParser.h"
-
-#include <iostream>
 #include <chrono>
 #include <thread>
 
@@ -30,7 +32,9 @@ Engine::Engine()
       assetRegistry(),
       assetLoader(assetRegistry),
       windowHandle(nullptr),
-      running(false)
+      running(false),
+      frameCount(0),
+      fpsUpdateInterval(1.0f)
 {
 }
 
@@ -49,19 +53,19 @@ bool Engine::initialize(const std::string &physicsConfigPath,
                         const std::string &renderConfigPath,
                         const std::string &inputConfigPath)
 {
-    if (Debug())
-    {
-        std::cout << "Initializing FPV Flight Simulator Engine..." << std::endl;
-    }
+    DEBUG_LOG("Initializing FPV Flight Simulator Engine...");
 
     // Load configuration files
+    DEBUG_LOG("Loading physics config from " + physicsConfigPath);
     physicsConfig = PhysicsConfigParser::loadFromFile(physicsConfigPath);
+    DEBUG_LOG("Loading render config from " + renderConfigPath);
     renderConfig = Render::RenderConfigParser::loadFromFile(renderConfigPath);
 
     // Initialize simulation clock with physics timestep
     simClock = SimClock(physicsConfig.fixedTimestep);
 
     // Create window
+    DEBUG_LOG("Creating window");
     windowHandle = createWindow();
     if (windowHandle == nullptr)
     {
@@ -70,18 +74,17 @@ bool Engine::initialize(const std::string &physicsConfigPath,
     }
 
     // Initialize systems
+    DEBUG_LOG("Initializing systems");
     initializeSystems();
 
     // Load input configuration
+    DEBUG_LOG("Loading input configuration from " + inputConfigPath);
     InputSystem *inputSystem = world.getSystem<InputSystem>();
     if (inputSystem)
     {
         if (!inputSystem->loadConfiguration(inputConfigPath))
         {
-            if (Debug())
-            {
-                std::cout << "Warning: Could not load input configuration, using defaults" << std::endl;
-            }
+            DEBUG_LOG("Warning: Could not load input configuration, using defaults");
         }
     }
 
@@ -90,10 +93,7 @@ bool Engine::initialize(const std::string &physicsConfigPath,
 
 bool Engine::discoverAssets()
 {
-    if (Debug())
-    {
-        std::cout << "Discovering assets..." << std::endl;
-    }
+    DEBUG_LOG("Discovering assets...");
 
     // Delegate asset discovery to the BootstrapSystem
     BootstrapSystem *bootstrapSys = world.getSystem<BootstrapSystem>();
@@ -113,11 +113,7 @@ bool Engine::discoverAssets()
         int discoveredPackages = hotReloadSys->watchAllPackages();
         if (discoveredPackages == 0)
         {
-            if (Debug())
-            {
-                std::cout << "No packages found for hot-reload monitoring. "
-                          << "You can add packages to assets/packages/ directory." << std::endl;
-            }
+            DEBUG_LOG("No packages found for hot-reload monitoring. You can add packages to assets/packages/ directory.");
         }
     }
 
@@ -125,11 +121,7 @@ bool Engine::discoverAssets()
     std::filesystem::path devPackagePath = std::filesystem::path("assets/packages/DeveloperPackage/package.xml");
     if (std::filesystem::exists(devPackagePath))
     {
-        if (Debug())
-        {
-            std::cout << "DeveloperPackage found at: " << devPackagePath << std::endl;
-            std::cout << "Make sure this package is properly loaded and its scenes are compiled." << std::endl;
-        }
+        DEBUG_LOG("DeveloperPackage found at: " + devPackagePath.string() + ". Make sure this package is properly loaded and its scenes are compiled.");
     }
     else
     {
@@ -141,6 +133,7 @@ bool Engine::discoverAssets()
 
 bool Engine::resolveAssets()
 {
+    DEBUG_LOG("Resolving assets...");
     // Asset resolution is currently handled by the BootstrapSystem during Init()
     // This separate method allows for future extension of the resolution pipeline
     return true;
@@ -148,6 +141,7 @@ bool Engine::resolveAssets()
 
 bool Engine::displayCompiledScene()
 {
+    DEBUG_LOG("Displaying compiled scene...");
     // Scene compilation and display is delegated to the WorldGenSystem and VisualizationSystem
     // These are triggered by events from the BootstrapSystem
     return true;
@@ -155,6 +149,7 @@ bool Engine::displayCompiledScene()
 
 bool Engine::loadAndDisplayScene(const std::string &sceneId)
 {
+    DEBUG_LOG("Loading and displaying scene: " + sceneId);
     // Find the WorldGenSystem which is responsible for scene loading
     WorldGenSystem *worldGenSys = world.getSystem<WorldGenSystem>();
     if (!worldGenSys)
@@ -163,15 +158,14 @@ bool Engine::loadAndDisplayScene(const std::string &sceneId)
         return false;
     }
 
-    std::cout << "Attempting to load scene: " << sceneId << std::endl;
+    DEBUG_LOG("Attempting to load scene: " + sceneId);
 
     // Call the WorldGenSystem's LoadScene method with the specified scene ID
     bool success = worldGenSys->LoadScene(sceneId);
 
     if (!success)
     {
-        std::cerr << "Failed to load scene: " << sceneId << std::endl;
-        std::cout << "Falling back to default scene generation..." << std::endl;
+        DEBUG_LOG("Failed to load scene: " + sceneId + ". Falling back to default scene generation...");
         // Attempt to use the default scene as a fallback
         worldGenSys->GenerateDefaultSphereWorld();
     }
@@ -181,298 +175,73 @@ bool Engine::loadAndDisplayScene(const std::string &sceneId)
 
 int Engine::run()
 {
-    std::cout << "Running engine main loop..." << std::endl;
+    DEBUG_LOG("Running engine main loop...");
 
-    // Validate window handle
     if (windowHandle == nullptr)
     {
         std::cerr << "ERROR: Cannot run main loop - window handle is nullptr!" << std::endl;
         return 1;
     }
 
-    // Show the window
-    std::cout << "Showing window..." << std::endl;
+    // Show window and initialize timing
+    DEBUG_LOG("Showing window...");
     ShowWindow(windowHandle, SW_SHOW);
     UpdateWindow(windowHandle);
 
-    // Main loop setup - keep it simple
-    std::cout << "Initializing main loop..." << std::endl;
     running = true;
-    MSG msg = {};
+    lastFrameTime = std::chrono::high_resolution_clock::now();
+    lastFpsUpdateTime = lastFrameTime;
 
-    // Full game loop with proper timing and system updates
-    std::cout << "Starting game loop..." << std::endl;
-
-    // Time tracking for variable and fixed timestep
-    auto lastFrameTime = std::chrono::high_resolution_clock::now();
-    auto lastFpsUpdateTime = lastFrameTime;
-    float deltaTime = 0.016667f; // Initial delta time (60 FPS)
-    int frameCount = 0;
-    float fpsUpdateInterval = 1.0f; // Update FPS display every second
-    float accumulator = 0.0f;       // For physics fixed timestep
-
-    // Fixed timestep for simulation (already set in constructor)
-    const float fixedTimestep = simClock.getFixedTimestep();
-
-    // Get references to important systems
-    InputSystem *inputSystem = world.getSystem<InputSystem>();
-    PhysicsSystem *physicsSystem = world.getSystem<PhysicsSystem>();
-    VisualizationSystem *visualSystem = world.getSystem<VisualizationSystem>();
-    AssetHotReloadSystem *hotReloadSystem = world.getSystem<AssetHotReloadSystem>();
-
-    if (!inputSystem || !physicsSystem || !visualSystem || !hotReloadSystem)
-    {
-        std::cerr << "ERROR: One or more critical systems not found in world!" << std::endl;
-        return 1;
-    }
-
-    std::cout << "Engine: Starting game loop..." << std::endl;
-
-    // Add a debug flag to track first frame execution
-    bool firstFrameCompleted = false;
+    DEBUG_LOG("=== ENTERING MAIN GAME LOOP ===");
 
     try
     {
         while (running)
         {
-            // 1. Handle Windows messages (variable timestep)
-            if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-            {
-                if (msg.message == WM_QUIT)
-                {
-                    std::cout << "Received WM_QUIT message, exiting..." << std::endl;
-                    running = false;
-                    break;
-                }
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
-            }
+            // Process Windows messages
+            if (!processWindowMessages())
+                break;
 
-            // Calculate delta time since last frame
+            // Calculate delta time
             auto currentTime = std::chrono::high_resolution_clock::now();
-            deltaTime = std::chrono::duration<float>(currentTime - lastFrameTime).count();
+            float deltaTime = std::chrono::duration<float>(currentTime - lastFrameTime).count();
             lastFrameTime = currentTime;
 
-            // Cap the maximum delta time to prevent spiral of death
+            // Cap delta time to prevent spiral of death
             if (deltaTime > 0.25f)
                 deltaTime = 0.25f;
 
             // Update simulation clock
             simClock.tick(deltaTime);
 
-            // 2. Fixed Timestep Physics Update Loop (Deterministic Logic)
-            try
-            {
-                while (simClock.shouldStepPhysics())
-                {
-                    // Update systems that require fixed timestep updates
-                    try
-                    {
-                        // Physics related updates happen in fixed steps
-                        physicsSystem->update(world, fixedTimestep);
-                    }
-                    catch (const std::exception &e)
-                    {
-                        std::cerr << "ERROR in physics update: " << e.what() << std::endl;
-                    }
-                    catch (...)
-                    {
-                        std::cerr << "UNKNOWN ERROR in physics update" << std::endl;
-                    }
+            // Fixed timestep updates (physics)
+            updateFixedTimestep(deltaTime);
 
-                    try
-                    {
-                        // VehicleControlSystem should also run in fixed steps if it depends on physics
-                        if (auto vehicleControlSystem = world.getSystem<VehicleControlSystem>())
-                        {
-                            vehicleControlSystem->update(world, fixedTimestep);
-                        }
-                    }
-                    catch (const std::exception &e)
-                    {
-                        std::cerr << "ERROR in vehicle control update: " << e.what() << std::endl;
-                    }
-                    catch (...)
-                    {
-                        std::cerr << "UNKNOWN ERROR in vehicle control update" << std::endl;
-                    }
+            // Variable timestep updates (input, rendering)
+            updateVariableTimestep(deltaTime);
 
-                    // Any other systems that need fixed-step updates would go here
-                }
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "ERROR in fixed timestep loop: " << e.what() << std::endl;
-            }
-            catch (...)
-            {
-                std::cerr << "UNKNOWN ERROR in fixed timestep loop" << std::endl;
-            }
+            // Update frame rate display
+            updateFrameRate();
 
-            // 3. Variable Timestep Updates (Input, Rendering, Non-critical animations)
-            try
-            {
-                // Process input first to ensure responsiveness
-                inputSystem->update(world, deltaTime);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "ERROR in input system update: " << e.what() << std::endl;
-            }
-            catch (...)
-            {
-                std::cerr << "UNKNOWN ERROR in input system update" << std::endl;
-            }
-
-            // 4. Render the scene (Variable Timestep)
-            try
-            {
-                // Only update the visualization system separately, not all systems
-                std::cout << "Frame " << frameCount << ": Starting visualization update..." << std::endl;
-
-                if (frameCount == 0)
-                {
-                    // Special handling for the critical first frame
-                    std::cout << "FIRST FRAME - Extra debugging:" << std::endl;
-                    std::cout << "Visualization system address: " << visualSystem << std::endl;
-                    std::cout << "Window handle: " << windowHandle << std::endl;
-
-                    // Add a small delay to make sure window is fully created
-                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-                    // Force window to redraw
-                    InvalidateRect(windowHandle, NULL, TRUE);
-                    UpdateWindow(windowHandle);
-                }
-
-                // Call update with detailed error reporting
-                std::cout << "Calling visualSystem->update with deltaTime=" << deltaTime << std::endl;
-
-                if (frameCount == 0)
-                {
-                    // Special handling for first frame - try simpler rendering first
-                    std::cout << "Using simplified first frame rendering..." << std::endl;
-
-                    // Just clear the window to show something
-                    HDC hdc = GetDC(windowHandle);
-                    RECT rect;
-                    GetClientRect(windowHandle, &rect);
-
-                    // Fill with blue color to indicate success
-                    HBRUSH brush = CreateSolidBrush(RGB(0, 0, 128)); // Dark blue
-                    FillRect(hdc, &rect, brush);
-                    DeleteObject(brush);
-                    ReleaseDC(windowHandle, hdc);
-
-                    // Set success flag to allow engine to continue
-                    firstFrameCompleted = true;
-                    std::cout << "First frame rendered using GDI fallback" << std::endl;
-
-                    // Add a small delay to show the blue screen
-                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                }
-                else
-                {
-                    try
-                    {
-                        // Normal rendering for subsequent frames
-                        auto startUpdateTime = std::chrono::high_resolution_clock::now();
-                        visualSystem->update(world, deltaTime);
-                        auto endUpdateTime = std::chrono::high_resolution_clock::now();
-                        float updateDuration = std::chrono::duration<float>(endUpdateTime - startUpdateTime).count();
-
-                        std::cout << "Visualization update completed in " << updateDuration * 1000.0f << "ms!" << std::endl;
-                    }
-                    catch (const std::exception &e)
-                    {
-                        std::cerr << "WARNING: Visualization update inner exception: " << e.what() << std::endl;
-                        std::cerr << "Continuing without rendering this frame" << std::endl;
-                    }
-                    catch (...)
-                    {
-                        std::cerr << "WARNING: Unknown visualization update inner exception" << std::endl;
-                        std::cerr << "Continuing without rendering this frame" << std::endl;
-                    }
-                }
-
-                if (!firstFrameCompleted)
-                {
-                    std::cout << "First frame rendered successfully!" << std::endl;
-                    firstFrameCompleted = true;
-                }
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "ERROR in visualization update: " << e.what() << std::endl;
-                // Keep running even if visualization fails
-                if (!firstFrameCompleted)
-                {
-                    firstFrameCompleted = true; // Mark as completed to avoid repeated errors
-                    std::cerr << "First frame failed, but continuing execution" << std::endl;
-                }
-            }
-            catch (...)
-            {
-                std::cerr << "UNKNOWN ERROR in visualization update" << std::endl;
-                if (!firstFrameCompleted)
-                {
-                    firstFrameCompleted = true; // Mark as completed to avoid repeated errors
-                    std::cerr << "First frame failed with unknown error, but continuing execution" << std::endl;
-                }
-            }
-
-            // 5. Asset Hot Reloading (End of Frame)
-            try
-            {
-                // This should happen after rendering to maintain determinism
-                hotReloadSystem->update(world, deltaTime);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "ERROR in hot reload system update: " << e.what() << std::endl;
-            }
-            catch (...)
-            {
-                std::cerr << "UNKNOWN ERROR in hot reload system update" << std::endl;
-            }
-
-            // Track frame rate and update window title
-            frameCount++;
-            float timeSinceLastFpsUpdate = std::chrono::duration<float>(currentTime - lastFpsUpdateTime).count();
-            if (timeSinceLastFpsUpdate >= fpsUpdateInterval)
-            {
-                float fps = frameCount / timeSinceLastFpsUpdate;
-                std::ostringstream oss;
-                oss << renderConfig.getWindowTitle() << " - FPS: " << std::fixed << std::setprecision(0) << fps;
-                SetWindowTextA(windowHandle, oss.str().c_str());
-                frameCount = 0;
-                lastFpsUpdateTime = currentTime;
-            }
-
-            // Add a small delay to prevent CPU thrashing if there's an issue
+            // Small delay for first few frames
             if (frameCount < 10)
-            {
-                // Only add significant delay in the first few frames
                 std::this_thread::sleep_for(std::chrono::milliseconds(16));
-            }
         }
     }
     catch (const std::exception &e)
     {
         std::cerr << "FATAL ERROR in main game loop: " << e.what() << std::endl;
-        // Keep the window open so error can be seen
         keepWindowAlive("Fatal error in main game loop: " + std::string(e.what()));
         return 1;
     }
     catch (...)
     {
         std::cerr << "UNKNOWN FATAL ERROR in main game loop" << std::endl;
-        // Keep the window open so error can be seen
         keepWindowAlive("Unknown fatal error occurred in the game loop");
         return 1;
     }
 
-    std::cout << "Main loop exited normally" << std::endl;
+    DEBUG_LOG("=== MAIN LOOP EXITED ===");
     return 0;
 }
 
@@ -494,9 +263,7 @@ HWND Engine::createWindow()
         return nullptr;
     }
 
-    std::cout << "Creating window with title: " << renderConfig.getWindowTitle()
-              << ", width: " << renderConfig.getWindowWidth()
-              << ", height: " << renderConfig.getWindowHeight() << std::endl;
+    DEBUG_LOG("Creating window with title: " + renderConfig.getWindowTitle() + ", width: " + std::to_string(renderConfig.getWindowWidth()) + ", height: " + std::to_string(renderConfig.getWindowHeight()));
 
     // Create window
     HWND hwnd = CreateWindowExA(
@@ -564,7 +331,7 @@ LRESULT Engine::handleWindowMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
         int height = HIWORD(lParam);
 
         // Store the new dimensions for the rendering system
-        std::cout << "Window resized to " << width << "x" << height << std::endl;
+        DEBUG_LOG("Window resized to " + std::to_string(width) + "x" + std::to_string(height));
 
         // Let the game loop handle the resize during the next update cycle
         return 0;
@@ -575,61 +342,55 @@ LRESULT Engine::handleWindowMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 void Engine::initializeSystems()
 {
-    std::cout << "Initializing simulation systems..." << std::endl;
+    DEBUG_LOG("Initializing simulation systems...");
 
-    // Create physics models
-    std::unique_ptr<IAirDensityModel> airDensityModel = std::make_unique<ExponentialAirDensityModel>(
+    // Initialize physics models
+    auto airDensityModel = std::make_unique<ExponentialAirDensityModel>(
         physicsConfig.seaLevelDensity, physicsConfig.scaleHeight);
-    std::unique_ptr<IWindModel> windModel = std::make_unique<PerlinWindModel>(
+    auto windModel = std::make_unique<PerlinWindModel>(
         physicsConfig.baseWindSpeed, physicsConfig.turbulenceScale,
         physicsConfig.turbulenceIntensity, physicsConfig.randomSeed);
-    std::unique_ptr<ICollisionResolver> collisionResolver = std::make_unique<ImpulseCollisionResolver>(
+    auto collisionResolver = std::make_unique<ImpulseCollisionResolver>(
         physicsConfig.restitution, physicsConfig.friction);
 
-    // Create material manager (referenced by multiple systems)
+    // Initialize material manager
     auto materialManager = std::make_unique<Material::MaterialManager>();
     materialManager->LoadDefaultMaterials();
     Material::MaterialManager *materialManagerPtr = materialManager.get();
-    std::cout << "Material manager initialized with default materials" << std::endl;
+    DEBUG_LOG("Material manager initialized with default materials");
 
-    // Add systems in the appropriate initialization order
-    // 1. First add core systems
+    // Add core systems
     world.addSystem(std::make_unique<PhysicsSystem>(
         eventBus, *airDensityModel, *windModel, *collisionResolver));
-    world.addSystem(std::make_unique<InputSystem>(
-        eventBus, *std::make_unique<WinInputDevice>()));
+
+    inputDevice_ = std::make_unique<WinInputDevice>();
+    world.addSystem(std::make_unique<InputSystem>(eventBus, *inputDevice_));
+
     world.addSystem(std::make_unique<VehicleControlSystem>(eventBus));
-    std::cout << "Core simulation systems initialized" << std::endl;
+    DEBUG_LOG("Core simulation systems initialized");
 
-    // 2. Add asset pipeline systems
-    auto bootstrapSystem = std::make_unique<BootstrapSystem>(
-        eventBus, world, assetRegistry, assetLoader);
-    world.addSystem(std::move(bootstrapSystem));
+    // Add asset pipeline systems
+    world.addSystem(std::make_unique<BootstrapSystem>(
+        eventBus, world, assetRegistry, assetLoader));
+    world.addSystem(std::make_unique<AssetHotReloadSystem>(
+        assetRegistry, assetLoader));
+    DEBUG_LOG("Asset pipeline systems initialized");
 
-    auto hotReloadSystem = std::make_unique<AssetHotReloadSystem>(
-        assetRegistry, assetLoader);
-    world.addSystem(std::move(hotReloadSystem));
-    std::cout << "Asset pipeline systems initialized" << std::endl;
+    // Add world generation system
+    world.addSystem(std::make_unique<WorldGenSystem>(
+        eventBus, world, assetRegistry, *materialManagerPtr));
+    DEBUG_LOG("World generation system initialized");
 
-    // 3. Add world generation system (depends on assets)
-    auto worldGenSystem = std::make_unique<WorldGenSystem>(
-        eventBus, world, assetRegistry, *materialManagerPtr);
-    world.addSystem(std::move(worldGenSystem));
-    std::cout << "World generation system initialized" << std::endl;
+    // Add UI and visualization systems
+    world.addSystem(std::make_unique<ConsoleSystem>(eventBus));
+    world.addSystem(std::make_unique<VisualizationSystem>(
+        eventBus, world, windowHandle, *materialManagerPtr, renderConfig));
+    DEBUG_LOG("Visualization systems initialized");
 
-    // 4. Add visualization and UI systems (depends on world and material manager)
-    auto consoleSystem = std::make_unique<ConsoleSystem>(eventBus);
-    world.addSystem(std::move(consoleSystem));
-
-    auto visualizationSystem = std::make_unique<VisualizationSystem>(
-        eventBus, world, windowHandle, *materialManagerPtr, renderConfig);
-    world.addSystem(std::move(visualizationSystem));
-    std::cout << "Visualization systems initialized" << std::endl;
-
-    // Store MaterialManager as a member variable to keep it alive
+    // Store MaterialManager to keep it alive
     world.storeSharedResource("MaterialManager", std::move(materialManager));
 
-    std::cout << "All systems initialized successfully" << std::endl;
+    DEBUG_LOG("All systems initialized successfully");
 }
 
 void Engine::shutdownSystems()
@@ -651,5 +412,104 @@ void Engine::keepWindowAlive(const std::string &errorMessage)
 
         TranslateMessage(&msg);
         DispatchMessage(&msg);
+    }
+}
+
+bool Engine::processWindowMessages()
+{
+    MSG msg = {};
+    if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+    {
+        if (msg.message == WM_QUIT)
+        {
+            DEBUG_LOG("WM_QUIT received - exiting main loop");
+            running = false;
+            return false;
+        }
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+    return true;
+}
+
+void Engine::updateFixedTimestep(float deltaTime)
+{
+    // Get system references
+    PhysicsSystem *physicsSystem = world.getSystem<PhysicsSystem>();
+    VehicleControlSystem *vehicleControlSystem = world.getSystem<VehicleControlSystem>();
+
+    const float fixedTimestep = simClock.getFixedTimestep();
+    int physicsSteps = 0;
+
+    // Run physics updates at fixed timestep
+    while (simClock.shouldStepPhysics())
+    {
+        physicsSteps++;
+
+        try
+        {
+            if (physicsSystem)
+                physicsSystem->update(world, fixedTimestep);
+
+            if (vehicleControlSystem)
+                vehicleControlSystem->update(world, fixedTimestep);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "ERROR in fixed timestep update: " << e.what() << std::endl;
+        }
+    }
+}
+
+void Engine::updateVariableTimestep(float deltaTime)
+{
+    // Get system references
+    InputSystem *inputSystem = world.getSystem<InputSystem>();
+    VisualizationSystem *visualSystem = world.getSystem<VisualizationSystem>();
+    AssetHotReloadSystem *hotReloadSystem = world.getSystem<AssetHotReloadSystem>();
+
+    try
+    {
+        // Update input system
+        if (inputSystem)
+            inputSystem->update(world, deltaTime);
+
+        // Update visualization system
+        if (visualSystem)
+        {
+            auto startTime = std::chrono::high_resolution_clock::now();
+            visualSystem->update(world, deltaTime);
+            auto endTime = std::chrono::high_resolution_clock::now();
+
+            float duration = std::chrono::duration<float>(endTime - startTime).count();
+            if (frameCount % 60 == 0) // Log occasionally
+                DEBUG_LOG("Visualization update: " + std::to_string(duration * 1000.0f) + "ms");
+        }
+
+        // Update asset hot reload system
+        if (hotReloadSystem)
+            hotReloadSystem->update(world, deltaTime);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "ERROR in variable timestep update: " << e.what() << std::endl;
+    }
+}
+
+void Engine::updateFrameRate()
+{
+    frameCount++;
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float timeSinceLastFpsUpdate = std::chrono::duration<float>(currentTime - lastFpsUpdateTime).count();
+
+    if (timeSinceLastFpsUpdate >= fpsUpdateInterval)
+    {
+        float fps = frameCount / timeSinceLastFpsUpdate;
+        std::ostringstream oss;
+        oss << renderConfig.getWindowTitle() << " - FPS: " << std::fixed << std::setprecision(0) << fps;
+        SetWindowTextA(windowHandle, oss.str().c_str());
+
+        frameCount = 0;
+        lastFpsUpdateTime = currentTime;
     }
 }

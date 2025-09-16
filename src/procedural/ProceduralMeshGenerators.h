@@ -163,3 +163,4 @@ private:
     static float calculateDisplacement(const Vector3D &vertex, const Vector3D &patchCenter,
                                        float patchRadius, float minHeight, float maxHeight);
 };
+

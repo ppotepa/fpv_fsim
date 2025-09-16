@@ -12,6 +12,6 @@ namespace EntityFactory
 int main()
 {
     EntityFactory::EntityFactory test;
-    std::cout << "Test passed" << std::endl;
+    DEBUG_LOG("Test passed");
     return 0;
 }

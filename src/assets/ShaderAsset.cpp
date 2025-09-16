@@ -153,3 +153,5 @@ std::string BasicShaderGenerator::getCommonAttributes()
     ss << "layout (location = 2) in vec2 aTexCoord;\n";
     return ss.str();
 }
+
+

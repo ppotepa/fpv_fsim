@@ -52,12 +52,12 @@ VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND 
     eventBus.subscribe(EventType::NoPackagesFound, [this](const IEvent &event)
                        {
         const auto& packagesEvent = static_cast<const NoPackagesFoundEvent&>(event);
-        OnNoPackagesFound(packagesEvent); });
+        OnNoPackagesFound(packagesEvent) });
 
     eventBus.subscribe(EventType::ConsoleVisibilityChanged, [this](const IEvent &event)
                        {
         const auto& visibilityEvent = static_cast<const ConsoleVisibilityChangedEvent&>(event);
-        OnConsoleVisibilityChanged(visibilityEvent); });
+        OnConsoleVisibilityChanged(visibilityEvent) });
 }
 
 VisualizationSystem::~VisualizationSystem()
@@ -231,6 +231,8 @@ COLORREF VisualizationSystem::GetMaterialColor(const std::string &materialId)
     }
 
     // Fallback to default green if material not found
-    std::cout << "Warning: Material '" << materialId << "' not found, using default green color" << std::endl;
+    DEBUG_LOG("Warning: Material '" << materialId << "' not found, using default green color");
     return RGB(0, 255, 0);
 }
+
+

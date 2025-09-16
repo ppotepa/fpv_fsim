@@ -32,7 +32,7 @@ namespace AssetCompilation
 
         if (Debug())
         {
-            std::cout << "AssetCompilerService initialized with output directory: " << outputDirectory_ << std::endl;
+            DEBUG_LOG("AssetCompilerService initialized with output directory: " << outputDirectory_);
         }
     }
 
@@ -43,7 +43,7 @@ namespace AssetCompilation
         outputDirectory_ = directory;
         if (debugMode_ && Debug())
         {
-            std::cout << "Asset output directory set to: " << outputDirectory_ << std::endl;
+            DEBUG_LOG("Asset output directory set to: " << outputDirectory_);
         }
     }
 
@@ -52,7 +52,7 @@ namespace AssetCompilation
         debugMode_ = enabled;
         if (Debug())
         {
-            std::cout << "Asset compiler debug mode: " << (enabled ? "enabled" : "disabled") << std::endl;
+            DEBUG_LOG("Asset compiler debug mode: " << (enabled ? "enabled" : "disabled"));
         }
     }
 
@@ -61,7 +61,7 @@ namespace AssetCompilation
         optimizationLevel_ = std::max(0, std::min(2, level));
         if (debugMode_ && Debug())
         {
-            std::cout << "Asset compiler optimization level set to: " << optimizationLevel_ << std::endl;
+            DEBUG_LOG("Asset compiler optimization level set to: " << optimizationLevel_);
         }
     }
 
@@ -70,7 +70,7 @@ namespace AssetCompilation
         typeMapping_[extension] = type;
         if (debugMode_ && Debug())
         {
-            std::cout << "Registered asset type mapping: " << extension << " -> " << static_cast<int>(type) << std::endl;
+            DEBUG_LOG("Registered asset type mapping: " << extension << " -> " << static_cast<int>(type));
         }
     }
 
@@ -94,7 +94,7 @@ namespace AssetCompilation
         {
             if (debugMode_ && Debug())
             {
-                std::cout << "Compiling asset: " << sourceFile << std::endl;
+                DEBUG_LOG("Compiling asset: " << sourceFile);
             }
 
             // Validate source file exists
@@ -174,11 +174,11 @@ namespace AssetCompilation
 
         if (debugMode_ && Debug())
         {
-            std::cout << "Compilation " << (result.success ? "succeeded" : "failed")
-                      << " in " << result.compilationTimeMs << "ms" << std::endl;
+            DEBUG_LOG("Compilation " << (result.success ? "succeeded" : "failed")
+                      << " in " << result.compilationTimeMs << "ms");
             if (!result.success)
             {
-                std::cout << "Error: " << result.errorMessage << std::endl;
+                DEBUG_LOG("Error: " << result.errorMessage);
             }
         }
 
@@ -191,7 +191,7 @@ namespace AssetCompilation
 
         if (debugMode_ && Debug())
         {
-            std::cout << "Compiling asset package: " << packagePath << std::endl;
+            DEBUG_LOG("Compiling asset package: " << packagePath);
         }
 
         try
@@ -236,7 +236,7 @@ namespace AssetCompilation
 
         if (debugMode_ && Debug())
         {
-            std::cout << "Compiling directory: " << sourcePath << (recursive ? " (recursive)" : "") << std::endl;
+            DEBUG_LOG("Compiling directory: " << sourcePath << (recursive ? " (recursive)" : ""));
         }
 
         try
@@ -423,7 +423,7 @@ namespace AssetCompilation
 
                 if (debugMode_ && Debug())
                 {
-                    std::cout << "Asset cache cleared" << std::endl;
+                    DEBUG_LOG("Asset cache cleared");
                 }
             }
         }
@@ -504,7 +504,7 @@ namespace AssetCompilation
 
                 if (debugMode_ && Debug())
                 {
-                    std::cout << "Compiled texture: " << sourceFile << " -> " << outputPath << std::endl;
+                    DEBUG_LOG("Compiled texture: " << sourceFile << " -> " << outputPath);
                 }
             }
             else
@@ -533,7 +533,7 @@ namespace AssetCompilation
 
         if (debugMode_ && Debug())
         {
-            std::cout << "Mesh compilation placeholder for: " << sourceFile << std::endl;
+            DEBUG_LOG("Mesh compilation placeholder for: " << sourceFile);
         }
 
         return result;
@@ -562,7 +562,7 @@ namespace AssetCompilation
 
                 if (debugMode_ && Debug())
                 {
-                    std::cout << "Compiled material: " << sourceFile << " -> " << outputPath << std::endl;
+                    DEBUG_LOG("Compiled material: " << sourceFile << " -> " << outputPath);
                 }
             }
             else
@@ -591,7 +591,7 @@ namespace AssetCompilation
 
         if (debugMode_ && Debug())
         {
-            std::cout << "Audio compilation placeholder for: " << sourceFile << std::endl;
+            DEBUG_LOG("Audio compilation placeholder for: " << sourceFile);
         }
 
         return result;
@@ -628,7 +628,7 @@ namespace AssetCompilation
 
                 if (debugMode_ && Debug())
                 {
-                    std::cout << "Compiled scene: " << sourceFile << " -> " << outputPath << std::endl;
+                    DEBUG_LOG("Compiled scene: " << sourceFile << " -> " << outputPath);
                 }
             }
             else
@@ -717,3 +717,5 @@ namespace AssetCompilation
     }
 
 } // namespace AssetCompilation
+
+

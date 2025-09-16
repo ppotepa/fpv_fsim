@@ -1,10 +1,15 @@
 /**
- * @file ExponentialAirDensityModel.cpp
+ * @file ExpExponentialAirDensityModel::ExponentialAirDensityModel(float seaLevelDensity, float scaleHeight)
+    : seaLevelDensity_(seaLevelDensity), scaleHeight_(scaleHeight)
+{
+    DEBUG_LOG("Initializing ExponentialAirDensityModel with sea level density " + std::to_string(seaLevelDensity) + " and scale height " + std::to_string(scaleHeight));
+}ialAirDensityModel.cpp
  * @brief Implementation of the exponential air density model.
  */
 
 #include "ExponentialAirDensityModel.h"
 #include <cmath>
+#include "../debug.h"
 
 /**
  * @brief Construct a new ExponentialAirDensityModel.
@@ -15,7 +20,10 @@
  * @param scaleHeight Atmospheric scale height in meters (typically ~8400)
  */
 ExponentialAirDensityModel::ExponentialAirDensityModel(float seaLevelDensity, float scaleHeight)
-    : seaLevelDensity_(seaLevelDensity), scaleHeight_(scaleHeight) {}
+    : seaLevelDensity_(seaLevelDensity), scaleHeight_(scaleHeight)
+{
+    DEBUG_LOG("Initializing ExponentialAirDensityModel with sea level density " + std::to_string(seaLevelDensity) + " and scale height " + std::to_string(scaleHeight));
+}
 
 /**
  * @brief Calculate air density at a given altitude.
@@ -28,5 +36,7 @@ ExponentialAirDensityModel::ExponentialAirDensityModel(float seaLevelDensity, fl
  */
 float ExponentialAirDensityModel::getDensity(float altitude) const
 {
+    DEBUG_LOG("Calculating air density at altitude " + std::to_string(altitude));
     return seaLevelDensity_ * std::exp(-altitude / scaleHeight_);
 }
+

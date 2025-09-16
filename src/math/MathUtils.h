@@ -23,8 +23,8 @@ namespace Math
     constexpr float PI = 3.14159265358979323846f;
     constexpr float TAU = 6.28318530717958647692f; // 2*PI
 
-    inline float saturate(float x) { return std::min(1.f, std::max(0.f, x)); }
-    inline float clamp(float x, float a, float b) { return std::min(b, std::max(a, x)); }
+    inline float saturate(float x) { return (std::min)(1.f, (std::max)(0.f, x)); }
+    inline float clamp(float x, float a, float b) { return (std::min)(b, (std::max)(a, x)); }
     inline float lerp(float a, float b, float t) { return a + (b - a) * t; }
     inline float invLerp(float a, float b, float x) { return (x - a) / (b - a); }
     inline float remap(float i0, float i1, float o0, float o1, float x)
@@ -82,7 +82,7 @@ namespace Math
      */
     inline float sample_exponential(float u, float lambda)
     {
-        return -std::log(std::max(u, 1e-7f)) / lambda;
+        return -std::log((std::max)(u, 1e-7f)) / lambda;
     }
 
     // ============================================================================
@@ -555,3 +555,4 @@ namespace Math
     }
 
 } // namespace Math
+

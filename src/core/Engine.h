@@ -5,22 +5,25 @@
 #include "SimClock.h"
 #include "AssetRegistry.h"
 #include "AssetPackLoader.h"
-#include "../systems/BootstrapSystem.h"
-#include "../systems/WorldGenSystem.h"
-#include "../systems/VisualizationSystem.h"
-#include "../systems/ConsoleSystem.h"
-#include "../systems/AssetHotReloadSystem.h"
-#include "../systems/MaterialManager.h"
-#include "../physics/IAirDensityModel.h"
-#include "../physics/IWindModel.h"
-#include "../physics/ICollisionResolver.h"
-#include "../platform/IInputDevice.h"
-#include "../utils/IXmlParserUnified.h"
 #include "../config/PhysicsConfig.h"
 #include "../config/RenderConfig.h"
 
 #include <windows.h>
 #include <memory>
+#include <string>
+#include <chrono>
+
+// Forward declarations
+class IInputDevice;
+class BootstrapSystem;
+class WorldGenSystem;
+class VisualizationSystem;
+class ConsoleSystem;
+class AssetHotReloadSystem;
+namespace Material
+{
+    class MaterialManager;
+}
 
 /**
  * @class Engine
@@ -112,6 +115,13 @@ private:
     // Platform components
     HWND windowHandle;
     bool running;
+    std::unique_ptr<IInputDevice> inputDevice_;
+
+    // Frame timing
+    std::chrono::high_resolution_clock::time_point lastFrameTime;
+    std::chrono::high_resolution_clock::time_point lastFpsUpdateTime;
+    int frameCount;
+    float fpsUpdateInterval;
 
     // Private helper methods
     HWND createWindow();
@@ -121,6 +131,12 @@ private:
     // Systems management
     void initializeSystems();
     void shutdownSystems();
+
+    // Main loop helpers
+    bool processWindowMessages();
+    void updateFixedTimestep(float deltaTime);
+    void updateVariableTimestep(float deltaTime);
+    void updateFrameRate();
 
     // Error handling helpers
     void keepWindowAlive(const std::string &errorMessage);

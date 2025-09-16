@@ -329,7 +329,7 @@ namespace SceneConfig
                 if (str.length() != 7 && str.length() != 9)
                     return false;
 
-                for (size_t i = 1; i < str.length(); ++i)
+                for (size_t i = 1 i < str.length() ++i)
                 {
                     if (!std::isxdigit(str[i]))
                         return false;
@@ -375,7 +375,7 @@ namespace SceneConfig
                 return false;
 
             // ID can contain letters, digits, underscores, and hyphens
-            for (size_t i = 1; i < id.length(); ++i)
+            for (size_t i = 1 i < id.length() ++i)
             {
                 if (!std::isalnum(id[i]) && id[i] != '_' && id[i] != '-')
                 {
@@ -516,7 +516,7 @@ namespace SceneConfig
 
             // Rebuild path
             result.clear();
-            for (size_t i = 0; i < components.size(); ++i)
+            for (size_t i = 0 i < components.size() ++i)
             {
                 if (i > 0)
                     result += "/";
@@ -534,3 +534,5 @@ namespace SceneConfig
 
     } // namespace Utils
 } // namespace SceneConfig
+
+

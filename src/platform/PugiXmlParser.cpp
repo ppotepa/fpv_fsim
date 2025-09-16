@@ -4,6 +4,7 @@
 #include <iostream>
 #include <regex>
 #include <set>
+#include "../debug.h"
 
 // Minimal stub implementation without pugixml dependency
 // This allows the build to succeed while architectural changes are being made
@@ -49,7 +50,7 @@ bool PugiXmlParser::loadFile(const std::string &path)
         // Store content for best-effort querying/validation
         lastLoadedContent_ = content;
 
-        std::cout << "PugiXmlParser loaded file: " << path << " (" << content.size() << " bytes)" << std::endl;
+        DEBUG_LOG("PugiXmlParser loaded file: " << path << " (" << content.size() << " bytes)");
         lastError_.clear();
         return true;
     }
@@ -78,7 +79,7 @@ bool PugiXmlParser::loadString(const std::string &xmlContent)
         }
 
         lastLoadedContent_ = xmlContent;
-        std::cout << "PugiXmlParser loaded string content (" << xmlContent.size() << " bytes)" << std::endl;
+        DEBUG_LOG("PugiXmlParser loaded string content (" << xmlContent.size() << " bytes)");
         lastError_.clear();
         return true;
     }
@@ -200,7 +201,7 @@ std::vector<std::string> PugiXmlParser::getElementsWithName(const std::string &e
 bool PugiXmlParser::validateAgainstSchema(const std::string &schemaPath, std::vector<std::string> &errors) const
 {
     errors.clear();
-    std::cout << "PugiXmlParser: best-effort validation against schema: " << schemaPath << std::endl;
+    DEBUG_LOG("PugiXmlParser: best-effort validation against schema: " << schemaPath);
 
     if (lastLoadedContent_.empty())
     {
@@ -270,3 +271,4 @@ std::string PugiXmlParser::getLastError() const
 {
     return lastError_;
 }
+

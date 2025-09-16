@@ -34,7 +34,7 @@ ProceduralMesh IcoSphereGenerator::generate(float radius, int subdivisions, bool
 
     // Subdivide faces
     std::map<long, int> middlePointIndexCache;
-    for (int i = 0; i < subdivisions; i++)
+    for (int i = 0 i < subdivisions; i++)
     {
         std::vector<std::array<int, 3>> newFaces;
 
@@ -175,7 +175,7 @@ ProceduralMesh CubeGenerator::generate(float size, bool flatShading)
         Vector3D(0, -1, 0), Vector3D(1, 0, 0), Vector3D(-1, 0, 0)};
 
     // Add faces
-    for (int face = 0; face < 6; face++)
+    for (int face = 0 face < 6; face++)
     {
         int baseIndex = face * 4;
 
@@ -184,7 +184,7 @@ ProceduralMesh CubeGenerator::generate(float size, bool flatShading)
             // Each face gets its own vertices
             int meshBaseIndex = mesh.vertices.size();
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0 i < 4; i++)
             {
                 float u = (i == 1 || i == 2) ? 1.0f : 0.0f;
                 float v = (i == 2 || i == 3) ? 1.0f : 0.0f;
@@ -224,7 +224,7 @@ void ProceduralAircraftGenerator::addFuselage(ProceduralMesh &mesh, float length
     float radius = length * 0.05f; // Thin fuselage
 
     // Simple tapered cylinder
-    for (int i = 0; i <= segments; i++)
+    for (int i = 0 i <= segments; i++)
     {
         float t = static_cast<float>(i) / segments;
         float z = -halfLength + t * length;
@@ -232,7 +232,7 @@ void ProceduralAircraftGenerator::addFuselage(ProceduralMesh &mesh, float length
 
         // Add circular cross-section
         int sides = 8;
-        for (int j = 0; j < sides; j++)
+        for (int j = 0 j < sides; j++)
         {
             float angle = 2.0f * M_PI * j / sides;
             float x = currentRadius * std::cos(angle);
@@ -246,9 +246,9 @@ void ProceduralAircraftGenerator::addFuselage(ProceduralMesh &mesh, float length
     }
 
     // Add triangles between segments
-    for (int i = 0; i < segments; i++)
+    for (int i = 0 i < segments; i++)
     {
-        for (int j = 0; j < 8; j++)
+        for (int j = 0 j < 8; j++)
         {
             int current = i * 8 + j;
             int next = i * 8 + ((j + 1) % 8);
@@ -288,11 +288,11 @@ void ProceduralAircraftGenerator::addWings(ProceduralMesh &mesh, float span, flo
     Vector3D downNormal(0, -1, 0);
 
     // Add vertices
-    for (int i = 0; i < 4; i++)
+    for (int i = 0 i < 4; i++)
     {
         mesh.vertices.emplace_back(wingVerts[i], upNormal, i % 2, i / 2);
     }
-    for (int i = 4; i < 8; i++)
+    for (int i = 4 i < 8; i++)
     {
         mesh.vertices.emplace_back(wingVerts[i], downNormal, i % 2, (i - 4) / 2);
     }
@@ -333,11 +333,11 @@ void ProceduralAircraftGenerator::addTail(ProceduralMesh &mesh, float span, floa
     Vector3D upNormal(0, 1, 0);
     Vector3D downNormal(0, -1, 0);
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0 i < 4; i++)
     {
         mesh.vertices.emplace_back(tailVerts[i], upNormal, i % 2, i / 2);
     }
-    for (int i = 4; i < 8; i++)
+    for (int i = 4 i < 8; i++)
     {
         mesh.vertices.emplace_back(tailVerts[i], downNormal, i % 2, (i - 4) / 2);
     }
@@ -380,7 +380,7 @@ ProceduralMesh SphericalPatchDisplaceGenerator::generate(float baseRadius, int s
     std::vector<float> patchRadii;
     std::vector<float> patchHeights;
 
-    for (int i = 0; i < patchCount; i++)
+    for (int i = 0 i < patchCount; i++)
     {
         Vector3D center(dist(rng), dist(rng), dist(rng));
         center = center.normalized();
@@ -395,7 +395,7 @@ ProceduralMesh SphericalPatchDisplaceGenerator::generate(float baseRadius, int s
         Vector3D originalPos = vertex.position.normalized() * baseRadius;
         float totalDisplacement = 0.0f;
 
-        for (size_t i = 0; i < patchCenters.size(); i++)
+        for (size_t i = 0 i < patchCenters.size() i++)
         {
             if (isInPatch(originalPos, patchCenters[i], patchRadii[i]))
             {
@@ -434,3 +434,5 @@ float SphericalPatchDisplaceGenerator::calculateDisplacement(const Vector3D &ver
     float falloff = (std::cos(normalizedDistance * M_PI) + 1.0f) * 0.5f;
     return minHeight + (maxHeight - minHeight) * falloff;
 }
+
+

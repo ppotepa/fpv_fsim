@@ -28,14 +28,14 @@ bool PugiXmlParser::loadFile(const std::string &path)
     std::string content((std::istreambuf_iterator<char>(file)),
                         std::istreambuf_iterator<char>());
 
-    std::cout << "Stub XML parser loaded file: " << path << " (" << content.size() << " bytes)" << std::endl;
+    DEBUG_LOG("Stub XML parser loaded file: " << path << " (" << content.size() << " bytes)");
     lastError_.clear();
     return true;
 }
 
 bool PugiXmlParser::loadString(const std::string &xmlContent)
 {
-    std::cout << "Stub XML parser loaded string content (" << xmlContent.size() << " bytes)" << std::endl;
+    DEBUG_LOG("Stub XML parser loaded string content (" << xmlContent.size() << " bytes)");
     lastError_.clear();
     return true;
 }
@@ -78,7 +78,7 @@ std::vector<std::string> PugiXmlParser::getElementsWithName(const std::string &e
 bool PugiXmlParser::validateAgainstSchema(const std::string &schemaPath, std::vector<std::string> &errors) const
 {
     errors.clear();
-    std::cout << "Stub XML validation against schema: " << schemaPath << std::endl;
+    DEBUG_LOG("Stub XML validation against schema: " << schemaPath);
     return true; // Stub implementation - always validates
 }
 
@@ -86,3 +86,5 @@ std::string PugiXmlParser::getLastError() const
 {
     return lastError_;
 }
+
+

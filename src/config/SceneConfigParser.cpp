@@ -270,7 +270,7 @@ namespace SceneConfig
 
         if (Debug())
         {
-            std::cout << "Loading XML scene: " << sceneId << " from " << scenePath << std::endl;
+            DEBUG_LOG("Loading XML scene: " << sceneId << " from " << scenePath);
         }
 
         // Check if file exists
@@ -301,9 +301,10 @@ namespace SceneConfig
 
         if (Debug())
         {
-            std::cout << "XML scene loading completed in " << result.parseTimeMs << "ms" << std::endl;
+            DEBUG_LOG("XML scene loading completed in " << result.parseTimeMs << "ms");
         }
         return result;
     }
 
 } // namespace SceneConfig
+

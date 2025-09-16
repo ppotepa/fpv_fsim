@@ -15,7 +15,7 @@ bool testEntityXmlLoading()
 {
     if (Debug())
     {
-        std::cout << "Testing XML Entity Loading..." << std::endl;
+        DEBUG_LOG("Testing XML Entity Loading...");
     }
 
     // Create parser
@@ -34,8 +34,8 @@ bool testEntityXmlLoading()
     // Check basic entity properties
     if (Debug())
     {
-        std::cout << "Entity: " << definition->name << std::endl;
-        std::cout << "Type: " << definition->entityType << std::endl;
+        DEBUG_LOG("Entity: " << definition->name);
+        DEBUG_LOG("Type: " << definition->entityType);
     }
 
     // Create entity using EntityFactory
@@ -51,7 +51,7 @@ bool testEntityXmlLoading()
     // Verify components
     if (Debug())
     {
-        std::cout << "Verifying entity components..." << std::endl;
+        DEBUG_LOG("Verifying entity components...");
     }
 
     // Transform component
@@ -63,9 +63,9 @@ bool testEntityXmlLoading()
     }
     if (Debug())
     {
-        std::cout << "Transform: pos(" << transform->position.x << ", "
+        DEBUG_LOG("Transform: pos(" << transform->position.x << ", "
                   << transform->position.y << ", "
-                  << transform->position.z << ")" << std::endl;
+                  << transform->position.z << ")");
     }
 
     // Renderable component
@@ -77,8 +77,8 @@ bool testEntityXmlLoading()
     }
     if (Debug())
     {
-        std::cout << "Renderable: mesh=" << renderable->meshId
-                  << ", material=" << renderable->materialId << std::endl;
+        DEBUG_LOG("Renderable: mesh=" << renderable->meshId
+                  << ", material=" << renderable->materialId);
     }
 
     // Physics component
@@ -90,8 +90,8 @@ bool testEntityXmlLoading()
     }
     if (Debug())
     {
-        std::cout << "Physics: mass=" << physics->mass
-                  << ", collider=" << physics->colliderType << std::endl;
+        DEBUG_LOG("Physics: mass=" << physics->mass
+                  << ", collider=" << physics->colliderType);
     }
 
     // Vehicle component
@@ -103,8 +103,8 @@ bool testEntityXmlLoading()
     }
     if (Debug())
     {
-        std::cout << "Vehicle: type=" << vehicle->vehicleType
-                  << ", speed=" << vehicle->maxSpeed << std::endl;
+        DEBUG_LOG("Vehicle: type=" << vehicle->vehicleType
+                  << ", speed=" << vehicle->maxSpeed);
     }
 
     // Audio component
@@ -116,7 +116,7 @@ bool testEntityXmlLoading()
     }
     if (Debug())
     {
-        std::cout << "Audio: sound=" << audio->soundId << std::endl;
+        DEBUG_LOG("Audio: sound=" << audio->soundId);
     }
 
     // Light component
@@ -128,10 +128,10 @@ bool testEntityXmlLoading()
     }
     if (Debug())
     {
-        std::cout << "Light: type=" << light->lightType
-                  << ", intensity=" << light->intensity << std::endl;
+        DEBUG_LOG("Light: type=" << light->lightType
+                  << ", intensity=" << light->intensity);
 
-        std::cout << "All entity components verified successfully!" << std::endl;
+        DEBUG_LOG("All entity components verified successfully!");
     }
     return true;
 }
@@ -142,7 +142,7 @@ int main()
     {
         if (Debug())
         {
-            std::cout << "XML Entity Loading Test: PASSED" << std::endl;
+            DEBUG_LOG("XML Entity Loading Test: PASSED");
         }
         return 0;
     }
@@ -152,3 +152,5 @@ int main()
         return 1;
     }
 }
+
+

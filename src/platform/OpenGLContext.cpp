@@ -1,5 +1,6 @@
 #include "OpenGLContext.h"
 #include <iostream>
+#include "../debug.h"
 
 OpenGLContext::OpenGLContext()
     : hwnd(nullptr), hdc(nullptr), hglrc(nullptr), initialized(false)
@@ -50,9 +51,9 @@ bool OpenGLContext::Initialize(HWND windowHandle)
     glClearColor(20.0f / 255.0f, 30.0f / 255.0f, 50.0f / 255.0f, 1.0f);
 
     initialized = true;
-    std::cout << "OpenGL context initialized successfully" << std::endl;
-    std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
-    std::cout << "OpenGL Vendor: " << glGetString(GL_VENDOR) << std::endl;
+    DEBUG_LOG("OpenGL context initialized successfully");
+    DEBUG_LOG("OpenGL Version: " << glGetString(GL_VERSION));
+    DEBUG_LOG("OpenGL Vendor: " << glGetString(GL_VENDOR));
 
     return true;
 }
@@ -118,3 +119,5 @@ bool OpenGLContext::SetupPixelFormat()
 
     return true;
 }
+
+

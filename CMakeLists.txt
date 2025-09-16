@@ -4,6 +4,21 @@ project(fpv_fsim VERSION 1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Add DEBUG macro for debug builds
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DDEBUG)
+endif()
+
+# Also check for MSVC debug configuration
+if(MSVC)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_definitions(-DDEBUG)
+    endif()
+endif()
+
+# Force DEBUG macro for testing
+add_definitions(-DDEBUG)
+
 find_package(OpenGL REQUIRED)
 # SDL2 will be linked via vcpkg target
 

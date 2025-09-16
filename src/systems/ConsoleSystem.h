@@ -33,3 +33,4 @@ private:
 
     void OnConsoleToggle(const ConsoleToggleEvent &event);
 };
+

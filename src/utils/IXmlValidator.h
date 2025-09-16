@@ -24,3 +24,4 @@ public:
 };
 
 #endif // IXML_VALIDATOR_H
+

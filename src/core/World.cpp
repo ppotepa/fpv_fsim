@@ -1,5 +1,6 @@
 #include "World.h"
 #include <iostream>
+#include "debug.h"
 
 /**
  * @brief Construct a world with an event bus for communication.
@@ -9,7 +10,10 @@
  *
  * @param eventBus Reference to the event bus used for inter-system communication
  */
-World::World(EventBus &eventBus) : eventBus_(eventBus) {}
+World::World(EventBus &eventBus) : eventBus_(eventBus)
+{
+    DEBUG_LOG("Creating World with EventBus");
+}
 
 /**
  * @brief Add an entity to the world.
@@ -21,6 +25,7 @@ World::World(EventBus &eventBus) : eventBus_(eventBus) {}
  */
 void World::addEntity(std::unique_ptr<Entity> entity)
 {
+    DEBUG_LOG("Adding entity with ID " + std::to_string(entity->getId()) + " to World");
     entities_.push_back(std::move(entity));
 }
 
@@ -34,6 +39,7 @@ void World::addEntity(std::unique_ptr<Entity> entity)
  */
 void World::addSystem(std::unique_ptr<ISystem> system)
 {
+    DEBUG_LOG("Adding system to World");
     systems_.push_back(std::move(system));
 }
 
@@ -48,6 +54,7 @@ void World::addSystem(std::unique_ptr<ISystem> system)
  */
 void World::update(float dt)
 {
+    DEBUG_LOG("Updating World with dt " + std::to_string(dt));
     // Static variable to control frequency of debug output
     static int frameCounter = 0;
     const int debugOutputFrequency = 300; // Show debug every 300 frames (every ~5 seconds at 60 fps)
@@ -55,7 +62,7 @@ void World::update(float dt)
 
     if (showDebug)
     {
-        std::cout << "---- Frame " << frameCounter << " ----" << std::endl;
+        DEBUG_LOG("---- Frame " + std::to_string(frameCounter) + " ----");
     }
 
     int systemIndex = 0;
@@ -66,7 +73,7 @@ void World::update(float dt)
             // Debug output only periodically to avoid console spam
             if (showDebug)
             {
-                std::cout << "Updating system: " << system->getName() << " (index: " << systemIndex << ")" << std::endl;
+                DEBUG_LOG("Updating system: " + std::string(system->getName()) + " (index: " + std::to_string(systemIndex) + ")");
             }
 
             system->update(*this, dt);
@@ -88,6 +95,7 @@ void World::update(float dt)
 
     if (showDebug)
     {
-        std::cout << "-----------------" << std::endl;
+        DEBUG_LOG("-----------------");
     }
 }
+

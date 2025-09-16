@@ -1,6 +1,9 @@
 // Add implementation of the addEntityComponents method
+#include "debug.h"
+
 void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::EntityDefinition &definition)
 {
+    DEBUG_LOG("Adding components to entity " + std::to_string(entity.getId()) + " with definition " + definition.name);
     // Set entity properties
     if (!definition.name.empty())
     {
@@ -15,6 +18,7 @@ void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::Enti
     // Add renderable component if defined
     if (definition.renderable)
     {
+        DEBUG_LOG("Adding renderable component to entity " + std::to_string(entity.getId()));
         auto renderableComp = std::make_shared<RenderableC>();
         renderableComp->meshId = definition.renderable->meshId;
         renderableComp->materialId = definition.renderable->materialId;
@@ -27,6 +31,7 @@ void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::Enti
     // Add physics component if defined
     if (definition.physics)
     {
+        DEBUG_LOG("Adding physics component to entity " + std::to_string(entity.getId()));
         auto physicsComp = std::make_shared<PhysicsC>();
         physicsComp->mass = definition.physics->mass;
         physicsComp->friction = definition.physics->friction;
@@ -46,6 +51,7 @@ void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::Enti
     // Add vehicle component if defined
     if (definition.vehicle)
     {
+        DEBUG_LOG("Adding vehicle component to entity " + std::to_string(entity.getId()));
         auto vehicleComp = std::make_shared<VehicleC>();
         vehicleComp->vehicleType = definition.vehicle->vehicleType;
         vehicleComp->maxSpeed = definition.vehicle->maxSpeed;
@@ -58,6 +64,7 @@ void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::Enti
     // Add audio component if defined
     if (definition.audio)
     {
+        DEBUG_LOG("Adding audio component to entity " + std::to_string(entity.getId()));
         auto audioComp = std::make_shared<AudioC>();
         audioComp->soundId = definition.audio->soundId;
         audioComp->volume = definition.audio->volume;
@@ -68,6 +75,7 @@ void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::Enti
     // Add light component if defined
     if (definition.light)
     {
+        DEBUG_LOG("Adding light component to entity " + std::to_string(entity.getId()));
         auto lightComp = std::make_shared<LightC>();
         lightComp->lightType = definition.light->lightType;
         lightComp->color = definition.light->color;
@@ -82,3 +90,4 @@ void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::Enti
         entity.setCustomProperty(prop.name, prop.value);
     }
 }
+

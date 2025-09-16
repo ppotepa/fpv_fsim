@@ -102,3 +102,4 @@ namespace EntityLoader
 } // namespace EntityLoader
 
 #endif // ENTITY_XML_PARSER_H
+

@@ -12,6 +12,7 @@
 #include "components/AudioC.h"
 #include "components/LightC.h"
 #include <iostream>
+#include "debug.h"
 
 namespace EntityFactory
 {
@@ -19,13 +20,15 @@ namespace EntityFactory
     EntityFactory::EntityFactory(EventBus &eventBus, Material::MaterialManager &materialManager)
         : eventBus_(eventBus), materialManager_(materialManager), nextEntityId_(1)
     {
+        DEBUG_LOG("Initializing EntityFactory");
         initializeDefaultTemplates();
     }
 
     bool EntityFactory::loadConfiguration(const std::string &configFilePath)
     {
+        DEBUG_LOG("Loading configuration from " + configFilePath);
         // Load entity factory configuration
-        std::cout << "EntityFactory: Loading configuration from " << configFilePath << std::endl;
+        DEBUG_LOG("EntityFactory: Loading configuration from " << configFilePath);
 
         EntityConfig::EntityFactoryConfiguration config =
             EntityConfig::EntityConfigParser::loadFromFile(configFilePath);
@@ -46,6 +49,7 @@ namespace EntityFactory
                                                               const std::string &entityName,
                                                               unsigned int entityId)
     {
+        DEBUG_LOG("Creating entity from template '" + templateName + "' with name '" + entityName + "'");
         if (entityId == 0)
         {
             entityId = getNextEntityId();
@@ -54,8 +58,8 @@ namespace EntityFactory
         // Create basic entity
         auto entity = std::make_unique<Entity>(entityId);
 
-        std::cout << "EntityFactory: Creating entity '" << entityName
-                  << "' from template '" << templateName << "' with ID " << entityId << std::endl;
+        DEBUG_LOG("EntityFactory: Creating entity '" << entityName
+                  << "' from template '" << templateName << "' with ID " << entityId);
 
         // Find template in loaded templates
         for (const auto &entityTemplate : entityTemplates_)
@@ -114,12 +118,13 @@ namespace EntityFactory
         }
 
         // If template not found, create a basic entity as fallback
-        std::cout << "Warning: Template '" << templateName << "' not found, creating basic entity" << std::endl;
+        DEBUG_LOG("Warning: Template '" << templateName << "' not found, creating basic entity");
         return entity;
     }
 
     std::unique_ptr<Entity> EntityFactory::createFromXmlFile(const std::string &xmlFilePath, unsigned int entityId)
     {
+        DEBUG_LOG("Creating entity from XML file '" + xmlFilePath + "'");
         EntityLoader::EntityXmlParser parser;
         auto entityDef = parser.loadFromFile(xmlFilePath);
 
@@ -135,7 +140,7 @@ namespace EntityFactory
     std::unique_ptr<Entity> EntityFactory::createFromDefinition(
         const EntityConfig::EntityDefinition &definition, unsigned int entityId)
     {
-
+        DEBUG_LOG("Creating entity from definition '" + definition.name + "' of type '" + definition.entityType + "'");
         if (entityId == 0)
         {
             entityId = getNextEntityId();
@@ -144,8 +149,8 @@ namespace EntityFactory
         // Create basic entity
         auto entity = std::make_unique<Entity>(entityId);
 
-        std::cout << "EntityFactory: Creating entity '" << definition.name
-                  << "' of type '" << definition.entityType << "' with ID " << entityId << std::endl;
+        DEBUG_LOG("EntityFactory: Creating entity '" << definition.name
+                  << "' of type '" << definition.entityType << "' with ID " << entityId);
 
         // Add components based on the definition
         addEntityComponents(*entity, definition);
@@ -155,6 +160,7 @@ namespace EntityFactory
 
     void EntityFactory::initializeDefaultTemplates()
     {
+        DEBUG_LOG("Initializing default entity templates");
         // Initialize basic templates
         templates_["earth_sphere"] = "basic_sphere";
         templates_["basic_drone"] = "aircraft";
@@ -213,6 +219,7 @@ namespace EntityFactory
 
     void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::EntityDefinition &definition)
     {
+        DEBUG_LOG("Adding components to entity " + std::to_string(entity.getId()) + " from definition");
         // Set entity properties
         if (!definition.name.empty())
         {
@@ -263,6 +270,7 @@ namespace EntityFactory
         // Add renderable component if defined
         if (definition.renderable)
         {
+            DEBUG_LOG("Adding renderable component to entity " + std::to_string(entity.getId()));
             auto renderableComp = std::make_unique<RenderableC>();
             renderableComp->meshId = definition.renderable->meshId;
             renderableComp->materialId = definition.renderable->materialId;
@@ -273,6 +281,7 @@ namespace EntityFactory
         // Add physics component if defined
         if (definition.physics)
         {
+            DEBUG_LOG("Adding physics component to entity " + std::to_string(entity.getId()));
             auto physicsComp = std::make_unique<PhysicsC>();
             physicsComp->mass = definition.physics->mass;
             physicsComp->friction = definition.physics->friction;
@@ -292,6 +301,7 @@ namespace EntityFactory
         // Add vehicle component if defined
         if (definition.vehicle)
         {
+            DEBUG_LOG("Adding vehicle component to entity " + std::to_string(entity.getId()));
             auto vehicleComp = std::make_unique<VehicleC>();
             vehicleComp->vehicleType = definition.vehicle->vehicleType;
             vehicleComp->maxSpeed = definition.vehicle->maxSpeed;
@@ -304,12 +314,14 @@ namespace EntityFactory
         // Add audio component if defined
         if (definition.audio)
         {
+            DEBUG_LOG("Adding audio component to entity " + std::to_string(entity.getId()));
             entity.setAudioComponent(definition.audio->soundId, definition.audio->volume, definition.audio->loop);
         }
 
         // Add light component if defined
         if (definition.light)
         {
+            DEBUG_LOG("Adding light component to entity " + std::to_string(entity.getId()));
             float r = 1.0f, g = 1.0f, b = 1.0f;
             if (definition.light->color[0] > 0)
                 r = definition.light->color[0];
@@ -330,3 +342,4 @@ namespace EntityFactory
     }
 
 } // namespace EntityFactory
+

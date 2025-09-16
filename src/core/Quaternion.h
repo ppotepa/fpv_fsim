@@ -65,3 +65,4 @@ struct Quaternion
         return Quaternion(w, x, y, z);
     }
 };
+

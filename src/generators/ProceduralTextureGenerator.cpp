@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <random>
 #include <sstream>
+#include "../debug.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -153,6 +154,7 @@ namespace ProceduralTexture
 
     TextureData ProceduralTextureGenerator::generateTexture(const TextureParams &params)
     {
+        DEBUG_LOG("Generating texture of type " + std::to_string(static_cast<int>(params.type)) + " with size " + std::to_string(params.width) + "x" + std::to_string(params.height));
         switch (params.type)
         {
         case TextureParams::Type::Noise:
@@ -171,6 +173,7 @@ namespace ProceduralTexture
     TextureData ProceduralTextureGenerator::generateFromParameters(const std::string &type,
                                                                    const std::map<std::string, std::string> &parameters)
     {
+        DEBUG_LOG("Generating texture from parameters with type '" + type + "'");
         TextureParams params;
         params.type = parseTextureType(type);
 
@@ -218,6 +221,7 @@ namespace ProceduralTexture
 
     TextureData ProceduralTextureGenerator::generateNoise(const NoiseParams &params, uint32_t width, uint32_t height)
     {
+        DEBUG_LOG("Generating noise texture with size " + std::to_string(width) + "x" + std::to_string(height));
         TextureData texture(width, height);
 
         for (uint32_t y = 0; y < height; ++y)
@@ -265,6 +269,7 @@ namespace ProceduralTexture
 
     TextureData ProceduralTextureGenerator::generateGradient(const GradientParams &params, uint32_t width, uint32_t height)
     {
+        DEBUG_LOG("Generating gradient texture with size " + std::to_string(width) + "x" + std::to_string(height));
         TextureData texture(width, height);
 
         for (uint32_t y = 0; y < height; ++y)
@@ -296,6 +301,7 @@ namespace ProceduralTexture
 
     TextureData ProceduralTextureGenerator::generatePattern(const PatternParams &params, uint32_t width, uint32_t height)
     {
+        DEBUG_LOG("Generating pattern texture with size " + std::to_string(width) + "x" + std::to_string(height));
         TextureData texture(width, height);
 
         for (uint32_t y = 0; y < height; ++y)
@@ -600,6 +606,7 @@ namespace ProceduralTexture
 
     TextureData ProceduralTextureGenerator::generateNoiseTexture(const TextureParams &params)
     {
+        DEBUG_LOG("Generating noise texture with name '" + params.name + "'");
         auto texture = generateNoise(params.noise, params.width, params.height);
         texture.name = params.name;
         applyPostProcessing(texture, params);
@@ -608,6 +615,7 @@ namespace ProceduralTexture
 
     TextureData ProceduralTextureGenerator::generateGradientTexture(const TextureParams &params)
     {
+        DEBUG_LOG("Generating gradient texture with name '" + params.name + "'");
         auto texture = generateGradient(params.gradient, params.width, params.height);
         texture.name = params.name;
         applyPostProcessing(texture, params);
@@ -616,6 +624,7 @@ namespace ProceduralTexture
 
     TextureData ProceduralTextureGenerator::generatePatternTexture(const TextureParams &params)
     {
+        DEBUG_LOG("Generating pattern texture with name '" + params.name + "'");
         auto texture = generatePattern(params.pattern, params.width, params.height);
         texture.name = params.name;
         applyPostProcessing(texture, params);
@@ -842,3 +851,4 @@ namespace ProceduralTexture
     // This represents the core functionality of the texture generator
 
 } // namespace ProceduralTexture
+

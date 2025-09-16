@@ -1,4 +1,5 @@
 #include "Entity.h"
+#include "debug.h"
 #include "../components/TransformC.h"
 #include "../components/RenderableC.h"
 #include "../components/PhysicsC.h"
@@ -15,7 +16,10 @@
  *
  * @param id The unique identifier for this entity
  */
-Entity::Entity(unsigned int id) : id_(id) {}
+Entity::Entity(unsigned int id) : id_(id)
+{
+    DEBUG_LOG("Creating entity with ID " + std::to_string(id));
+}
 
 /**
  * @brief Set the entity's position.
@@ -26,16 +30,19 @@ Entity::Entity(unsigned int id) : id_(id) {}
  */
 void Entity::setPosition(float x, float y, float z)
 {
+    DEBUG_LOG("Setting position to (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ") for entity " + std::to_string(id_));
     auto transform = getComponent<TransformC>();
 
     if (!transform)
     {
+        DEBUG_LOG("Creating new TransformC component");
         auto newTransform = std::make_unique<TransformC>();
         newTransform->position = Vector3D(x, y, z);
         addComponent<TransformC>(std::move(newTransform));
     }
     else
     {
+        DEBUG_LOG("Updating existing TransformC component");
         transform->position = Vector3D(x, y, z);
     }
 }
@@ -49,16 +56,19 @@ void Entity::setPosition(float x, float y, float z)
  */
 void Entity::setRotation(float pitch, float yaw, float roll)
 {
+    DEBUG_LOG("Setting rotation to (" + std::to_string(pitch) + ", " + std::to_string(yaw) + ", " + std::to_string(roll) + ") for entity " + std::to_string(id_));
     auto transform = getComponent<TransformC>();
 
     if (!transform)
     {
+        DEBUG_LOG("Creating new TransformC component");
         auto newTransform = std::make_unique<TransformC>();
         newTransform->rotation = Quaternion::fromEulerAngles(pitch, yaw, roll);
         addComponent<TransformC>(std::move(newTransform));
     }
     else
     {
+        DEBUG_LOG("Updating existing TransformC component");
         transform->rotation = Quaternion::fromEulerAngles(pitch, yaw, roll);
     }
 }
@@ -72,16 +82,19 @@ void Entity::setRotation(float pitch, float yaw, float roll)
  */
 void Entity::setScale(float x, float y, float z)
 {
+    DEBUG_LOG("Setting scale to (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ") for entity " + std::to_string(id_));
     auto transform = getComponent<TransformC>();
 
     if (!transform)
     {
+        DEBUG_LOG("Creating new TransformC component");
         auto newTransform = std::make_unique<TransformC>();
         newTransform->scale = Vector3D(x, y, z);
         addComponent<TransformC>(std::move(newTransform));
     }
     else
     {
+        DEBUG_LOG("Updating existing TransformC component");
         transform->scale = Vector3D(x, y, z);
     }
 }
@@ -95,15 +108,18 @@ void Entity::setScale(float x, float y, float z)
  */
 void Entity::setRenderableComponent(const std::string &meshId, const std::string &materialId, bool visible)
 {
+    DEBUG_LOG("Setting renderable component with meshId: " + meshId + ", materialId: " + materialId + ", visible: " + (visible ? "true" : "false") + " for entity " + std::to_string(id_));
     auto renderable = getComponent<RenderableC>();
 
     if (!renderable)
     {
+        DEBUG_LOG("Creating new RenderableC component");
         auto newRenderable = std::make_unique<RenderableC>(meshId, materialId, visible);
         addComponent<RenderableC>(std::move(newRenderable));
     }
     else
     {
+        DEBUG_LOG("Updating existing RenderableC component");
         renderable->meshId = meshId;
         renderable->materialId = materialId;
         renderable->isVisible = visible;
@@ -120,8 +136,10 @@ void Entity::setRenderableComponent(const std::string &meshId, const std::string
  */
 void Entity::setPhysicsComponent(bool hasPhysics, float mass, float friction, float restitution)
 {
+    DEBUG_LOG("Setting physics component with hasPhysics: " + std::string(hasPhysics ? "true" : "false") + ", mass: " + std::to_string(mass) + ", friction: " + std::to_string(friction) + ", restitution: " + std::to_string(restitution) + " for entity " + std::to_string(id_));
     if (!hasPhysics)
     {
+        DEBUG_LOG("Removing PhysicsC component");
         // If physics is disabled, remove the component if it exists
         components_.erase(std::type_index(typeid(PhysicsC)));
         return;
@@ -131,11 +149,13 @@ void Entity::setPhysicsComponent(bool hasPhysics, float mass, float friction, fl
 
     if (!physics)
     {
+        DEBUG_LOG("Creating new PhysicsC component");
         auto newPhysics = std::make_unique<PhysicsC>(mass, friction, restitution);
         addComponent<PhysicsC>(std::move(newPhysics));
     }
     else
     {
+        DEBUG_LOG("Updating existing PhysicsC component");
         physics->mass = mass;
         physics->friction = friction;
         physics->restitution = restitution;
@@ -149,16 +169,19 @@ void Entity::setPhysicsComponent(bool hasPhysics, float mass, float friction, fl
  */
 void Entity::setColliderType(const std::string &colliderType)
 {
+    DEBUG_LOG("Setting collider type to " + colliderType + " for entity " + std::to_string(id_));
     auto physics = getComponent<PhysicsC>();
 
     if (!physics)
     {
+        DEBUG_LOG("Creating new PhysicsC component");
         auto newPhysics = std::make_unique<PhysicsC>();
         newPhysics->colliderType = colliderType;
         addComponent<PhysicsC>(std::move(newPhysics));
     }
     else
     {
+        DEBUG_LOG("Updating existing PhysicsC component");
         physics->colliderType = colliderType;
     }
 }
@@ -172,10 +195,12 @@ void Entity::setColliderType(const std::string &colliderType)
  */
 void Entity::setColliderSize(float x, float y, float z)
 {
+    DEBUG_LOG("Setting collider size to (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ") for entity " + std::to_string(id_));
     auto physics = getComponent<PhysicsC>();
 
     if (!physics)
     {
+        DEBUG_LOG("Creating new PhysicsC component");
         auto newPhysics = std::make_unique<PhysicsC>();
         newPhysics->colliderSize[0] = x;
         newPhysics->colliderSize[1] = y;
@@ -184,6 +209,7 @@ void Entity::setColliderSize(float x, float y, float z)
     }
     else
     {
+        DEBUG_LOG("Updating existing PhysicsC component");
         physics->colliderSize[0] = x;
         physics->colliderSize[1] = y;
         physics->colliderSize[2] = z;
@@ -197,6 +223,7 @@ void Entity::setColliderSize(float x, float y, float z)
  */
 void Entity::setKinematic(bool isKinematic)
 {
+    DEBUG_LOG("Setting kinematic to " + std::string(isKinematic ? "true" : "false") + " for entity " + std::to_string(id_));
     auto physics = getComponent<PhysicsC>();
 
     if (!physics)
@@ -218,6 +245,7 @@ void Entity::setKinematic(bool isKinematic)
  */
 void Entity::setUseGravity(bool useGravity)
 {
+    DEBUG_LOG("Setting use gravity to " + std::string(useGravity ? "true" : "false") + " for entity " + std::to_string(id_));
     auto physics = getComponent<PhysicsC>();
 
     if (!physics)
@@ -241,6 +269,7 @@ void Entity::setUseGravity(bool useGravity)
  */
 void Entity::setVehicleComponent(const std::string &vehicleType, float maxSpeed, float acceleration)
 {
+    DEBUG_LOG("Setting vehicle component with type: " + vehicleType + ", maxSpeed: " + std::to_string(maxSpeed) + ", acceleration: " + std::to_string(acceleration) + " for entity " + std::to_string(id_));
     auto vehicle = getComponent<VehicleC>();
 
     if (!vehicle)
@@ -265,6 +294,7 @@ void Entity::setVehicleComponent(const std::string &vehicleType, float maxSpeed,
  */
 void Entity::setAudioComponent(const std::string &soundId, float volume, bool loop)
 {
+    DEBUG_LOG("Setting audio component with soundId: " + soundId + ", volume: " + std::to_string(volume) + ", loop: " + (loop ? "true" : "false") + " for entity " + std::to_string(id_));
     auto audio = getComponent<AudioC>();
 
     if (!audio)
@@ -292,6 +322,7 @@ void Entity::setAudioComponent(const std::string &soundId, float volume, bool lo
  */
 void Entity::setLightComponent(const std::string &lightType, float r, float g, float b, float intensity, float range)
 {
+    DEBUG_LOG("Setting light component with type: " + lightType + ", color: (" + std::to_string(r) + ", " + std::to_string(g) + ", " + std::to_string(b) + "), intensity: " + std::to_string(intensity) + ", range: " + std::to_string(range) + " for entity " + std::to_string(id_));
     auto light = getComponent<LightC>();
 
     if (!light)
@@ -318,5 +349,7 @@ void Entity::setLightComponent(const std::string &lightType, float r, float g, f
  */
 void Entity::setCustomProperty(const std::string &name, const std::string &value)
 {
+    DEBUG_LOG("Setting custom property " + name + " = " + value + " for entity " + std::to_string(id_));
     customProperties_[name] = value;
 }
+

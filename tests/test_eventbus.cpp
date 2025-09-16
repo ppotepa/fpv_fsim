@@ -3,6 +3,6 @@
 
 int main()
 {
-    std::cout << "EventBus header test passed" << std::endl;
+    DEBUG_LOG("EventBus header test passed");
     return 0;
 }

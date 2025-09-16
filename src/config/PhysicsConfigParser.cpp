@@ -34,7 +34,7 @@ Physics::PhysicsConfig PhysicsConfigParser::loadFromFile(const std::string &conf
 
     if (Debug())
     {
-        std::cout << "Loading physics configuration from: " << configPath << std::endl;
+        DEBUG_LOG("Loading physics configuration from: " << configPath);
     }
     return parseConfig(content);
 }
@@ -87,11 +87,11 @@ Physics::PhysicsConfig PhysicsConfigParser::parseConfig(const std::string &xmlCo
 
         if (Debug())
         {
-            std::cout << "Physics configuration loaded successfully:" << std::endl;
-            std::cout << "  - Fixed timestep: " << config.fixedTimestep << "s (" << (1.0f / config.fixedTimestep) << " Hz)" << std::endl;
-            std::cout << "  - Air density (sea level): " << config.seaLevelDensity << " kg/m³" << std::endl;
-            std::cout << "  - Wind base speed: " << config.baseWindSpeed << " m/s" << std::endl;
-            std::cout << "  - Collision restitution: " << config.restitution << std::endl;
+            DEBUG_LOG("Physics configuration loaded successfully:");
+            DEBUG_LOG("  - Fixed timestep: " << config.fixedTimestep << "s (" << (1.0f / config.fixedTimestep) << " Hz)");
+            DEBUG_LOG("  - Air density (sea level): " << config.seaLevelDensity << " kg/m³");
+            DEBUG_LOG("  - Wind base speed: " << config.baseWindSpeed << " m/s");
+            DEBUG_LOG("  - Collision restitution: " << config.restitution);
         }
     }
     catch (const std::exception &e)
@@ -181,3 +181,5 @@ int PhysicsConfigParser::extractIntValue(const std::string &xml, const std::stri
         return defaultValue;
     }
 }
+
+

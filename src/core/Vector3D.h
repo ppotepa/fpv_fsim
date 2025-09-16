@@ -53,3 +53,4 @@ struct Vector3D
         return Vector3D(x * scalar, y * scalar, z * scalar);
     }
 };
+

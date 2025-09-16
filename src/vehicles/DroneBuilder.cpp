@@ -9,3 +9,5 @@ std::unique_ptr<Entity> DroneBuilder::build(const std::string &configPath, Event
     // Add components, e.g. TransformC, BatteryC, etc.
     return entity;
 }
+
+

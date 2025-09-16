@@ -55,3 +55,4 @@ struct ConsoleVisibilityChangedEvent : public IEvent
     /** @brief The current visibility state of the console */
     bool isVisible;
 };
+

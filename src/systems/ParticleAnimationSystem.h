@@ -459,3 +459,4 @@ private:
         // This method is reserved for future group-level effects
     }
 };
+

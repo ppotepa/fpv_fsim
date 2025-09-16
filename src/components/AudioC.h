@@ -45,3 +45,4 @@ struct AudioC : public IComponent
            bool l = false)
         : soundId(sound), volume(vol), loop(l), isPlaying(false) {}
 };
+

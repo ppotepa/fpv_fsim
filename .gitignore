@@ -42,10 +42,39 @@ _deps
 
 # Build directories
 build/
+build-debug/
+build-release/
 cmake-build-*/
 out/
 bin/
 lib/
+
+# Project-specific build outputs
+runtime/data/compiled/
+*.compiled
+*.cache
+
+# Project-specific logs and debug files
+source.*.log
+source.*.log.zip
+out.md
+dump.ps1
+final_test.log
+material_test_full.txt
+material_test.txt
+scene_test.log
+startup_test.txt
+
+# Error assets (placeholder/debug files)
+assets/error.bmp
+assets/error.png
+assets/error.ttf
+assets/error.wav
+
+# Asset build artifacts
+assets/build/
+assets/cache/
+*.asset.cache
 
 # Qt generated files
 *.pro.user
@@ -95,6 +124,24 @@ cmake-build-*/
 *.log
 *.svclog
 *.scc
+
+# Additional Visual Studio files
+*.ilk
+*.exp
+*.pdb
+*.idb
+*.map
+x64/
+x86/
+Debug/
+Release/
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+*.vcxproj.user
+*.userosscache
+*.sln.docstates
 
 # Xcode
 *.pbxuser

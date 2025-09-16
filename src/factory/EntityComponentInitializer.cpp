@@ -1,5 +1,9 @@
+#include "debug.h"
+
 void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::EntityDefinition &definition)
 {
+    DEBUG_LOG("Initializing components for entity " + std::to_string(entity.getId()) + " with name '" + definition.name + "'");
+
     // Set entity basic properties
     entity.setName(definition.name);
     entity.setActive(definition.startActive);
@@ -42,6 +46,7 @@ void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::Enti
     // Add renderable component if defined
     if (definition.renderable)
     {
+        DEBUG_LOG("Adding renderable component to entity " + std::to_string(entity.getId()));
         entity.setRenderableComponent(
             definition.renderable->meshId,
             definition.renderable->materialId,
@@ -56,6 +61,7 @@ void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::Enti
     // Add physics component if defined
     if (definition.physics)
     {
+        DEBUG_LOG("Adding physics component to entity " + std::to_string(entity.getId()));
         entity.setPhysicsComponent(
             definition.physics->hasPhysics,
             definition.physics->mass,
@@ -75,6 +81,7 @@ void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::Enti
     // Add vehicle component if defined
     if (definition.vehicle)
     {
+        DEBUG_LOG("Adding vehicle component to entity " + std::to_string(entity.getId()));
         entity.setVehicleComponent(
             definition.vehicle->vehicleType,
             definition.vehicle->maxSpeed,
@@ -88,6 +95,7 @@ void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::Enti
     // Add audio component if defined
     if (definition.audio)
     {
+        DEBUG_LOG("Adding audio component to entity " + std::to_string(entity.getId()));
         entity.setAudioComponent(
             definition.audio->soundId,
             definition.audio->volume,
@@ -97,6 +105,7 @@ void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::Enti
     // Add light component if defined
     if (definition.light)
     {
+        DEBUG_LOG("Adding light component to entity " + std::to_string(entity.getId()));
         entity.setLightComponent(
             definition.light->lightType,
             definition.light->color[0],
@@ -109,12 +118,15 @@ void EntityFactory::addEntityComponents(Entity &entity, const EntityConfig::Enti
     // Add custom properties
     for (const auto &property : definition.customProperties)
     {
+        DEBUG_LOG("Setting custom property '" + property.name + "' to '" + property.value + "' for entity " + std::to_string(entity.getId()));
         entity.setCustomProperty(property.name, property.value);
     }
 
     // Set lifetime if defined (non-negative)
     if (definition.lifetime >= 0.0f)
     {
+        DEBUG_LOG("Setting lifetime to " + std::to_string(definition.lifetime) + " for entity " + std::to_string(entity.getId()))
         entity.setLifetime(definition.lifetime);
     }
 }
+

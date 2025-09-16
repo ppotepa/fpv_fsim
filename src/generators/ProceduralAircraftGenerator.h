@@ -19,6 +19,7 @@
 #include "../math/MathUtils.h"
 #include <vector>
 #include <cstdint>
+#include "../debug.h"
 
 /**
  * @brief Procedural low-poly aircraft mesh generator
@@ -109,6 +110,7 @@ public:
      */
     MeshData generate()
     {
+        DEBUG_LOG("Generating aircraft mesh with style " + std::to_string(static_cast<int>(params.style)));
         MeshData mesh;
 
         switch (params.style)
@@ -145,6 +147,7 @@ public:
      */
     void setParams(const AircraftParams &aircraftParams)
     {
+        DEBUG_LOG("Setting aircraft parameters");
         params = aircraftParams;
     }
 
@@ -166,6 +169,7 @@ private:
      */
     void generateSimpleAircraft(MeshData &mesh)
     {
+        DEBUG_LOG("Generating simple aircraft mesh");
         // Aircraft is oriented along +X axis (forward)
         float halfLength = params.length * 0.5f;
         float halfWingspan = params.wingspan * 0.5f;
@@ -193,6 +197,7 @@ private:
      */
     void generateFighterAircraft(MeshData &mesh)
     {
+        DEBUG_LOG("Generating fighter aircraft mesh");
         // Fighter has more angular design and swept wings
         float halfLength = params.length * 0.5f;
         float halfWingspan = params.wingspan * 0.5f;
@@ -218,6 +223,7 @@ private:
      */
     void generateCivilianAircraft(MeshData &mesh)
     {
+        DEBUG_LOG("Generating civilian aircraft mesh");
         // Civilian has rounded design and straight wings
         generateSimpleAircraft(mesh); // Use simple as base
 
@@ -234,6 +240,7 @@ private:
      */
     void generateTransportAircraft(MeshData &mesh)
     {
+        DEBUG_LOG("Generating transport aircraft mesh");
         // Transport is larger and more boxy
         AircraftParams originalParams = params;
         params.fuselageWidth *= 1.5f;
@@ -457,6 +464,7 @@ private:
      */
     void calculateNormals(MeshData &mesh)
     {
+        DEBUG_LOG("Calculating normals for aircraft mesh");
         // Reset all normals
         for (auto &vertex : mesh.vertices)
         {

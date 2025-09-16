@@ -49,3 +49,4 @@ struct DefaultWorldGeneratedEvent : public IEvent
      */
     EventType getType() const override { return EventType::DefaultWorldGenerated; }
 };
+

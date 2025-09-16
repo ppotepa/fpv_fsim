@@ -53,3 +53,4 @@ struct VehicleC : public IComponent
         : vehicleType(type), maxSpeed(speed), acceleration(accel),
           maneuverability(maneuver), controllerType(controller) {}
 };
+

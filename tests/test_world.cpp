@@ -3,6 +3,6 @@
 
 int main()
 {
-    std::cout << "World header test passed" << std::endl;
+    DEBUG_LOG("World header test passed");
     return 0;
 }

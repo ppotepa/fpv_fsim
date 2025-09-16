@@ -21,3 +21,4 @@ public:
 };
 
 #endif // IXML_ERROR_HANDLER_H
+

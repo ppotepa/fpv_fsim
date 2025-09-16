@@ -69,3 +69,4 @@ private:
     // Helper method to convert MaterialId to numeric AssetId
     AssetId MaterialIdToAssetId(const std::string &materialId);
 };
+

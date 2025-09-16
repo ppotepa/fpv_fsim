@@ -15,7 +15,7 @@ namespace EntityConfig
         {
             if (Debug())
             {
-                std::cout << "Warning: Cannot open entity factory config file '" << filePath << "', using defaults" << std::endl;
+                DEBUG_LOG("Warning: Cannot open entity factory config file '" << filePath << "', using defaults");
             }
             return EntityFactoryConfiguration{};
         }
@@ -39,15 +39,15 @@ namespace EntityConfig
 
             if (Debug())
             {
-                std::cout << "Entity factory configuration loaded successfully: "
-                          << config.templates.size() << " templates" << std::endl;
+                DEBUG_LOG("Entity factory configuration loaded successfully: "
+                          << config.templates.size() << " templates");
             }
         }
         catch (const std::exception &e)
         {
             if (Debug())
             {
-                std::cout << "Warning: Error parsing entity factory config: " << e.what() << ", using defaults" << std::endl;
+                DEBUG_LOG("Warning: Error parsing entity factory config: " << e.what() << ", using defaults");
             }
             config = EntityFactoryConfiguration{};
         }
@@ -78,7 +78,7 @@ namespace EntityConfig
             {
                 if (Debug())
                 {
-                    std::cout << "Warning: Failed to parse entity template: " << e.what() << std::endl;
+                    DEBUG_LOG("Warning: Failed to parse entity template: " << e.what());
                 }
             }
         }
@@ -371,3 +371,5 @@ namespace EntityConfig
     }
 
 } // namespace EntityConfig
+
+

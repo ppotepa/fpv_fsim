@@ -135,3 +135,4 @@ private:
     static std::string getCommonUniforms();
     static std::string getCommonAttributes();
 };
+

@@ -133,3 +133,4 @@ namespace Material
         void ParseBoolProperty(const std::string &xml, const std::string &propName, bool &boolValue);
     };
 }
+

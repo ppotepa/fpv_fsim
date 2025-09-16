@@ -44,3 +44,4 @@ struct DebugC : public IComponent
     DebugC(std::string name = "", bool showInfo = false, bool showBox = false)
         : debugName(name), showDebugInfo(showInfo), showBoundingBox(showBox) {}
 };
+

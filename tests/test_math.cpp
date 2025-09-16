@@ -3,20 +3,20 @@
 
 int main()
 {
-    std::cout << "=== Testing Orbital Mechanics Math Implementation ===" << std::endl;
+    DEBUG_LOG("=== Testing Orbital Mechanics Math Implementation ===");
 
     // Test basic vector operations
     Math::float3 v1{1.0f, 2.0f, 3.0f};
     Math::float3 v2{4.0f, 5.0f, 6.0f};
 
     Math::float3 sum = Math::add(v1, v2);
-    std::cout << "Vector addition: (" << sum.x << ", " << sum.y << ", " << sum.z << ")" << std::endl;
+    DEBUG_LOG("Vector addition: (" << sum.x << ", " << sum.y << ", " << sum.z << ")");
 
     float dot = Math::dot(v1, v2);
-    std::cout << "Dot product: " << dot << std::endl;
+    DEBUG_LOG("Dot product: " << dot);
 
     Math::float3 cross = Math::cross(v1, v2);
-    std::cout << "Cross product: (" << cross.x << ", " << cross.y << ", " << cross.z << ")" << std::endl;
+    DEBUG_LOG("Cross product: (" << cross.x << ", " << cross.y << ", " << cross.z << ")");
 
     // Test orbital mechanics
     Math::OrbitParams orbit;
@@ -28,23 +28,23 @@ int main()
 
     float time = 0.0f;
     Math::float3 position = Math::calculateOrbitPosition(orbit, time);
-    std::cout << "Orbital position at t=0: (" << position.x << ", " << position.y << ", " << position.z << ")" << std::endl;
+    DEBUG_LOG("Orbital position at t=0: (" << position.x << ", " << position.y << ", " << position.z << ")");
 
     Math::float3 velocity = Math::calculateOrbitVelocity(orbit, time);
-    std::cout << "Orbital velocity at t=0: (" << velocity.x << ", " << velocity.y << ", " << velocity.z << ")" << std::endl;
+    DEBUG_LOG("Orbital velocity at t=0: (" << velocity.x << ", " << velocity.y << ", " << velocity.z << ")");
 
     // Test cel-shading
     std::vector<float> bands = {0.2f, 0.5f, 0.8f, 1.0f};
     float intensity = 0.6f;
     float quantized = Math::quantizeToBands(intensity, bands, 0.1f);
-    std::cout << "Cel-shading quantized intensity: " << quantized << std::endl;
+    DEBUG_LOG("Cel-shading quantized intensity: " << quantized);
 
     // Test quaternions
     Math::quat q1{0.0f, 0.0f, 0.0f, 1.0f};
     Math::quat q2{0.0f, 0.5f, 0.0f, 0.866f}; // 60 degree rotation around Y
     Math::quat result = Math::q_mul(q1, q2);
-    std::cout << "Quaternion multiplication: (" << result.x << ", " << result.y << ", " << result.z << ", " << result.w << ")" << std::endl;
+    DEBUG_LOG("Quaternion multiplication: (" << result.x << ", " << result.y << ", " << result.z << ", " << result.w << ")");
 
-    std::cout << "=== All tests completed ===" << std::endl;
+    DEBUG_LOG("=== All tests completed ===");
     return 0;
 }

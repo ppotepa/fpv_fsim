@@ -64,3 +64,4 @@ struct PhysicsC : public IComponent
         colliderSize[0] = colliderSize[1] = colliderSize[2] = 1.0f;
     }
 };
+

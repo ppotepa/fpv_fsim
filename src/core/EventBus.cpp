@@ -1,11 +1,22 @@
 #include "EventBus.h"
+#include "debug.h"
+#define DEBUG
+
+#ifdef DEBUG
+#pragma message("DEBUG is defined")
+#else
+#pragma message("DEBUG is not defined")
+#endif
 
 /**
  * @brief Construct an empty event bus.
  *
  * Initializes the event bus with no registered handlers.
  */
-EventBus::EventBus() {}
+EventBus::EventBus()
+{
+    DEBUG_LOG("Creating EventBus");
+}
 
 /**
  * @brief Subscribe a handler function to a specific event type.
@@ -19,6 +30,7 @@ EventBus::EventBus() {}
  */
 void EventBus::subscribe(EventType type, std::function<void(const IEvent &)> handler)
 {
+    DEBUG_LOG("Subscribing handler for event type " + std::to_string(static_cast<int>(type)));
     handlers_[type].push_back(handler);
 }
 
@@ -33,12 +45,19 @@ void EventBus::subscribe(EventType type, std::function<void(const IEvent &)> han
  */
 void EventBus::publish(const IEvent &event)
 {
+    DEBUG_LOG("Publishing event of type " + std::to_string(static_cast<int>(event.getType())));
     auto it = handlers_.find(event.getType());
     if (it != handlers_.end())
     {
+        DEBUG_LOG("Found " + std::to_string(it->second.size()) + " handlers for event type " + std::to_string(static_cast<int>(event.getType())));
         for (auto &handler : it->second)
         {
             handler(event);
         }
     }
+    else
+    {
+        DEBUG_LOG("No handlers found for event type " + std::to_string(static_cast<int>(event.getType())));
+    }
 }
+

@@ -1,6 +1,7 @@
 #include "OpenGLRenderer.h"
 #include <iostream>
 #include <cmath>
+#include "../debug.h"
 
 OpenGLRenderer::OpenGLRenderer()
     : initialized(false)
@@ -13,7 +14,7 @@ OpenGLRenderer::~OpenGLRenderer()
 
 bool OpenGLRenderer::Initialize()
 {
-    std::cout << "OpenGLRenderer: Initializing..." << std::endl;
+    DEBUG_LOG("OpenGLRenderer: Initializing...");
 
     // Basic OpenGL setup
     glEnable(GL_DEPTH_TEST);
@@ -25,9 +26,9 @@ bool OpenGLRenderer::Initialize()
     const char *vendor = (const char *)glGetString(GL_VENDOR);
     const char *renderer = (const char *)glGetString(GL_RENDERER);
 
-    std::cout << "OpenGL Version: " << (version ? version : "Unknown") << std::endl;
-    std::cout << "OpenGL Vendor: " << (vendor ? vendor : "Unknown") << std::endl;
-    std::cout << "OpenGL Renderer: " << (renderer ? renderer : "Unknown") << std::endl;
+    DEBUG_LOG("OpenGL Version: " << (version ? version : "Unknown"));
+    DEBUG_LOG("OpenGL Vendor: " << (vendor ? vendor : "Unknown"));
+    DEBUG_LOG("OpenGL Renderer: " << (renderer ? renderer : "Unknown"));
 
     // Set up clear color to help identify when rendering is occurring
     glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // Dark blue-ish background
@@ -35,14 +36,14 @@ bool OpenGLRenderer::Initialize()
     // Load default shader
     if (!LoadDefaultShader())
     {
-        std::cout << "Warning: Failed to load default shader, using fixed pipeline" << std::endl;
+        DEBUG_LOG("Warning: Failed to load default shader, using fixed pipeline");
     }
 
     // Enable wire frame rendering for debugging visibility
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     initialized = true;
-    std::cout << "OpenGLRenderer: Initialization complete" << std::endl;
+    DEBUG_LOG("OpenGLRenderer: Initialization complete");
     return true;
 }
 
@@ -59,8 +60,8 @@ void OpenGLRenderer::BeginFrame()
     static int frameCount = 0;
     if (frameCount++ % 300 == 0)
     {
-        std::cout << "OpenGLRenderer: Beginning frame #" << frameCount << std::endl;
-        std::cout << "OpenGL context active: " << (glGetError() == GL_NO_ERROR ? "YES" : "NO") << std::endl;
+        DEBUG_LOG("OpenGLRenderer: Beginning frame #" << frameCount);
+        DEBUG_LOG("OpenGL context active: " << (glGetError() == GL_NO_ERROR ? "YES" : "NO"));
     }
 
     // Use default shader if available
@@ -94,8 +95,8 @@ void OpenGLRenderer::SetCameraView(float eyeX, float eyeY, float eyeZ,
     static int frameCount = 0;
     if (frameCount++ % 300 == 0)
     { // Log every 300 frames
-        std::cout << "OpenGLRenderer: Camera position (" << eyeX << ", " << eyeY << ", " << eyeZ << ")" << std::endl;
-        std::cout << "OpenGLRenderer: Camera target (" << centerX << ", " << centerY << ", " << centerZ << ")" << std::endl;
+        DEBUG_LOG("OpenGLRenderer: Camera position (" << eyeX << ", " << eyeY << ", " << eyeZ << ")");
+        DEBUG_LOG("OpenGLRenderer: Camera target (" << centerX << ", " << centerY << ", " << centerZ << ")");
     }
 
     // Properly set up a look-at matrix
@@ -160,8 +161,8 @@ void OpenGLRenderer::DrawSphere(float x, float y, float z, float radius, float r
     static int sphereCount = 0;
     if (sphereCount++ % 100 == 0)
     { // Only print every 100th sphere to avoid spam
-        std::cout << "OpenGLRenderer: Drawing sphere at (" << x << ", " << y << ", " << z
-                  << ") radius=" << radius << " color=(" << r << ", " << g << ", " << b << ")" << std::endl;
+        DEBUG_LOG("OpenGLRenderer: Drawing sphere at (" << x << ", " << y << ", " << z
+                  << ") radius=" << radius << " color=(" << r << ", " << g << ", " << b << ")");
     }
 
     glPushMatrix();
@@ -313,3 +314,4 @@ void OpenGLRenderer::UseDefaultShader()
         shaderCompiler.UseShader(defaultShader.programId);
     }
 }
+

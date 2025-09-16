@@ -3,10 +3,12 @@
 #include "../assets/AssetCompilerService.h"
 #include <iostream>
 #include <filesystem>
+#include "../debug.h"
 
 BootstrapSystem::BootstrapSystem(EventBus &eventBus, World &world, AssetRegistry &assetRegistry, AssetPackLoader &assetLoader)
     : eventBus(eventBus), worldRef(world), assetRegistry_(assetRegistry), assetLoader_(assetLoader), initialized(false)
 {
+    DEBUG_LOG("Initializing BootstrapSystem");
 }
 
 void BootstrapSystem::update(World &world, float deltaTime)
@@ -16,10 +18,11 @@ void BootstrapSystem::update(World &world, float deltaTime)
 
 void BootstrapSystem::Init()
 {
+    DEBUG_LOG("Initializing bootstrap system");
     if (initialized)
         return;
 
-    std::cout << "Initializing bootstrap system..." << std::endl;
+    DEBUG_LOG("Initializing bootstrap system...");
 
     // Initialize and run asset compilation
     InitializeAssetCompilation();
@@ -29,28 +32,28 @@ void BootstrapSystem::Init()
 
     if (!packagesLoaded)
     {
-        std::cout << "No asset packages found, triggering default world generation..." << std::endl;
+        DEBUG_LOG("No asset packages found, triggering default world generation...");
         eventBus.publish(NoPackagesFoundEvent{});
     }
     else
     {
-        std::cout << "Asset packages loaded successfully. Available packages:" << std::endl;
+        DEBUG_LOG("Asset packages loaded successfully. Available packages:");
         for (const auto &package : assetRegistry_.getLoadedPackages())
         {
-            std::cout << "  - " << package << std::endl;
+            DEBUG_LOG("  - " << package);
         }
 
         // Check if we have a default scene configuration to use for world generation
         const std::string *defaultScene = assetRegistry_.getDefaultScene();
         if (defaultScene != nullptr)
         {
-            std::cout << "Found default scene configuration, triggering world generation from XML..." << std::endl;
+            DEBUG_LOG("Found default scene configuration, triggering world generation from XML...");
             // Trigger world generation with the loaded scene configuration
             eventBus.publish(DefaultWorldGeneratedEvent{});
         }
         else
         {
-            std::cout << "No default scene found in loaded packages, falling back to default world generation..." << std::endl;
+            DEBUG_LOG("No default scene found in loaded packages, falling back to default world generation...");
             eventBus.publish(NoPackagesFoundEvent{});
         }
     }
@@ -60,6 +63,7 @@ void BootstrapSystem::Init()
 
 void BootstrapSystem::PostFrameUpdate()
 {
+    DEBUG_LOG("Post-frame update in BootstrapSystem");
     // Could handle hot-reloading here in the future
 }
 
@@ -101,6 +105,7 @@ bool BootstrapSystem::CheckForAssetPackages()
 
 bool BootstrapSystem::LoadAvailablePackages()
 {
+    DEBUG_LOG("Loading available packages");
     std::filesystem::path packagesDir = "assets/packages";
 
     if (!std::filesystem::exists(packagesDir))
@@ -141,7 +146,8 @@ bool BootstrapSystem::LoadAvailablePackages()
 
 void BootstrapSystem::InitializeAssetCompilation()
 {
-    std::cout << "Initializing asset compilation pipeline..." << std::endl;
+    DEBUG_LOG("Initializing asset compilation pipeline");
+    DEBUG_LOG("Initializing asset compilation pipeline...");
 
     try
     {
@@ -154,7 +160,7 @@ void BootstrapSystem::InitializeAssetCompilation()
         // Compile assets from main assets directory
         if (std::filesystem::exists("assets"))
         {
-            std::cout << "Compiling assets from 'assets' directory..." << std::endl;
+            DEBUG_LOG("Compiling assets from 'assets' directory...");
             auto results = compiler.compileDirectory("assets", true);
 
             int successful = 0;
@@ -181,24 +187,24 @@ void BootstrapSystem::InitializeAssetCompilation()
                 }
             }
 
-            std::cout << "Asset compilation completed: "
+            DEBUG_LOG("Asset compilation completed: "
                       << successful << " compiled, "
                       << skipped << " skipped, "
-                      << failed << " failed" << std::endl;
+                      << failed << " failed");
         }
 
         // Compile assets from packages
         std::string packagesDir = "assets/packages";
         if (std::filesystem::exists(packagesDir))
         {
-            std::cout << "Compiling package assets..." << std::endl;
+            DEBUG_LOG("Compiling package assets...");
 
             for (const auto &entry : std::filesystem::directory_iterator(packagesDir))
             {
                 if (entry.is_directory())
                 {
                     std::string packagePath = entry.path().string();
-                    std::cout << "Compiling package: " << packagePath << std::endl;
+                    DEBUG_LOG("Compiling package: " << packagePath);
 
                     auto results = compiler.compileAssetPackage(packagePath);
 
@@ -215,15 +221,15 @@ void BootstrapSystem::InitializeAssetCompilation()
 
         // Print compilation statistics
         const auto &stats = compiler.getStatistics();
-        std::cout << "Asset compilation statistics:" << std::endl;
-        std::cout << "  Assets compiled: " << stats.assetsCompiled << std::endl;
-        std::cout << "  Assets skipped: " << stats.assetsSkipped << std::endl;
-        std::cout << "  Total compilation time: " << stats.totalCompilationTime << "ms" << std::endl;
+        DEBUG_LOG("Asset compilation statistics:");
+        DEBUG_LOG("  Assets compiled: " << stats.assetsCompiled);
+        DEBUG_LOG("  Assets skipped: " << stats.assetsSkipped);
+        DEBUG_LOG("  Total compilation time: " << stats.totalCompilationTime << "ms");
 
         if (stats.totalInputSize > 0)
         {
             double compressionRatio = (double)stats.totalOutputSize / stats.totalInputSize;
-            std::cout << "  Compression ratio: " << (compressionRatio * 100.0) << "%" << std::endl;
+            DEBUG_LOG("  Compression ratio: " << (compressionRatio * 100.0) << "%");
         }
     }
     catch (const std::exception &e)
@@ -231,3 +237,5 @@ void BootstrapSystem::InitializeAssetCompilation()
         std::cerr << "Error during asset compilation: " << e.what() << std::endl;
     }
 }
+
+

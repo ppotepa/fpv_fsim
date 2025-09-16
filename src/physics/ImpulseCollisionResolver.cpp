@@ -4,6 +4,7 @@
  */
 
 #include "ImpulseCollisionResolver.h"
+#include "../debug.h"
 
 /**
  * @brief Construct a new ImpulseCollisionResolver.
@@ -14,7 +15,10 @@
  * @param restitution Default coefficient of restitution (0.0 = inelastic, 1.0 = elastic)
  */
 ImpulseCollisionResolver::ImpulseCollisionResolver(float friction, float restitution)
-    : friction_(friction), restitution_(restitution) {}
+    : friction_(friction), restitution_(restitution)
+{
+    DEBUG_LOG("Initializing ImpulseCollisionResolver with friction " + std::to_string(friction) + " and restitution " + std::to_string(restitution));
+}
 
 /**
  * @brief Resolve a collision using impulse-based calculations.
@@ -37,6 +41,7 @@ ImpulseCollisionResolver::ImpulseCollisionResolver(float friction, float restitu
  */
 void ImpulseCollisionResolver::resolveCollision(float &vx, float &vy, float &vz, float normalX, float normalY, float normalZ, float restitution)
 {
+    DEBUG_LOG("Resolving collision with restitution " + std::to_string(restitution));
     // Calculate the component of velocity towards the surface
     float dot = vx * normalX + vy * normalY + vz * normalZ;
 
@@ -51,3 +56,4 @@ void ImpulseCollisionResolver::resolveCollision(float &vx, float &vy, float &vz,
         vz -= (1 + restitution) * dot * normalZ;
     }
 }
+

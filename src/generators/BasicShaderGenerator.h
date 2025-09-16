@@ -117,3 +117,4 @@ private:
 };
 
 #endif // BASIC_SHADER_GENERATOR_H
+

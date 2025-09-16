@@ -39,3 +39,4 @@ struct RenderableC : public IComponent
     RenderableC(std::string mesh = "", std::string material = "", bool visible = true)
         : meshId(mesh), materialId(material), isVisible(visible) {}
 };
+

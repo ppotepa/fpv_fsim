@@ -22,6 +22,7 @@ namespace fs = std::filesystem;
 AssetHotReloadSystem::AssetHotReloadSystem(AssetRegistry &registry, AssetPackLoader &loader)
     : registry_(registry), loader_(loader), hasPendingAssets_(false), commitRequested_(false)
 {
+    DEBUG_LOG("Initializing AssetHotReloadSystem");
     // Initialize double-buffering system
     pendingRegistry_ = std::make_unique<AssetRegistry>();
     pendingLoader_ = std::make_unique<AssetPackLoader>(*pendingRegistry_);
@@ -41,6 +42,7 @@ AssetHotReloadSystem::~AssetHotReloadSystem() {}
  */
 void AssetHotReloadSystem::update(World &world, float deltaTime)
 {
+    DEBUG_LOG("Updating AssetHotReloadSystem");
     // Check for changes at regular intervals
     if (checkForChanges())
     {
@@ -67,6 +69,7 @@ void AssetHotReloadSystem::update(World &world, float deltaTime)
  */
 void AssetHotReloadSystem::watchPackage(const std::string &packagePath)
 {
+    DEBUG_LOG("Watching package '" + packagePath + "' for changes");
     WatchedFile watched;
     watched.path = packagePath;
     watched.lastModified = getFileModifiedTime(packagePath);
@@ -75,7 +78,7 @@ void AssetHotReloadSystem::watchPackage(const std::string &packagePath)
     watchedFiles_[packagePath] = watched;
     if (Debug())
     {
-        std::cout << "Watching package for changes: " << packagePath << std::endl;
+        DEBUG_LOG("Watching package for changes: " << packagePath);
     }
 }
 
@@ -90,6 +93,7 @@ void AssetHotReloadSystem::watchPackage(const std::string &packagePath)
  */
 int AssetHotReloadSystem::watchAllPackages(const std::string &packagesDirectory)
 {
+    DEBUG_LOG("Watching all packages in directory '" + packagesDirectory + "'");
     int packageCount = 0;
 
     try
@@ -98,7 +102,7 @@ int AssetHotReloadSystem::watchAllPackages(const std::string &packagesDirectory)
         {
             if (Debug())
             {
-                std::cout << "Packages directory not found: " << packagesDirectory << std::endl;
+                DEBUG_LOG("Packages directory not found: " << packagesDirectory);
             }
             return 0;
         }
@@ -116,7 +120,7 @@ int AssetHotReloadSystem::watchAllPackages(const std::string &packagesDirectory)
                     packageCount++;
                     if (Debug())
                     {
-                        std::cout << "Auto-discovered package: " << packagePath << std::endl;
+                        DEBUG_LOG("Auto-discovered package: " << packagePath);
                     }
                 }
             }
@@ -124,7 +128,7 @@ int AssetHotReloadSystem::watchAllPackages(const std::string &packagesDirectory)
 
         if (Debug())
         {
-            std::cout << "Auto-discovered " << packageCount << " packages for hot-reload monitoring" << std::endl;
+            DEBUG_LOG("Auto-discovered " << packageCount << " packages for hot-reload monitoring");
         }
     }
     catch (const std::filesystem::filesystem_error &e)
@@ -160,7 +164,7 @@ bool AssetHotReloadSystem::checkForChanges()
             hasChanges = true;
             if (Debug())
             {
-                std::cout << "Detected change in: " << watched.path << std::endl;
+                DEBUG_LOG("Detected change in: " << watched.path);
             }
         }
     }
@@ -176,6 +180,7 @@ bool AssetHotReloadSystem::checkForChanges()
  */
 void AssetHotReloadSystem::reloadChangedPackages()
 {
+    DEBUG_LOG("Reloading changed packages");
     // Legacy method - now delegates to deterministic system
     if (checkForChanges())
     {
@@ -195,6 +200,7 @@ void AssetHotReloadSystem::reloadChangedPackages()
  */
 void AssetHotReloadSystem::loadPendingAssets()
 {
+    DEBUG_LOG("Loading pending assets");
     bool hasChanges = false;
 
     for (auto &pair : watchedFiles_)
@@ -205,7 +211,7 @@ void AssetHotReloadSystem::loadPendingAssets()
         {
             if (Debug())
             {
-                std::cout << "Loading pending assets from: " << watched.path << std::endl;
+                DEBUG_LOG("Loading pending assets from: " << watched.path);
             }
 
             // Copy current registry state to pending registry first
@@ -226,7 +232,7 @@ void AssetHotReloadSystem::loadPendingAssets()
             {
                 if (Debug())
                 {
-                    std::cout << "Successfully loaded pending assets from: " << watched.path << std::endl;
+                    DEBUG_LOG("Successfully loaded pending assets from: " << watched.path);
                 }
             }
             else
@@ -253,12 +259,13 @@ void AssetHotReloadSystem::loadPendingAssets()
  */
 void AssetHotReloadSystem::commitPendingAssets()
 {
+    DEBUG_LOG("Committing pending assets");
     if (!hasPendingAssets_)
         return;
 
     if (Debug())
     {
-        std::cout << "Committing asset changes at frame boundary" << std::endl;
+        DEBUG_LOG("Committing asset changes at frame boundary");
     }
 
     // Atomic swap: move pending registry contents to active registry
@@ -277,14 +284,14 @@ void AssetHotReloadSystem::commitPendingAssets()
         {
             if (Debug())
             {
-                std::cout << "Reloaded package: " << watched.path << " into active registry" << std::endl;
+                DEBUG_LOG("Reloaded package: " << watched.path << " into active registry");
             }
         }
     }
 
     if (Debug())
     {
-        std::cout << "Asset hot-reload commit completed" << std::endl;
+        DEBUG_LOG("Asset hot-reload commit completed");
     }
 }
 
@@ -316,3 +323,5 @@ std::chrono::system_clock::time_point AssetHotReloadSystem::getFileModifiedTime(
 
     return std::chrono::system_clock::time_point::min();
 }
+
+

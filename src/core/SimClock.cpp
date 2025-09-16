@@ -1,4 +1,5 @@
 #include "SimClock.h"
+#include "debug.h"
 
 /**
  * @brief Construct a simulation clock with a fixed timestep.
@@ -8,7 +9,10 @@
  *
  * @param fixedTimestep The fixed time step for physics simulation in seconds
  */
-SimClock::SimClock(float fixedTimestep) : fixedTimestep_(fixedTimestep), accumulator_(0.0f) {}
+SimClock::SimClock(float fixedTimestep) : fixedTimestep_(fixedTimestep), accumulator_(0.0f)
+{
+    DEBUG_LOG("Creating SimClock with fixed timestep " + std::to_string(fixedTimestep));
+}
 
 /**
  * @brief Advance the simulation clock by the given delta time.
@@ -20,6 +24,7 @@ SimClock::SimClock(float fixedTimestep) : fixedTimestep_(fixedTimestep), accumul
  */
 void SimClock::tick(float deltaTime)
 {
+    DEBUG_LOG("Ticking SimClock with deltaTime " + std::to_string(deltaTime) + ", accumulator now " + std::to_string(accumulator_ + deltaTime));
     accumulator_ += deltaTime;
 }
 
@@ -36,9 +41,11 @@ bool SimClock::shouldStepPhysics()
 {
     if (accumulator_ >= fixedTimestep_)
     {
+        DEBUG_LOG("Physics step triggered, accumulator " + std::to_string(accumulator_) + " >= " + std::to_string(fixedTimestep_));
         accumulator_ -= fixedTimestep_;
         return true;
     }
+    DEBUG_LOG("No physics step, accumulator " + std::to_string(accumulator_) + " < " + std::to_string(fixedTimestep_));
     return false;
 }
 
@@ -51,5 +58,7 @@ bool SimClock::shouldStepPhysics()
  */
 float SimClock::getFixedTimestep()
 {
+    DEBUG_LOG("Getting fixed timestep: " + std::to_string(fixedTimestep_));
     return fixedTimestep_;
 }
+
