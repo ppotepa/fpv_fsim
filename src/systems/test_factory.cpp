@@ -1,6 +1,7 @@
 #include "../factory/EntityFactory.h"
 
-int main() {
+int main()
+{
     EntityFactory::EntityFactory factory;
     return 0;
 }

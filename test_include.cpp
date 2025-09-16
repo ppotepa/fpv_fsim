@@ -1,5 +1,6 @@
 #include "src/factory/EntityFactory.h"
 
-int main() {
+int main()
+{
     return 0;
 }
