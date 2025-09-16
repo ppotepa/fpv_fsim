@@ -25,20 +25,28 @@ find_package(OpenGL REQUIRED)
 # Include directories
 include_directories(src)
 include_directories(src/components)
+include_directories(src/behaviors)
 
-# Minimal source files for package system testing
+# Minimal package system with OpenGL visualization
 set(SOURCES
-    src/main_simple.cpp
+    src/main.cpp
+    # Core systems needed for package demo
     src/core/EventBus.cpp
     src/core/Entity.cpp
+    src/core/World.cpp
+    src/core/SimClock.cpp
+    # Enhanced Package System
     src/core/IoContainer.cpp
     src/core/PackageBootstrap.cpp
     src/assets/AssetRegistry.cpp
     src/assets/Package.cpp
     src/assets/PackageManager.cpp
     src/assets/PackageParser.cpp
+    # Behavior system
     src/systems/BehaviorSystem.cpp
     src/factory/BehaviorRegistry.cpp
+    src/behaviors/SpinBehavior.cpp
+    # Platform
     src/platform/PugiXmlParser.cpp
 )
 
@@ -47,6 +55,10 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME} OpenGL::GL)
+# Windows specific libraries for Engine
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} user32 gdi32 shell32)
+endif()
 # Add SDL2 when properly configured
 if(TARGET SDL2::SDL2)
     target_link_libraries(${PROJECT_NAME} SDL2::SDL2)

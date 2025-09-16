@@ -1,6 +1,7 @@
 #include "PackageBootstrap.h"
 #include <chrono>
 #include <algorithm>
+#include <iostream>
 
 namespace Core
 {
@@ -26,12 +27,15 @@ namespace Core
 
         try
         {
+            std::cout << "🔧 Creating main IoC container..." << std::endl;
             // Create main IoC container
             mainContainer = std::make_unique<IoContainer>();
 
+            std::cout << "🔧 Setting up core services..." << std::endl;
             // Setup core services
             setupCoreServices();
 
+            std::cout << "🔧 Resolving core systems..." << std::endl;
             // Initialize core systems
             packageManager = mainContainer->resolve<Assets::PackageManager>();
             assetRegistry = mainContainer->resolve<Assets::AssetRegistry>();
@@ -40,25 +44,37 @@ namespace Core
 
             if (!packageManager || !assetRegistry || !behaviorSystem || !behaviorRegistry)
             {
+                std::cout << "❌ Failed to resolve core systems:" << std::endl;
+                std::cout << "   PackageManager: " << (packageManager ? "OK" : "FAILED") << std::endl;
+                std::cout << "   AssetRegistry: " << (assetRegistry ? "OK" : "FAILED") << std::endl;
+                std::cout << "   BehaviorSystem: " << (behaviorSystem ? "OK" : "FAILED") << std::endl;
+                std::cout << "   BehaviorRegistry: " << (behaviorRegistry ? "OK" : "FAILED") << std::endl;
                 return false;
             }
+
+            std::cout << "🔧 Initializing systems..." << std::endl;
 
             // Initialize systems
             assetRegistry->initialize();
             behaviorSystem->initialize();
 
+            std::cout << "🔧 Registering asset loaders..." << std::endl;
             // Register asset loaders
             registerAssetLoaders();
 
+            std::cout << "🔧 Loading initial packages..." << std::endl;
             // Load initial packages
             if (!loadInitialPackages())
             {
+                std::cout << "❌ Failed to load initial packages" << std::endl;
                 return false;
             }
 
+            std::cout << "🔧 Registering package behaviors..." << std::endl;
             // Register behaviors from packages
             registerPackageBehaviors();
 
+            std::cout << "🔧 Setting up package containers..." << std::endl;
             // Setup package-specific containers
             setupPackageContainers();
 
@@ -115,18 +131,16 @@ namespace Core
 
     size_t PackageBootstrap::loadPackages(const std::vector<std::string> &packagePaths)
     {
-        if (!initialized)
-        {
-            return 0;
-        }
-
+        // Remove the initialized check since we're still in the initialization process
         size_t loadedCount = 0;
 
         for (const auto &path : packagePaths)
         {
+            std::cout << "🔍 Loading package: " << path << std::endl;
             auto result = packageManager->loadPackage(path);
             if (result.success)
             {
+                std::cout << "✅ Successfully loaded package: " << result.package.metadata.id << std::endl;
                 // Register assets from the package
                 assetRegistry->registerPackageAssets(result.package);
 
@@ -138,6 +152,13 @@ namespace Core
 
                 loadedCount++;
                 stats.packagesLoaded++;
+            }
+            else
+            {
+                std::cout << "❌ Failed to load package: " << path << std::endl;
+                for (const auto& error : result.errors) {
+                    std::cout << "   - " << error << std::endl;
+                }
             }
         }
 
@@ -282,22 +303,37 @@ namespace Core
 
     bool PackageBootstrap::loadInitialPackages()
     {
+        std::cout << "🔍 Discovering packages in directory: " << currentConfig.packagesDirectory << std::endl;
         // Discover packages in the packages directory
         auto discoveryResult = packageManager->discoverPackages(currentConfig.packagesDirectory);
         if (!discoveryResult.errors.empty())
         {
-            // Log discovery errors
+            std::cout << "❌ Package discovery errors:" << std::endl;
+            for (const auto& error : discoveryResult.errors) {
+                std::cout << "   - " << error << std::endl;
+            }
             return false;
         }
 
+        std::cout << "✅ Found " << discoveryResult.packagePaths.size() << " package paths:" << std::endl;
+        for (const auto& path : discoveryResult.packagePaths) {
+            std::cout << "   - " << path << std::endl;
+        }
+
+        std::cout << "🔍 Validating package dependencies..." << std::endl;
         // Validate dependencies
         if (!validatePackageDependencies(discoveryResult.packagePaths))
         {
+            std::cout << "❌ Package dependency validation failed" << std::endl;
             return false;
         }
 
+        std::cout << "🔍 Loading packages..." << std::endl;
         // Load packages in dependency order
         size_t loadedCount = loadPackages(discoveryResult.packagePaths);
+        std::cout << "✅ Loaded " << loadedCount << " packages" << std::endl;
+
+        std::cout << "🔍 Checking required packages..." << std::endl;
 
         // Check if all required packages were loaded
         for (const auto &requiredPackage : currentConfig.requiredPackages)

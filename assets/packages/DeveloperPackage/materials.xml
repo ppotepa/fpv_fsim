@@ -3,7 +3,7 @@
     <!-- Simple Red Material for testing -->
     <material id="RedCubeMaterial" type="basic">
         <properties>
-            <albedo r="1.0" g="0.0" b="0.0" a="1.0" />
+            <albedo r="0.0" g="1.0" b="0.0" a="1.0" />
             <roughness>0.8</roughness>
             <metallic>0.0</metallic>
         </properties>
