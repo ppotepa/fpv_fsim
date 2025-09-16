@@ -46,6 +46,8 @@ VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND 
     : eventBus(eventBus), worldRef(world), hwnd(windowHandle), materialManager_(materialManager), renderConfig_(renderConfig),
       displayNoPackagesMessage(false), consoleVisible(false), rotationAngle(0.0f)
 {
+    std::cout << "Initializing VisualizationSystem with OpenGL rendering..." << std::endl;
+
     // Initialize OpenGL context
     if (!glContext.Initialize(hwnd))
     {
@@ -59,6 +61,18 @@ VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND 
         std::cerr << "Failed to initialize OpenGL renderer!" << std::endl;
         return;
     }
+
+    // Initialize camera
+    camera = std::make_shared<CameraConfig>();
+    camera->position = {0.0f, 5.0f, 15.0f};  // Position camera higher and further back
+    camera->direction = {0.0f, 0.0f, -1.0f}; // Look forward (toward negative Z)
+    camera->up = {0.0f, 1.0f, 0.0f};         // Y-up orientation
+    camera->fov = 45.0f;
+    camera->nearPlane = 0.1f;
+    camera->farPlane = 1000.0f;
+
+    std::cout << "Camera initialized at position (" << camera->position.x << ", "
+              << camera->position.y << ", " << camera->position.z << ")" << std::endl;
 
     std::cout << "OpenGL-based VisualizationSystem initialized successfully" << std::endl;
 
@@ -89,11 +103,46 @@ void VisualizationSystem::update(World &world, float deltaTime)
     GetClientRect(hwnd, &rect);
     float aspect = static_cast<float>(rect.right - rect.left) / static_cast<float>(rect.bottom - rect.top);
 
-    // Setup 3D camera
-    glRenderer.SetupCamera(45.0f, aspect, 0.1f, 100.0f);
-    glRenderer.SetCameraView(0.0f, 0.0f, 10.0f,  // Eye position
-                            0.0f, 0.0f, 0.0f,    // Look at center
-                            0.0f, 1.0f, 0.0f);   // Up vector
+    // Debug output window size every 600 frames
+    static int frameCount = 0;
+    if (frameCount++ % 600 == 0)
+    {
+        std::cout << "Window dimensions: " << (rect.right - rect.left) << "x"
+                  << (rect.bottom - rect.top) << " (aspect: " << aspect << ")" << std::endl;
+    }
+
+    // Setup 3D camera using our camera object
+    if (camera)
+    {
+        glRenderer.SetupCamera(camera->fov, aspect, camera->nearPlane, camera->farPlane);
+
+        // Calculate look-at point based on camera position and direction
+        float lookAtX = camera->position.x + camera->direction.x;
+        float lookAtY = camera->position.y + camera->direction.y;
+        float lookAtZ = camera->position.z + camera->direction.z;
+
+        glRenderer.SetCameraView(
+            camera->position.x, camera->position.y, camera->position.z, // Eye position
+            lookAtX, lookAtY, lookAtZ,                                  // Look at point
+            camera->up.x, camera->up.y, camera->up.z                    // Up vector
+        );
+
+        // Every 300 frames, output camera debug info
+        if (frameCount % 300 == 0)
+        {
+            std::cout << "Camera position: (" << camera->position.x << ", "
+                      << camera->position.y << ", " << camera->position.z << ")" << std::endl;
+            std::cout << "Looking at: (" << lookAtX << ", " << lookAtY << ", " << lookAtZ << ")" << std::endl;
+        }
+    }
+    else
+    {
+        // Fallback camera setup if camera object isn't initialized
+        glRenderer.SetupCamera(45.0f, aspect, 0.1f, 100.0f);
+        glRenderer.SetCameraView(0.0f, 5.0f, 15.0f, // Eye position
+                                 0.0f, 0.0f, 0.0f,  // Look at center
+                                 0.0f, 1.0f, 0.0f); // Up vector
+    }
 
     // Begin frame
     glRenderer.BeginFrame();
@@ -133,11 +182,70 @@ void VisualizationSystem::OnConsoleVisibilityChanged(const ConsoleVisibilityChan
 
 void VisualizationSystem::RenderEntities()
 {
+    // Debug information - print entity count
+    static int frameCount = 0;
+    if (frameCount++ % 60 == 0)
+    { // Print more frequently for debugging
+        std::cout << "VisualizationSystem: Rendering " << worldRef.getEntities().size() << " entities" << std::endl;
+
+        // Count entities with required rendering components
+        int entitiesWithRenderComponents = 0;
+        for (const auto &entity : worldRef.getEntities())
+        {
+            if (entity->getComponent<TransformC>() && entity->getComponent<RenderableC>())
+            {
+                entitiesWithRenderComponents++;
+            }
+        }
+        std::cout << "Entities with rendering components: " << entitiesWithRenderComponents << std::endl;
+
+        // Output camera position for debugging
+        if (camera)
+        {
+            std::cout << "Camera position: (" << camera->position.x << ", "
+                      << camera->position.y << ", " << camera->position.z << ")" << std::endl;
+            std::cout << "Camera direction: (" << camera->direction.x << ", "
+                      << camera->direction.y << ", " << camera->direction.z << ")" << std::endl;
+        }
+        else
+        {
+            std::cout << "WARNING: Camera not initialized!" << std::endl;
+        }
+    }
+
+    // If no entities to render, show a warning and draw debug shapes
+    if (worldRef.getEntities().empty())
+    {
+        if (frameCount % 60 == 0)
+        { // Print more frequently for debugging
+            std::cout << "WARNING: No entities to render in the scene!" << std::endl;
+        }
+        // Draw a simple debug sphere in the center just to show something
+        DrawSphere(0.0f, 0.0f, 0.0f, 2.0f, 1.0f, 0.0f, 0.0f); // Red sphere
+        DrawSphere(5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f); // Green sphere at X=5
+        DrawSphere(0.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f); // Blue sphere at Y=5
+        return;
+    }
+
     // Render all entities using OpenGL 3D rendering
     for (const auto &entity : worldRef.getEntities())
     {
         auto transform = entity->getComponent<TransformC>();
         auto renderable = entity->getComponent<RenderableC>();
+
+        // Debug output for missing components
+        if (!transform && frameCount % 300 == 0)
+        {
+            std::cout << "Entity " << entity->getId() << " missing TransformC component" << std::endl;
+        }
+        if (!renderable && frameCount % 300 == 0)
+        {
+            std::cout << "Entity " << entity->getId() << " missing RenderableC component" << std::endl;
+        }
+        if (renderable && !renderable->isVisible && frameCount % 300 == 0)
+        {
+            std::cout << "Entity " << entity->getId() << " has invisible RenderableC" << std::endl;
+        }
 
         if (transform && renderable && renderable->isVisible)
         {
@@ -150,8 +258,28 @@ void VisualizationSystem::RenderEntities()
             // Load color dynamically from MaterialManager using XML-defined material properties
             Color color = GetMaterialColor(renderable->materialId);
 
+            // Debug output for rendered entities (occasional)
+            if (frameCount % 600 == 0)
+            {
+                std::cout << "Rendering entity: " << entity->getName()
+                          << " at (" << x << ", " << y << ", " << z << ")"
+                          << " with material: " << renderable->materialId << std::endl;
+            }
+
             // Draw 3D sphere at world position
             DrawSphere(x, y, z, radius, color.r, color.g, color.b);
+        }
+        else if (frameCount % 300 == 0)
+        {
+            // Debug for entities missing components
+            std::cout << "Entity " << entity->getName() << " is missing ";
+            if (!transform)
+                std::cout << "transform ";
+            if (!renderable)
+                std::cout << "renderable ";
+            if (renderable && !renderable->isVisible)
+                std::cout << "(not visible) ";
+            std::cout << std::endl;
         }
     }
 }
@@ -165,12 +293,35 @@ void VisualizationSystem::RenderConsole()
 
 void VisualizationSystem::RenderNoPackagesMessage()
 {
-    // No packages message - simplified for OpenGL transition  
+    // No packages message - simplified for OpenGL transition
     std::cout << "No Asset Packages Found - Generating Default Earth World..." << std::endl;
 }
 
 void VisualizationSystem::DrawSphere(float x, float y, float z, float radius, float r, float g, float b)
 {
+    // Debug output entity positions occasionally to help diagnose camera/entity positioning issues
+    static int debugCounter = 0;
+    if (debugCounter++ % 500 == 0)
+    {
+        // Only show a few entities to avoid spamming the console
+        if (debugCounter < 10000)
+        {
+            std::cout << "Drawing entity at position (" << x << ", " << y << ", " << z
+                      << ") with radius " << radius << std::endl;
+
+            // If we have a camera, calculate distance from camera
+            if (camera)
+            {
+                float dx = camera->position.x - x;
+                float dy = camera->position.y - y;
+                float dz = camera->position.z - z;
+                float distance = std::sqrt(dx * dx + dy * dy + dz * dz);
+                std::cout << "  Distance from camera: " << distance << std::endl;
+            }
+        }
+    }
+
+    // Draw the sphere using the OpenGL renderer
     glRenderer.DrawSphere(x, y, z, radius, r, g, b);
 }
 
@@ -193,10 +344,10 @@ VisualizationSystem::Color VisualizationSystem::GetMaterialColor(const std::stri
         const auto &albedo = material.properties.albedo;
 
         // Return normalized float RGB (0.0-1.0) directly for OpenGL
-        return { albedo.x, albedo.y, albedo.z };
+        return {albedo.x, albedo.y, albedo.z};
     }
 
     // Fallback to default green if material not found
     std::cout << "Warning: Material '" << materialId << "' not found, using default green color" << std::endl;
-    return { 0.0f, 1.0f, 0.0f };
+    return {0.0f, 1.0f, 0.0f};
 }

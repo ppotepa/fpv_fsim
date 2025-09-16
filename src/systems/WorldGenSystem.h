@@ -13,7 +13,8 @@
 #include <memory>
 
 // Forward declaration for EntityFactory
-namespace EntityFactory {
+namespace EntityFactory
+{
     class EntityFactory;
 }
 
@@ -32,6 +33,7 @@ public:
     void GenerateWorldFromXMLScene(const std::string &sceneXml);
     void GenerateWorldFromSceneFile(const std::string &sceneFilePath);
     void LoadScene(const SceneConfig::Scene &scene);
+    bool LoadScene(const std::string &sceneType);
 
 private:
     EventBus &eventBus;
@@ -47,7 +49,6 @@ private:
     Material::MaterialManager &materialManager_; // Reference to shared MaterialManager
 
     // Core scene loading methods
-    void LoadScene(const std::string &sceneType);
     void GenerateLoadingIndicatorWorld();
     void LoadSceneEntities(const SceneConfig::Scene &scene);
     AssetId GenerateVoxelMesh(const SceneConfig::CompoundMesh &meshConfig);

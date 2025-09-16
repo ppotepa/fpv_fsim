@@ -27,13 +27,13 @@ public:
      * @param dt Time elapsed since the last update in seconds.
      */
     virtual void update(World &world, float dt) = 0;
-    
+
     /**
      * @brief Get the name of the system for debugging and identification.
      *
      * @return String name of the system
      */
-    virtual const char* getName() const { return "UnnamedSystem"; }
+    virtual const char *getName() const { return "UnnamedSystem"; }
 };
 
 #endif

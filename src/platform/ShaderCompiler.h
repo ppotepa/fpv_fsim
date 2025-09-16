@@ -20,7 +20,7 @@ public:
      * @param shaderAsset The shader asset to compile
      * @return true if compilation successful, false otherwise
      */
-    bool CompileShader(ShaderAsset& shaderAsset);
+    bool CompileShader(ShaderAsset &shaderAsset);
 
     /**
      * @brief Use a compiled shader program
@@ -31,15 +31,15 @@ public:
     /**
      * @brief Set uniform values for a shader
      */
-    void SetFloat(unsigned int programId, const std::string& name, float value);
-    void SetVec3(unsigned int programId, const std::string& name, float x, float y, float z);
-    void SetMat4(unsigned int programId, const std::string& name, const float* matrix);
+    void SetFloat(unsigned int programId, const std::string &name, float value);
+    void SetVec3(unsigned int programId, const std::string &name, float x, float y, float z);
+    void SetMat4(unsigned int programId, const std::string &name, const float *matrix);
 
 private:
-    unsigned int CompileShaderSource(const std::string& source, unsigned int shaderType);
+    unsigned int CompileShaderSource(const std::string &source, unsigned int shaderType);
     unsigned int LinkProgram(unsigned int vertexShader, unsigned int fragmentShader);
-    bool CheckCompileErrors(unsigned int shader, const std::string& type);
-    int GetUniformLocation(unsigned int programId, const std::string& name);
+    bool CheckCompileErrors(unsigned int shader, const std::string &type);
+    int GetUniformLocation(unsigned int programId, const std::string &name);
 };
 
 #endif

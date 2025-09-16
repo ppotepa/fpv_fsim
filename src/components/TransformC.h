@@ -1,7 +1,7 @@
 #pragma once
 #include "../core/IComponent.h"
-#include "../math/Vector3D.h"
-#include "../math/Quaternion.h"
+#include "../core/Vector3D.h"
+#include "../core/Quaternion.h"
 
 /**
  * @file TransformC.h

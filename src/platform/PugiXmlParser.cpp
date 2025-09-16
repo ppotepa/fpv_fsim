@@ -100,7 +100,7 @@ std::string PugiXmlParser::getRootElementName() const
     // Best-effort: find first element after optional XML declaration
     std::string content = lastLoadedContent_;
     std::smatch m;
-    std::regex re("<\\s*([A-Za-z_][A-Za-z0-9_\-:]*)");
+    std::regex re(R"(<\s*([A-Za-z_][A-Za-z0-9_\-:]*))");
     if (std::regex_search(content, m, re) && m.size() > 1)
     {
         return m.str(1);
@@ -168,7 +168,7 @@ std::vector<std::string> PugiXmlParser::getChildElementNames(const std::string &
         }
     }
 
-    std::regex re("<\\s*([A-Za-z_][A-Za-z0-9_\-:]*)");
+    std::regex re(R"(<\s*([A-Za-z_][A-Za-z0-9_\-:]*))");
     auto begin = std::sregex_iterator(section.begin(), section.end(), re);
     auto end = std::sregex_iterator();
     for (auto it = begin; it != end; ++it)

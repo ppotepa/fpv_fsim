@@ -32,7 +32,7 @@ AssetPackLoader::~AssetPackLoader() {}
 bool AssetPackLoader::loadPackage(const std::string &packagePath)
 {
     std::cout << "Attempting to load package from: " << packagePath << std::endl;
-    
+
     // Read XML file
     std::ifstream file(packagePath);
     if (!file.is_open())
@@ -219,7 +219,7 @@ bool AssetPackLoader::parseConfigurations(const std::string &xmlContent, const s
     // Search for scene_config elements throughout the entire XML document
     // (not just within a single configurations section, as there may be multiple)
     std::cout << "Searching for scene_config elements throughout entire XML..." << std::endl;
-    
+
     size_t pos = 0;
     while ((pos = xmlContent.find("<scene_config", pos)) != std::string::npos)
     {

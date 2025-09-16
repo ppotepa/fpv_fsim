@@ -23,7 +23,7 @@ namespace Physics
         int randomSeed = 12345;           /**< Random seed for procedural generators */
         float restitution = 0.5f;         /**< Collision elasticity (0-1) */
         float friction = 0.3f;            /**< Surface friction coefficient */
-        
+
         PhysicsConfig() = default;
     };
 }

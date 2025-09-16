@@ -25,13 +25,14 @@
 /**
  * @class Engine
  * @brief Core engine class that encapsulates the runtime environment.
- * 
+ *
  * The Engine class provides a high-level interface for initializing,
  * configuring, and running the simulation. It handles system initialization,
  * asset discovery and resolution, and main loop execution while maintaining
  * a clean separation of responsibilities.
  */
-class Engine {
+class Engine
+{
 public:
     /**
      * @brief Construct a new Engine instance
@@ -45,20 +46,20 @@ public:
 
     /**
      * @brief Initialize the engine with configuration files
-     * 
+     *
      * @param physicsConfigPath Path to physics configuration file
      * @param renderConfigPath Path to render configuration file
      * @param inputConfigPath Path to input configuration file
      * @return true if initialization succeeded
      * @return false if initialization failed
      */
-    bool initialize(const std::string& physicsConfigPath = "configs/physics_config.xml",
-                   const std::string& renderConfigPath = "configs/render_config.xml",
-                   const std::string& inputConfigPath = "configs/input_config.xml");
+    bool initialize(const std::string &physicsConfigPath = "configs/physics_config.xml",
+                    const std::string &renderConfigPath = "configs/render_config.xml",
+                    const std::string &inputConfigPath = "configs/input_config.xml");
 
     /**
      * @brief Discover and load assets from development directories
-     * 
+     *
      * @return true if asset discovery succeeded
      * @return false if asset discovery failed
      */
@@ -66,7 +67,7 @@ public:
 
     /**
      * @brief Resolve assets into usable runtime resources
-     * 
+     *
      * @return true if asset resolution succeeded
      * @return false if asset resolution failed
      */
@@ -74,15 +75,24 @@ public:
 
     /**
      * @brief Request and display a compiled scene
-     * 
+     *
      * @return true if scene compilation and display succeeded
      * @return false if scene compilation or display failed
      */
     bool displayCompiledScene();
 
     /**
+     * @brief Load and display a specific scene by ID
+     *
+     * @param sceneId The ID of the scene to load (e.g., "DeveloperScene")
+     * @return true if scene loading and display succeeded
+     * @return false if scene loading or display failed
+     */
+    bool loadAndDisplayScene(const std::string &sceneId);
+
+    /**
      * @brief Run the engine's main loop
-     * 
+     *
      * @return Exit code (0 for success)
      */
     int run();
@@ -111,4 +121,7 @@ private:
     // Systems management
     void initializeSystems();
     void shutdownSystems();
+
+    // Error handling helpers
+    void keepWindowAlive(const std::string &errorMessage);
 };

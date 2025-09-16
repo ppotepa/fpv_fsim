@@ -27,6 +27,7 @@ set(SOURCES
     src/physics/ImpulseCollisionResolver.cpp
     src/vehicles/DroneBuilder.cpp
     src/platform/PugiXmlParser.cpp
+    src/loaders/EntityXmlParser.cpp
     src/generators/VoxelMeshGenerator.cpp
     src/generators/ProceduralTextureGenerator.cpp
     src/systems/PhysicsSystem.cpp

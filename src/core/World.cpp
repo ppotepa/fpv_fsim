@@ -48,24 +48,46 @@ void World::addSystem(std::unique_ptr<ISystem> system)
  */
 void World::update(float dt)
 {
+    // Static variable to control frequency of debug output
+    static int frameCounter = 0;
+    const int debugOutputFrequency = 300; // Show debug every 300 frames (every ~5 seconds at 60 fps)
+    bool showDebug = (++frameCounter % debugOutputFrequency == 0);
+
+    if (showDebug)
+    {
+        std::cout << "---- Frame " << frameCounter << " ----" << std::endl;
+    }
+
     int systemIndex = 0;
     for (auto &system : systems_)
     {
-        try {
-            // Debug output to identify the system being updated
-            std::cout << "Updating system: " << system->getName() << " (index: " << systemIndex << ")" << std::endl;
+        try
+        {
+            // Debug output only periodically to avoid console spam
+            if (showDebug)
+            {
+                std::cout << "Updating system: " << system->getName() << " (index: " << systemIndex << ")" << std::endl;
+            }
+
             system->update(*this, dt);
             systemIndex++;
         }
-        catch (const std::exception& e) {
-            std::cerr << "ERROR updating system " << system->getName() 
+        catch (const std::exception &e)
+        {
+            std::cerr << "ERROR updating system " << system->getName()
                       << " (index: " << systemIndex << "): " << e.what() << std::endl;
             throw; // Re-throw to handle it in the engine
         }
-        catch (...) {
-            std::cerr << "UNKNOWN ERROR updating system " << system->getName() 
+        catch (...)
+        {
+            std::cerr << "UNKNOWN ERROR updating system " << system->getName()
                       << " (index: " << systemIndex << ")" << std::endl;
             throw; // Re-throw to handle it in the engine
         }
+    }
+
+    if (showDebug)
+    {
+        std::cout << "-----------------" << std::endl;
     }
 }

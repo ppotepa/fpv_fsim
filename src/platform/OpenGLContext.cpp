@@ -45,9 +45,9 @@ bool OpenGLContext::Initialize(HWND windowHandle)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
+
     // Set clear color to dark blue
-    glClearColor(20.0f/255.0f, 30.0f/255.0f, 50.0f/255.0f, 1.0f);
+    glClearColor(20.0f / 255.0f, 30.0f / 255.0f, 50.0f / 255.0f, 1.0f);
 
     initialized = true;
     std::cout << "OpenGL context initialized successfully" << std::endl;

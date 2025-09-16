@@ -22,20 +22,20 @@ typedef char GLchar;
 #endif
 
 // Function pointers for OpenGL shader functions
-typedef void (APIENTRY *PFNGLATTACHSHADERPROC)(GLuint program, GLuint shader);
-typedef void (APIENTRY *PFNGLCOMPILESHADERPROC)(GLuint shader);
-typedef GLuint (APIENTRY *PFNGLCREATEPROGRAMPROC)(void);
-typedef GLuint (APIENTRY *PFNGLCREATESHADERPROC)(GLenum type);
-typedef void (APIENTRY *PFNGLDELETESHADERPROC)(GLuint shader);
-typedef void (APIENTRY *PFNGLGETSHADERIVPROC)(GLuint shader, GLenum pname, GLint *params);
-typedef void (APIENTRY *PFNGLGETSHADERINFOLOGPROC)(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-typedef void (APIENTRY *PFNGLLINKPROGRAMPROC)(GLuint program);
-typedef void (APIENTRY *PFNGLSHADERSOURCEPROC)(GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length);
-typedef void (APIENTRY *PFNGLUSEPROGRAMPROC)(GLuint program);
-typedef GLint (APIENTRY *PFNGLGETUNIFORMLOCATIONPROC)(GLuint program, const GLchar *name);
-typedef void (APIENTRY *PFNGLUNIFORM1FPROC)(GLint location, GLfloat v0);
-typedef void (APIENTRY *PFNGLUNIFORM3FPROC)(GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
-typedef void (APIENTRY *PFNGLUNIFORMMATRIX4FVPROC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+typedef void(APIENTRY *PFNGLATTACHSHADERPROC)(GLuint program, GLuint shader);
+typedef void(APIENTRY *PFNGLCOMPILESHADERPROC)(GLuint shader);
+typedef GLuint(APIENTRY *PFNGLCREATEPROGRAMPROC)(void);
+typedef GLuint(APIENTRY *PFNGLCREATESHADERPROC)(GLenum type);
+typedef void(APIENTRY *PFNGLDELETESHADERPROC)(GLuint shader);
+typedef void(APIENTRY *PFNGLGETSHADERIVPROC)(GLuint shader, GLenum pname, GLint *params);
+typedef void(APIENTRY *PFNGLGETSHADERINFOLOGPROC)(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
+typedef void(APIENTRY *PFNGLLINKPROGRAMPROC)(GLuint program);
+typedef void(APIENTRY *PFNGLSHADERSOURCEPROC)(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length);
+typedef void(APIENTRY *PFNGLUSEPROGRAMPROC)(GLuint program);
+typedef GLint(APIENTRY *PFNGLGETUNIFORMLOCATIONPROC)(GLuint program, const GLchar *name);
+typedef void(APIENTRY *PFNGLUNIFORM1FPROC)(GLint location, GLfloat v0);
+typedef void(APIENTRY *PFNGLUNIFORM3FPROC)(GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
+typedef void(APIENTRY *PFNGLUNIFORMMATRIX4FVPROC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 
 // Function pointers
 static PFNGLATTACHSHADERPROC glAttachShader = nullptr;
@@ -86,7 +86,7 @@ ShaderCompiler::~ShaderCompiler()
 {
 }
 
-bool ShaderCompiler::CompileShader(ShaderAsset& shaderAsset)
+bool ShaderCompiler::CompileShader(ShaderAsset &shaderAsset)
 {
     if (!glCreateShader || !glCreateProgram)
     {
@@ -104,7 +104,7 @@ bool ShaderCompiler::CompileShader(ShaderAsset& shaderAsset)
         return false;
     }
 
-    // Compile fragment shader  
+    // Compile fragment shader
     unsigned int fragmentShader = CompileShaderSource(shaderAsset.fragmentSource, GL_FRAGMENT_SHADER);
     if (fragmentShader == 0)
     {
@@ -145,7 +145,7 @@ void ShaderCompiler::UseShader(unsigned int programId)
     }
 }
 
-void ShaderCompiler::SetFloat(unsigned int programId, const std::string& name, float value)
+void ShaderCompiler::SetFloat(unsigned int programId, const std::string &name, float value)
 {
     if (glUniform1f)
     {
@@ -157,7 +157,7 @@ void ShaderCompiler::SetFloat(unsigned int programId, const std::string& name, f
     }
 }
 
-void ShaderCompiler::SetVec3(unsigned int programId, const std::string& name, float x, float y, float z)
+void ShaderCompiler::SetVec3(unsigned int programId, const std::string &name, float x, float y, float z)
 {
     if (glUniform3f)
     {
@@ -169,7 +169,7 @@ void ShaderCompiler::SetVec3(unsigned int programId, const std::string& name, fl
     }
 }
 
-void ShaderCompiler::SetMat4(unsigned int programId, const std::string& name, const float* matrix)
+void ShaderCompiler::SetMat4(unsigned int programId, const std::string &name, const float *matrix)
 {
     if (glUniformMatrix4fv)
     {
@@ -181,12 +181,12 @@ void ShaderCompiler::SetMat4(unsigned int programId, const std::string& name, co
     }
 }
 
-unsigned int ShaderCompiler::CompileShaderSource(const std::string& source, unsigned int shaderType)
+unsigned int ShaderCompiler::CompileShaderSource(const std::string &source, unsigned int shaderType)
 {
     unsigned int shader = glCreateShader(shaderType);
-    const char* src = source.c_str();
-    const char* const* srcPtr = &src;
-    glShaderSource(shader, 1, (const GLchar* const*)srcPtr, nullptr);
+    const char *src = source.c_str();
+    const char *const *srcPtr = &src;
+    glShaderSource(shader, 1, (const GLchar *const *)srcPtr, nullptr);
     glCompileShader(shader);
 
     if (!CheckCompileErrors(shader, shaderType == GL_VERTEX_SHADER ? "VERTEX" : "FRAGMENT"))
@@ -213,11 +213,11 @@ unsigned int ShaderCompiler::LinkProgram(unsigned int vertexShader, unsigned int
     return program;
 }
 
-bool ShaderCompiler::CheckCompileErrors(unsigned int shader, const std::string& type)
+bool ShaderCompiler::CheckCompileErrors(unsigned int shader, const std::string &type)
 {
     int success;
     char infoLog[1024];
-    
+
     if (type != "PROGRAM")
     {
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
@@ -225,8 +225,9 @@ bool ShaderCompiler::CheckCompileErrors(unsigned int shader, const std::string& 
         {
             if (glGetShaderInfoLog)
             {
-                glGetShaderInfoLog(shader, 1024, nullptr, (GLchar*)infoLog);
-                std::cerr << "Shader compilation error of type: " << type << "\n" << infoLog << std::endl;
+                glGetShaderInfoLog(shader, 1024, nullptr, (GLchar *)infoLog);
+                std::cerr << "Shader compilation error of type: " << type << "\n"
+                          << infoLog << std::endl;
             }
             return false;
         }
@@ -236,15 +237,15 @@ bool ShaderCompiler::CheckCompileErrors(unsigned int shader, const std::string& 
         // For program linking, we would need glGetProgramiv and glGetProgramInfoLog
         // For now, assume success since we're using basic functionality
     }
-    
+
     return true;
 }
 
-int ShaderCompiler::GetUniformLocation(unsigned int programId, const std::string& name)
+int ShaderCompiler::GetUniformLocation(unsigned int programId, const std::string &name)
 {
     if (glGetUniformLocation)
     {
-        return glGetUniformLocation(programId, (const GLchar*)name.c_str());
+        return glGetUniformLocation(programId, (const GLchar *)name.c_str());
     }
     return -1;
 }

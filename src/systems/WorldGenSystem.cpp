@@ -68,10 +68,13 @@ void WorldGenSystem::update(World &world, float deltaTime)
     // World generation is event-driven, no continuous updates needed
 }
 
-void WorldGenSystem::LoadScene(const std::string &sceneType)
+bool WorldGenSystem::LoadScene(const std::string &sceneType)
 {
     if (sceneLoaded)
-        return;
+    {
+        std::cout << "Scene already loaded, skipping LoadScene." << std::endl;
+        return true;
+    }
 
     std::cout << "Loading scene of type: " << sceneType << std::endl;
 
@@ -84,7 +87,7 @@ void WorldGenSystem::LoadScene(const std::string &sceneType)
         LoadSceneEntities(*parseResult.scene);
         sceneLoaded = true;
         eventBus.publish(DefaultWorldGeneratedEvent{});
-        return;
+        return true;
     }
 
     std::cout << "XML scene loading failed: " << parseResult.errorMessage << std::endl;
@@ -95,12 +98,19 @@ void WorldGenSystem::LoadScene(const std::string &sceneType)
     {
         std::cout << "Creating loading indicator scene with central globe and orbiting objects..." << std::endl;
         GenerateLoadingIndicatorWorld();
+        sceneLoaded = true;
+        return true;
     }
     else
     {
         std::cout << "Unknown scene type, falling back to default generation..." << std::endl;
         GenerateDefaultSphereWorld();
+        sceneLoaded = true;
+        return true;
     }
+
+    // Should never reach here, but just in case
+    return false;
 }
 
 void WorldGenSystem::GenerateLoadingIndicatorWorld()
@@ -406,7 +416,7 @@ void WorldGenSystem::OnDefaultWorldRequested(const DefaultWorldGeneratedEvent &e
         if (defaultSceneXml != nullptr)
         {
             std::cout << "Loading default scene configuration from package..." << std::endl;
-            
+
             // Parse the scene type from the XML (looking for type="procedural_earth_like")
             size_t typeStart = defaultSceneXml->find("type=\"") + 6;
             size_t typeEnd = defaultSceneXml->find("\"", typeStart);

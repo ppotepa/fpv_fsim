@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity id="simple_drone" type="vehicle" 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../schemas/entity.xsd">
+    
+    <info>
+        <name>Simple Test Drone</name>
+        <description>A simple drone entity for testing XML loading</description>
+        <tags>
+            <tag>test</tag>
+            <tag>drone</tag>
+            <tag>vehicle</tag>
+        </tags>
+        <active>true</active>
+        <lifetime>-1</lifetime>
+    </info>
+    
+    <transform>
+        <position x="0.0" y="10.0" z="0.0"/>
+        <rotation x="0.0" y="0.0" z="0.0" w="1.0"/>
+        <scale x="1.0" y="1.0" z="1.0"/>
+    </transform>
+    
+    <renderable>
+        <mesh>drone_basic</mesh>
+        <material>drone_material</material>
+        <visible>true</visible>
+        <opacity>1.0</opacity>
+        <layer>0</layer>
+    </renderable>
+    
+    <physics>
+        <enabled>true</enabled>
+        <mass>1.5</mass>
+        <friction>0.5</friction>
+        <restitution>0.2</restitution>
+        <collider-size x="0.5" y="0.2" z="0.5"/>
+        <kinematic>false</kinematic>
+        <use-gravity>true</use-gravity>
+        <collider-type>box</collider-type>
+    </physics>
+    
+    <vehicle>
+        <type>drone</type>
+        <max-speed>30.0</max-speed>
+        <acceleration>5.0</acceleration>
+        <maneuverability>8.0</maneuverability>
+        <controller-type>manual</controller-type>
+    </vehicle>
+    
+    <audio>
+        <sound-id>drone_engine</sound-id>
+        <volume>0.8</volume>
+        <loop>true</loop>
+    </audio>
+    
+    <light>
+        <type>point</type>
+        <color r="1.0" g="0.8" b="0.2" a="1.0"/>
+        <intensity>0.8</intensity>
+        <range>5.0</range>
+    </light>
+    
+    <properties>
+        <property name="max_flight_time" type="float">15.0</property>
+        <property name="battery_level" type="float">100.0</property>
+        <property name="model_name" type="string">Explorer Pro</property>
+    </properties>
+</entity>

@@ -8,8 +8,6 @@
 #include "events/WorldGenEvents.h"
 #include "MaterialManager.h"
 #include "config/RenderConfig.h"
-#include "platform/OpenGLContext.h"
-#include "platform/OpenGLRenderer.h"
 #include <windows.h>
 #include <string>
 #include <vector>
@@ -27,31 +25,9 @@ private:
     EventBus &eventBus;
     World &worldRef;
     HWND hwnd;
+    HDC hdc;
     Material::MaterialManager &materialManager_;
     const Render::RenderConfiguration &renderConfig_;
-
-    // OpenGL components
-    OpenGLContext glContext;
-    OpenGLRenderer glRenderer;
-
-    // Camera configuration
-    struct CameraConfig
-    {
-        struct Vector3
-        {
-            float x, y, z;
-            Vector3(float x = 0.0f, float y = 0.0f, float z = 0.0f) : x(x), y(y), z(z) {}
-        };
-
-        Vector3 position;  // Camera position
-        Vector3 direction; // Look direction
-        Vector3 up;        // Up vector
-        float fov;         // Field of view in degrees
-        float nearPlane;   // Near clipping plane
-        float farPlane;    // Far clipping plane
-    };
-
-    std::shared_ptr<CameraConfig> camera;
 
     bool displayNoPackagesMessage;
     bool consoleVisible;
@@ -63,19 +39,16 @@ private:
     void RenderEntities();
     void RenderConsole();
     void RenderNoPackagesMessage();
-    void DrawSphere(float x, float y, float z, float radius, float r, float g, float b);
+    void DrawSphere(float x, float y, float radius, COLORREF color);
+    void DrawText(float x, float y, const std::string &text, COLORREF color);
 
     /**
      * @brief Get RGB color from material properties loaded from XML.
      *
      * @param materialId The material ID to look up
-     * @return Color components as vec3 (r, g, b) in range 0.0-1.0
+     * @return COLORREF color value, or default green if material not found
      */
-    struct Color
-    {
-        float r, g, b;
-    };
-    Color GetMaterialColor(const std::string &materialId);
+    COLORREF GetMaterialColor(const std::string &materialId);
 };
 
 #endif
