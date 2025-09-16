@@ -78,7 +78,10 @@ bool Engine::initialize(const std::string &physicsConfigPath,
     {
         if (!inputSystem->loadConfiguration(inputConfigPath))
         {
-            std::cout << "Warning: Could not load input configuration, using defaults" << std::endl;
+            if (Debug())
+            {
+                std::cout << "Warning: Could not load input configuration, using defaults" << std::endl;
+            }
         }
     }
 
@@ -87,7 +90,10 @@ bool Engine::initialize(const std::string &physicsConfigPath,
 
 bool Engine::discoverAssets()
 {
-    std::cout << "Discovering assets..." << std::endl;
+    if (Debug())
+    {
+        std::cout << "Discovering assets..." << std::endl;
+    }
 
     // Delegate asset discovery to the BootstrapSystem
     BootstrapSystem *bootstrapSys = world.getSystem<BootstrapSystem>();
@@ -107,8 +113,11 @@ bool Engine::discoverAssets()
         int discoveredPackages = hotReloadSys->watchAllPackages();
         if (discoveredPackages == 0)
         {
-            std::cout << "No packages found for hot-reload monitoring. "
-                      << "You can add packages to assets/packages/ directory." << std::endl;
+            if (Debug())
+            {
+                std::cout << "No packages found for hot-reload monitoring. "
+                          << "You can add packages to assets/packages/ directory." << std::endl;
+            }
         }
     }
 
@@ -116,8 +125,11 @@ bool Engine::discoverAssets()
     std::filesystem::path devPackagePath = std::filesystem::path("assets/packages/DeveloperPackage/package.xml");
     if (std::filesystem::exists(devPackagePath))
     {
-        std::cout << "DeveloperPackage found at: " << devPackagePath << std::endl;
-        std::cout << "Make sure this package is properly loaded and its scenes are compiled." << std::endl;
+        if (Debug())
+        {
+            std::cout << "DeveloperPackage found at: " << devPackagePath << std::endl;
+            std::cout << "Make sure this package is properly loaded and its scenes are compiled." << std::endl;
+        }
     }
     else
     {

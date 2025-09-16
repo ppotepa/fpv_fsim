@@ -5,6 +5,7 @@
 #include <chrono>
 #include <sstream>
 #include <iomanip>
+#include "../debug.h"
 
 namespace AssetCompilation
 {
@@ -29,7 +30,10 @@ namespace AssetCompilation
 
         registerAssetType(".xml", AssetType::Scene); // Scene or entity files
 
-        std::cout << "AssetCompilerService initialized with output directory: " << outputDirectory_ << std::endl;
+        if (Debug())
+        {
+            std::cout << "AssetCompilerService initialized with output directory: " << outputDirectory_ << std::endl;
+        }
     }
 
     AssetCompilerService::~AssetCompilerService() = default;
@@ -37,7 +41,7 @@ namespace AssetCompilation
     void AssetCompilerService::setOutputDirectory(const std::string &directory)
     {
         outputDirectory_ = directory;
-        if (debugMode_)
+        if (debugMode_ && Debug())
         {
             std::cout << "Asset output directory set to: " << outputDirectory_ << std::endl;
         }
@@ -46,13 +50,16 @@ namespace AssetCompilation
     void AssetCompilerService::setDebugMode(bool enabled)
     {
         debugMode_ = enabled;
-        std::cout << "Asset compiler debug mode: " << (enabled ? "enabled" : "disabled") << std::endl;
+        if (Debug())
+        {
+            std::cout << "Asset compiler debug mode: " << (enabled ? "enabled" : "disabled") << std::endl;
+        }
     }
 
     void AssetCompilerService::setOptimizationLevel(int level)
     {
         optimizationLevel_ = std::max(0, std::min(2, level));
-        if (debugMode_)
+        if (debugMode_ && Debug())
         {
             std::cout << "Asset compiler optimization level set to: " << optimizationLevel_ << std::endl;
         }
@@ -61,7 +68,7 @@ namespace AssetCompilation
     void AssetCompilerService::registerAssetType(const std::string &extension, AssetType type)
     {
         typeMapping_[extension] = type;
-        if (debugMode_)
+        if (debugMode_ && Debug())
         {
             std::cout << "Registered asset type mapping: " << extension << " -> " << static_cast<int>(type) << std::endl;
         }
@@ -85,7 +92,7 @@ namespace AssetCompilation
 
         try
         {
-            if (debugMode_)
+            if (debugMode_ && Debug())
             {
                 std::cout << "Compiling asset: " << sourceFile << std::endl;
             }
@@ -165,7 +172,7 @@ namespace AssetCompilation
         result.compilationTimeMs = std::chrono::duration<double, std::milli>(endTime - startTime).count();
         statistics_.totalCompilationTime += result.compilationTimeMs;
 
-        if (debugMode_)
+        if (debugMode_ && Debug())
         {
             std::cout << "Compilation " << (result.success ? "succeeded" : "failed")
                       << " in " << result.compilationTimeMs << "ms" << std::endl;
@@ -182,7 +189,7 @@ namespace AssetCompilation
     {
         std::vector<CompilationResult> results;
 
-        if (debugMode_)
+        if (debugMode_ && Debug())
         {
             std::cout << "Compiling asset package: " << packagePath << std::endl;
         }
@@ -227,7 +234,7 @@ namespace AssetCompilation
     {
         std::vector<CompilationResult> results;
 
-        if (debugMode_)
+        if (debugMode_ && Debug())
         {
             std::cout << "Compiling directory: " << sourcePath << (recursive ? " (recursive)" : "") << std::endl;
         }
@@ -414,7 +421,7 @@ namespace AssetCompilation
                 std::filesystem::remove_all(outputDirectory_);
                 std::filesystem::create_directories(outputDirectory_);
 
-                if (debugMode_)
+                if (debugMode_ && Debug())
                 {
                     std::cout << "Asset cache cleared" << std::endl;
                 }
@@ -495,7 +502,7 @@ namespace AssetCompilation
                 result.outputPath = outputPath;
                 result.outputSizeBytes = std::filesystem::file_size(outputPath);
 
-                if (debugMode_)
+                if (debugMode_ && Debug())
                 {
                     std::cout << "Compiled texture: " << sourceFile << " -> " << outputPath << std::endl;
                 }
@@ -524,7 +531,7 @@ namespace AssetCompilation
         result.outputPath = getCompiledPath(sourceFile, ".mesh");
         result.errorMessage = "Mesh compilation not fully implemented yet";
 
-        if (debugMode_)
+        if (debugMode_ && Debug())
         {
             std::cout << "Mesh compilation placeholder for: " << sourceFile << std::endl;
         }
@@ -553,7 +560,7 @@ namespace AssetCompilation
                 result.outputPath = outputPath;
                 result.outputSizeBytes = std::filesystem::file_size(outputPath);
 
-                if (debugMode_)
+                if (debugMode_ && Debug())
                 {
                     std::cout << "Compiled material: " << sourceFile << " -> " << outputPath << std::endl;
                 }
@@ -582,7 +589,7 @@ namespace AssetCompilation
         result.outputPath = getCompiledPath(sourceFile, ".audio");
         result.errorMessage = "Audio compilation not fully implemented yet";
 
-        if (debugMode_)
+        if (debugMode_ && Debug())
         {
             std::cout << "Audio compilation placeholder for: " << sourceFile << std::endl;
         }
@@ -619,7 +626,7 @@ namespace AssetCompilation
                 result.outputPath = outputPath;
                 result.outputSizeBytes = std::filesystem::file_size(outputPath);
 
-                if (debugMode_)
+                if (debugMode_ && Debug())
                 {
                     std::cout << "Compiled scene: " << sourceFile << " -> " << outputPath << std::endl;
                 }

@@ -165,36 +165,34 @@ void WorldGenSystem::GenerateLoadingIndicatorWorld()
             std::cout << "Created OrbitingAircraft1 entity" << std::endl;
         }
     }
-}
 
-// Create second orbiting aircraft
-auto aircraft2Entity = entityFactory_->createFromTemplate("basic_drone", "OrbitingAircraft2", nextEntityId++);
-if (aircraft2Entity)
-{
-    worldRef.addEntity(std::move(aircraft2Entity));
+    // Create second orbiting aircraft
+    auto aircraft2Entity = entityFactory_->createFromTemplate("basic_drone", "OrbitingAircraft2", nextEntityId++);
+    if (aircraft2Entity)
+    {
+        worldRef.addEntity(std::move(aircraft2Entity));
+        if (Debug())
+        {
+            std::cout << "Created OrbitingAircraft2 entity" << std::endl;
+        }
+    }
+
+    // Create cloud entities
+    for (int i = 0; i < 5; i++)
+    {
+        auto cloudEntity = entityFactory_->createFromTemplate("cloud_object", "LoadingCloud" + std::to_string(i), nextEntityId++);
+        if (cloudEntity)
+        {
+            worldRef.addEntity(std::move(cloudEntity));
+        }
+    }
+
+    sceneLoaded = true;
+    eventBus.publish(DefaultWorldGeneratedEvent{});
     if (Debug())
     {
-        std::cout << "Created OrbitingAircraft2 entity" << std::endl;
+        std::cout << "Loading indicator scene created successfully with basic entities." << std::endl;
     }
-}
-}
-
-// Create cloud entities
-for (int i = 0; i < 5; i++)
-{
-    auto cloudEntity = entityFactory_->createFromTemplate("cloud_object", "LoadingCloud" + std::to_string(i), nextEntityId++);
-    if (cloudEntity)
-    {
-        worldRef.addEntity(std::move(cloudEntity));
-    }
-}
-
-sceneLoaded = true;
-eventBus.publish(DefaultWorldGeneratedEvent{});
-if (Debug())
-{
-    std::cout << "Loading indicator scene created successfully with basic entities." << std::endl;
-}
 }
 
 void WorldGenSystem::LoadSceneEntities(const SceneConfig::Scene &sceneData)
@@ -245,43 +243,46 @@ void WorldGenSystem::LoadSceneEntities(const SceneConfig::Scene &sceneData)
                     std::cout << "Created entity: " << entityData.id << " (type: " << entityData.type << ")" << std::endl;
                 }
             }
+            catch (const std::exception &e)
+            {
+                std::cerr << "Error creating entity " << entityData.id << ": " << e.what() << std::endl;
+            }
         }
-        catch (const std::exception &e)
-        {
-            std::cerr << "Error creating entity " << entityData.id << ": " << e.what() << std::endl;
-        }
-    }
-}
-else
-{
-    // Scene parser didn't create entities yet, create based on scene type
-    if (Debug())
-    {
-        std::cout << "No parsed entities found, creating entities based on scene ID..." << std::endl;
-    }
-
-    if (sceneData.id == "loading_indicator")
-    {
-        // Create loading indicator entities programmatically based on XML structure
-        CreateLoadingIndicatorEntitiesFromXmlStructure(nextEntityId, entitiesCreated);
-    }
-    else if (sceneData.id == "default_sphere_world" || sceneData.id == "procedural_earth_like")
-    {
-        CreateDefaultSphereEntitiesFromXmlStructure(nextEntityId, entitiesCreated);
     }
     else
     {
+        // Scene parser didn't create entities yet, create based on scene type
         if (Debug())
         {
-            std::cout << "Unknown scene type for entity creation: " << sceneData.id << std::endl;
+            std::cout << "No parsed entities found, creating entities based on scene ID..." << std::endl;
+        }
+        if (Debug())
+        {
+            std::cout << "No parsed entities found, creating entities based on scene ID..." << std::endl;
+        }
+
+        if (sceneData.id == "loading_indicator")
+        {
+            // Create loading indicator entities programmatically based on XML structure
+            CreateLoadingIndicatorEntitiesFromXmlStructure(nextEntityId, entitiesCreated);
+        }
+        else if (sceneData.id == "default_sphere_world" || sceneData.id == "procedural_earth_like")
+        {
+            CreateDefaultSphereEntitiesFromXmlStructure(nextEntityId, entitiesCreated);
+        }
+        else
+        {
+            if (Debug())
+            {
+                std::cout << "Unknown scene type for entity creation: " << sceneData.id << std::endl;
+            }
         }
     }
-}
 
-if (Debug())
-{
-    std::cout << "Successfully created " << entitiesCreated << " entities from XML scene data" << std::endl;
-}
+    if (Debug())
+    {
+        std::cout << "Successfully created " << entitiesCreated << " entities from XML scene data" << std::endl;
+    }
 }
 
 AssetId WorldGenSystem::GenerateVoxelMesh(const SceneConfig::CompoundMesh &meshConfig)

@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-bool Debug()
+inline bool Debug()
 {
 #ifdef DEBUG
     return true;

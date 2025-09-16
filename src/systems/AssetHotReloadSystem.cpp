@@ -4,6 +4,7 @@
  */
 
 #include "AssetHotReloadSystem.h"
+#include "../debug.h"
 #include <iostream>
 #include <filesystem>
 
@@ -72,7 +73,10 @@ void AssetHotReloadSystem::watchPackage(const std::string &packagePath)
     watched.needsReload = false;
 
     watchedFiles_[packagePath] = watched;
-    std::cout << "Watching package for changes: " << packagePath << std::endl;
+    if (Debug())
+    {
+        std::cout << "Watching package for changes: " << packagePath << std::endl;
+    }
 }
 
 /**
@@ -92,7 +96,10 @@ int AssetHotReloadSystem::watchAllPackages(const std::string &packagesDirectory)
     {
         if (!std::filesystem::exists(packagesDirectory))
         {
-            std::cout << "Packages directory not found: " << packagesDirectory << std::endl;
+            if (Debug())
+            {
+                std::cout << "Packages directory not found: " << packagesDirectory << std::endl;
+            }
             return 0;
         }
 
@@ -107,12 +114,18 @@ int AssetHotReloadSystem::watchAllPackages(const std::string &packagesDirectory)
                 {
                     watchPackage(packagePath);
                     packageCount++;
-                    std::cout << "Auto-discovered package: " << packagePath << std::endl;
+                    if (Debug())
+                    {
+                        std::cout << "Auto-discovered package: " << packagePath << std::endl;
+                    }
                 }
             }
         }
 
-        std::cout << "Auto-discovered " << packageCount << " packages for hot-reload monitoring" << std::endl;
+        if (Debug())
+        {
+            std::cout << "Auto-discovered " << packageCount << " packages for hot-reload monitoring" << std::endl;
+        }
     }
     catch (const std::filesystem::filesystem_error &e)
     {
@@ -145,7 +158,10 @@ bool AssetHotReloadSystem::checkForChanges()
             watched.lastModified = currentTime;
             watched.needsReload = true;
             hasChanges = true;
-            std::cout << "Detected change in: " << watched.path << std::endl;
+            if (Debug())
+            {
+                std::cout << "Detected change in: " << watched.path << std::endl;
+            }
         }
     }
 
@@ -187,7 +203,10 @@ void AssetHotReloadSystem::loadPendingAssets()
 
         if (watched.needsReload)
         {
-            std::cout << "Loading pending assets from: " << watched.path << std::endl;
+            if (Debug())
+            {
+                std::cout << "Loading pending assets from: " << watched.path << std::endl;
+            }
 
             // Copy current registry state to pending registry first
             // This ensures we don't lose non-changed assets
@@ -205,7 +224,10 @@ void AssetHotReloadSystem::loadPendingAssets()
             // Load the changed package into pending registry
             if (pendingLoader_->loadPackage(watched.path))
             {
-                std::cout << "Successfully loaded pending assets from: " << watched.path << std::endl;
+                if (Debug())
+                {
+                    std::cout << "Successfully loaded pending assets from: " << watched.path << std::endl;
+                }
             }
             else
             {
@@ -234,7 +256,10 @@ void AssetHotReloadSystem::commitPendingAssets()
     if (!hasPendingAssets_)
         return;
 
-    std::cout << "Committing asset changes at frame boundary" << std::endl;
+    if (Debug())
+    {
+        std::cout << "Committing asset changes at frame boundary" << std::endl;
+    }
 
     // Atomic swap: move pending registry contents to active registry
     // This is a simplified implementation - in production this would need
@@ -250,11 +275,17 @@ void AssetHotReloadSystem::commitPendingAssets()
         WatchedFile &watched = pair.second;
         if (loader_.loadPackage(watched.path))
         {
-            std::cout << "Reloaded package: " << watched.path << " into active registry" << std::endl;
+            if (Debug())
+            {
+                std::cout << "Reloaded package: " << watched.path << " into active registry" << std::endl;
+            }
         }
     }
 
-    std::cout << "Asset hot-reload commit completed" << std::endl;
+    if (Debug())
+    {
+        std::cout << "Asset hot-reload commit completed" << std::endl;
+    }
 }
 
 /**
