@@ -79,7 +79,7 @@
                     
                     <light>
                         <type>directional</type>
-                        <color r="1.0" g="1.0" b="1.0"/>
+                        <color r="0.1" g="0.0" b="0.0"/>
                         <intensity>1.0</intensity>
                         <direction x="-1.0" y="-1.0" z="-1.0"/>
                     </light>
