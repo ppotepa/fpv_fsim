@@ -1,8 +1,8 @@
 #include "core/Engine.h"           // Essential for creating and managing the engine instance
 #include "core/PackageBootstrap.h" // New package system bootstrap
-#include <iostream>              // For standard input/output operations, particularly error reporting
-#include <exception>             // For handling exceptions gracefully
-#include "debug.h"               // Debug helper function
+#include <iostream>                // For standard input/output operations, particularly error reporting
+#include <exception>               // For handling exceptions gracefully
+#include "debug.h"                 // Debug helper function
 
 /**
  * @brief Main entry point for the FPV Flight Simulator
@@ -28,19 +28,20 @@ int main()
         // Step 1: Package System Initialization
         // ====================================================================
         DEBUG_LOG("Starting package system initialization...");
-        
+
         Core::PackageBootstrap bootstrap;
         Core::PackageBootstrap::BootstrapConfig config;
         config.packagesDirectory = "packages";
         config.requiredPackages = {"core", "developer"};
         config.enableHotReload = true;
         config.preloadAssets = false; // Load assets on-demand for better startup performance
-        
-        if (!bootstrap.initialize(config)) {
+
+        if (!bootstrap.initialize(config))
+        {
             std::cerr << "Failed to initialize package system" << std::endl;
             return 1;
         }
-        
+
         auto stats = bootstrap.getStats();
         DEBUG_LOG("Package system initialized successfully:");
         DEBUG_LOG("  - Packages loaded: " << stats.packagesLoaded);
@@ -49,61 +50,67 @@ int main()
         DEBUG_LOG("  - Initialization time: " << stats.initializationTimeMs << "ms");
 
         // ====================================================================
-        // Step 2: Engine Initialization with Package Support
+        // Step 2: Engine Initialization (Compatible with Existing Interface)
         // ====================================================================
         DEBUG_LOG("Starting FPV Flight Simulator engine initialization...");
         Engine engine; // Create the main engine instance
 
-        // Initialize the engine with package system integration
-        // The engine now receives the IoC container and can access package services
-        if (!engine.initializeWithPackages(
-                bootstrap.getContainer(),
+        // Initialize the engine with existing interface
+        // Package system integration will be added in future Engine updates
+        if (!engine.initialize(
                 "configs/physics_config.xml", // Physics parameters
                 "configs/render_config.xml",  // Rendering settings
                 "configs/input_config.xml"))  // Input mappings
         {
-            std::cerr << "Failed to initialize engine with package support" << std::endl;
+            std::cerr << "Failed to initialize engine" << std::endl;
             return 1;
         }
-        DEBUG_LOG("Engine initialized successfully with package system integration.");
+        DEBUG_LOG("Engine initialized successfully.");
 
         // ====================================================================
-        // Step 3: Package-Based Asset Discovery
+        // Step 3: Asset Discovery (Existing Engine Interface)
         // ====================================================================
-        // Assets are now automatically discovered and registered through the package system
-        // No need for separate asset discovery - packages define their assets declaratively
-        DEBUG_LOG("Package-based assets already registered during package loading.");
-
-        // ====================================================================
-        // Step 4: Load Scene from Developer Package
-        // ====================================================================
-        // Load the red cube scene from the developer package
-        // This demonstrates XML-driven scene loading with behavior attachment
-        DEBUG_LOG("Loading 'RedCubeScene' from developer package...");
-        
-        auto& packageManager = bootstrap.getPackageManager();
-        auto& behaviorSystem = bootstrap.getBehaviorSystem();
-        
-        // Get the developer package
-        const auto* developerPackage = packageManager.getPackage("developer");
-        if (!developerPackage) {
-            std::cerr << "Developer package not found" << std::endl;
+        // For now, use existing engine asset discovery
+        // Package system assets are registered but engine uses existing flow
+        DEBUG_LOG("Initiating asset discovery and compilation pipeline...");
+        if (!engine.discoverAssets())
+        {
+            std::cerr << "Failed to discover assets" << std::endl;
             return 1;
         }
-        
-        // Load the red cube scene
-        if (!engine.loadPackageScene(*developerPackage, "RedCubeScene")) {
-            std::cerr << "Failed to load 'RedCubeScene' from developer package" << std::endl;
+        DEBUG_LOG("Assets discovered and compiled into runtime formats.");
+
+        DEBUG_LOG("Resolving assets into usable runtime resources...");
+        if (!engine.resolveAssets())
+        {
+            std::cerr << "Failed to resolve assets" << std::endl;
             return 1;
         }
-        DEBUG_LOG("'RedCubeScene' loaded successfully with spinning behavior.");
+        DEBUG_LOG("Assets resolved for runtime use.");
 
         // ====================================================================
-        // Step 5: Engine Main Loop with Behavior System
+        // Step 4: Load Scene (Existing Engine Interface)
         // ====================================================================
-        // The engine loop now includes behavior system updates
-        DEBUG_LOG("Entering engine's main loop with behavior system...");
-        return engine.runWithBehaviors(behaviorSystem); // Enhanced game loop
+        // For now, load existing scene until Engine is updated for package support
+        DEBUG_LOG("Loading 'DeveloperScene' (existing implementation)...");
+        if (!engine.loadAndDisplayScene("DeveloperScene"))
+        {
+            std::cerr << "Failed to load and display 'DeveloperScene'" << std::endl;
+            return 1;
+        }
+        DEBUG_LOG("'DeveloperScene' loaded successfully.");
+
+        // ====================================================================
+        // Step 5: Engine Main Loop (Existing Interface)
+        // ====================================================================
+        // The behavior system is ready for integration when Engine is updated
+        DEBUG_LOG("Entering engine's main loop...");
+        DEBUG_LOG("Package system initialized and ready for Engine integration:");
+        DEBUG_LOG("  - Packages loaded: " << stats.packagesLoaded);
+        DEBUG_LOG("  - Behaviors registered: " << stats.behaviorsRegistered);
+        DEBUG_LOG("  - Package system ready for future Engine integration");
+
+        return engine.run(); // Use existing game loop
     }
     catch (const std::exception &e)
     {
@@ -116,5 +123,3 @@ int main()
         return 1;
     }
 }
-
-
