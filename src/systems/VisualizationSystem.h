@@ -8,6 +8,8 @@
 #include "events/WorldGenEvents.h"
 #include "MaterialManager.h"
 #include "config/RenderConfig.h"
+#include "platform/OpenGLContext.h"
+#include "platform/OpenGLRenderer.h"
 #include <windows.h>
 #include <string>
 #include <vector>
@@ -25,9 +27,12 @@ private:
     EventBus &eventBus;
     World &worldRef;
     HWND hwnd;
-    HDC hdc;
     Material::MaterialManager &materialManager_;
     const Render::RenderConfiguration &renderConfig_;
+
+    // OpenGL components
+    OpenGLContext glContext;
+    OpenGLRenderer glRenderer;
 
     bool displayNoPackagesMessage;
     bool consoleVisible;
@@ -39,16 +44,16 @@ private:
     void RenderEntities();
     void RenderConsole();
     void RenderNoPackagesMessage();
-    void DrawSphere(float x, float y, float radius, COLORREF color);
-    void DrawText(float x, float y, const std::string &text, COLORREF color);
+    void DrawSphere(float x, float y, float z, float radius, float r, float g, float b);
 
     /**
      * @brief Get RGB color from material properties loaded from XML.
      *
      * @param materialId The material ID to look up
-     * @return COLORREF color value, or default green if material not found
+     * @return Color components as vec3 (r, g, b) in range 0.0-1.0
      */
-    COLORREF GetMaterialColor(const std::string &materialId);
+    struct Color { float r, g, b; };
+    Color GetMaterialColor(const std::string &materialId);
 };
 
 #endif

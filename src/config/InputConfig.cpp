@@ -146,7 +146,7 @@ namespace Input
             {"ESCAPE", KeyCode::ESCAPE},
             {"TAB", KeyCode::TAB},
             {"BACKSPACE", KeyCode::BACKSPACE},
-            {"DELETE", KeyCode::DELETE},
+            {"DELETE", KeyCode::KEY_DELETE},
             {"INSERT", KeyCode::INSERT},
             {"HOME", KeyCode::HOME},
             {"END", KeyCode::END},

@@ -1,4 +1,4 @@
-#include "../factory/EntityFactory.h"
+#include "factory/EntityFactory.h"
 #include "WorldGenSystem.h"
 #include "MaterialManager.h"
 #include "core/Entity.h"
@@ -108,7 +108,7 @@ void WorldGenSystem::GenerateLoadingIndicatorWorld()
     if (sceneLoaded)
         return;
 
-    std::cout << "Generating loading indicator world with orbiting aircraft and clouds..." << std::endl;
+    std::cout << "Generating simplified loading indicator world..." << std::endl;
 
     static unsigned int nextEntityId = 1;
 
@@ -116,91 +116,39 @@ void WorldGenSystem::GenerateLoadingIndicatorWorld()
     auto globeEntity = entityFactory_->createFromTemplate("earth_sphere", "LoadingGlobe", nextEntityId++);
     if (globeEntity)
     {
-        // Override default settings for loading indicator
-        if (auto transform = globeEntity->getComponent<TransformC>())
-        {
-            transform->position = {0.0f, 0.0f, 0.0f};
-            transform->scale = {2.0f, 2.0f, 2.0f}; // Larger globe
-        }
-
-        // Use green material for the globe (different from default)
-        if (auto renderable = globeEntity->getComponent<RenderableC>())
-        {
-            renderable->materialId = materialManager_.HasMaterial("LandMaterial") ? "LandMaterial" : materialManager_.CreateEarthMaterial(2.0f, 1);
-        }
-
         worldRef.addEntity(std::move(globeEntity));
+        std::cout << "Created LoadingGlobe entity" << std::endl;
     }
 
-    // Create first orbiting aircraft entity using EntityFactory
+    // Create first orbiting aircraft
     auto aircraft1Entity = entityFactory_->createFromTemplate("basic_drone", "OrbitingAircraft1", nextEntityId++);
     if (aircraft1Entity)
     {
-        // Override settings for orbiting aircraft
-        if (auto transform = aircraft1Entity->getComponent<TransformC>())
-        {
-            transform->position = {4.5f, 0.0f, 0.0f}; // Start at radius 4.5
-            transform->scale = {0.5f, 0.5f, 0.5f};    // Aircraft scale
-        }
-
-        if (auto renderable = aircraft1Entity->getComponent<RenderableC>())
-        {
-            renderable->materialId = materialManager_.HasMaterial("AircraftBodyMaterial") ? "AircraftBodyMaterial" : materialManager_.CreateContrailMaterial({0.8f, 0.2f, 0.2f}); // Red
-        }
-
         worldRef.addEntity(std::move(aircraft1Entity));
+        std::cout << "Created OrbitingAircraft1 entity" << std::endl;
     }
 
-    // Create second orbiting aircraft entity using EntityFactory
+    // Create second orbiting aircraft
     auto aircraft2Entity = entityFactory_->createFromTemplate("basic_drone", "OrbitingAircraft2", nextEntityId++);
     if (aircraft2Entity)
     {
-        // Override settings for second aircraft
-        if (auto transform = aircraft2Entity->getComponent<TransformC>())
-        {
-            transform->position = {-5.2f, 1.0f, 0.0f}; // Start at different position
-            transform->scale = {0.4f, 0.4f, 0.4f};
-        }
-
-        if (auto renderable = aircraft2Entity->getComponent<RenderableC>())
-        {
-            renderable->materialId = materialManager_.HasMaterial("AircraftBodyMaterial") ? "AircraftBodyMaterial" : materialManager_.CreateContrailMaterial({0.8f, 0.2f, 0.2f}); // Red
-        }
-
         worldRef.addEntity(std::move(aircraft2Entity));
+        std::cout << "Created OrbitingAircraft2 entity" << std::endl;
     }
 
-    // Create some cloud entities around the globe using EntityFactory
-    for (int i = 0; i < 6; i++)
+    // Create cloud entities
+    for (int i = 0; i < 5; i++)
     {
         auto cloudEntity = entityFactory_->createFromTemplate("cloud_object", "LoadingCloud" + std::to_string(i), nextEntityId++);
         if (cloudEntity)
         {
-            // Distribute clouds in a circle around the globe
-            float angle = (i / 6.0f) * 2.0f * 3.14159f;
-            float radius = 6.0f + (i * 0.3f); // Varying distances
-            float x = radius * cos(angle);
-            float z = radius * sin(angle);
-            float y = -1.0f + (i * 0.3f); // Varying heights
-
-            if (auto transform = cloudEntity->getComponent<TransformC>())
-            {
-                transform->position = {x, y, z};
-                transform->scale = {0.6f, 0.6f, 0.6f};
-            }
-
-            if (auto renderable = cloudEntity->getComponent<RenderableC>())
-            {
-                renderable->materialId = materialManager_.HasMaterial("CloudMaterial") ? "CloudMaterial" : materialManager_.CreateCloudMaterial(0.8f, 0.4f);
-            }
-
             worldRef.addEntity(std::move(cloudEntity));
         }
     }
 
     sceneLoaded = true;
     eventBus.publish(DefaultWorldGeneratedEvent{});
-    std::cout << "Loading indicator scene created successfully with 1 globe, 2 aircraft, and 6 clouds." << std::endl;
+    std::cout << "Loading indicator scene created successfully with basic entities." << std::endl;
 }
 
 void WorldGenSystem::LoadSceneEntities(const SceneConfig::Scene &sceneData)
@@ -261,7 +209,7 @@ void WorldGenSystem::LoadSceneEntities(const SceneConfig::Scene &sceneData)
             // Create loading indicator entities programmatically based on XML structure
             CreateLoadingIndicatorEntitiesFromXmlStructure(nextEntityId, entitiesCreated);
         }
-        else if (sceneData.id == "default_sphere_world")
+        else if (sceneData.id == "default_sphere_world" || sceneData.id == "procedural_earth_like")
         {
             CreateDefaultSphereEntitiesFromXmlStructure(nextEntityId, entitiesCreated);
         }
@@ -451,10 +399,34 @@ void WorldGenSystem::OnDefaultWorldRequested(const DefaultWorldGeneratedEvent &e
     if (sceneLoaded)
         return;
 
-    // Try to load the default scene configuration
+    // Try to load the default scene configuration from the asset registry
     try
     {
-        LoadScene("loading_indicator");
+        const std::string *defaultSceneXml = assetRegistry_.getDefaultScene();
+        if (defaultSceneXml != nullptr)
+        {
+            std::cout << "Loading default scene configuration from package..." << std::endl;
+            
+            // Parse the scene type from the XML (looking for type="procedural_earth_like")
+            size_t typeStart = defaultSceneXml->find("type=\"") + 6;
+            size_t typeEnd = defaultSceneXml->find("\"", typeStart);
+            if (typeStart != std::string::npos + 6 && typeEnd != std::string::npos)
+            {
+                std::string sceneType = defaultSceneXml->substr(typeStart, typeEnd - typeStart);
+                std::cout << "Loading scene of type: " << sceneType << std::endl;
+                LoadScene(sceneType);
+            }
+            else
+            {
+                std::cout << "Unable to parse scene type from default scene XML, falling back to hardcoded generation..." << std::endl;
+                GenerateDefaultSphereWorld();
+            }
+        }
+        else
+        {
+            std::cout << "No default scene registered, falling back to hardcoded generation..." << std::endl;
+            GenerateDefaultSphereWorld();
+        }
     }
     catch (const std::exception &e)
     {

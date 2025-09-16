@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(OpenGL REQUIRED)
+# SDL2 will be linked via vcpkg target
 
 # Include directories
 include_directories(src)
@@ -19,6 +20,7 @@ set(SOURCES
     src/core/SimClock.cpp
     src/core/AssetRegistry.cpp
     src/core/AssetPackLoader.cpp
+    src/core/Engine.cpp
     src/assets/AssetCompilerService.cpp
     src/physics/ExponentialAirDensityModel.cpp
     src/physics/PerlinWindModel.cpp
@@ -32,6 +34,7 @@ set(SOURCES
     src/systems/VehicleControlSystem.cpp
     src/systems/BootstrapSystem.cpp
     src/systems/WorldGenSystem.cpp
+    src/factory/EntityFactory.cpp
     src/systems/MaterialManager.cpp
     src/config/SceneConfigParser.cpp
     src/config/PhysicsConfigParser.cpp
@@ -44,6 +47,9 @@ set(SOURCES
     src/systems/VisualizationSystem.cpp
     src/systems/AssetHotReloadSystem.cpp
     src/platform/WinInputDevice.cpp
+    src/platform/OpenGLContext.cpp
+    src/platform/OpenGLRenderer.cpp
+    src/platform/ShaderCompiler.cpp
     # Temporarily comment out procedural generators until they're fixed
     # src/procedural/ProceduralMeshGenerators.cpp
     src/assets/ShaderAsset.cpp
@@ -53,5 +59,9 @@ set(SOURCES
 # Executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-# Link libraries (uncomment when SDL2 and OpenGL are available)
+# Link libraries
 target_link_libraries(${PROJECT_NAME} OpenGL::GL)
+# Add SDL2 when properly configured
+if(TARGET SDL2::SDL2)
+    target_link_libraries(${PROJECT_NAME} SDL2::SDL2)
+endif()

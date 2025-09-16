@@ -31,6 +31,8 @@ AssetPackLoader::~AssetPackLoader() {}
  */
 bool AssetPackLoader::loadPackage(const std::string &packagePath)
 {
+    std::cout << "Attempting to load package from: " << packagePath << std::endl;
+    
     // Read XML file
     std::ifstream file(packagePath);
     if (!file.is_open())
@@ -49,13 +51,17 @@ bool AssetPackLoader::loadPackage(const std::string &packagePath)
     size_t secondLastSlash = packagePath.find_last_of("/\\", lastSlash - 1);
     std::string packageName = packagePath.substr(secondLastSlash + 1, lastSlash - secondLastSlash - 1);
 
+    std::cout << "Extracted package name: " << packageName << std::endl;
+
     // Parse assets and configurations
+    std::cout << "Parsing assets..." << std::endl;
     if (!parseAssets(xmlContent, packageName))
     {
         std::cerr << "Failed to parse assets from package: " << packageName << std::endl;
         return false;
     }
 
+    std::cout << "Parsing configurations..." << std::endl;
     if (!parseConfigurations(xmlContent, packageName))
     {
         std::cerr << "Failed to parse configurations from package: " << packageName << std::endl;
@@ -210,31 +216,25 @@ bool AssetPackLoader::parseAssets(const std::string &xmlContent, const std::stri
  */
 bool AssetPackLoader::parseConfigurations(const std::string &xmlContent, const std::string &packageName)
 {
-    // Find the configurations section
-    size_t configStart = xmlContent.find("<configurations>");
-    size_t configEnd = xmlContent.find("</configurations>");
-
-    if (configStart == std::string::npos || configEnd == std::string::npos)
-    {
-        return true; // No configurations section is OK
-    }
-
-    std::string configSection = xmlContent.substr(configStart, configEnd - configStart);
-
-    // Parse scene configurations
+    // Search for scene_config elements throughout the entire XML document
+    // (not just within a single configurations section, as there may be multiple)
+    std::cout << "Searching for scene_config elements throughout entire XML..." << std::endl;
+    
     size_t pos = 0;
-    while ((pos = configSection.find("<scene_config", pos)) != std::string::npos)
+    while ((pos = xmlContent.find("<scene_config", pos)) != std::string::npos)
     {
-        size_t endPos = configSection.find("</scene_config>", pos);
+        size_t endPos = xmlContent.find("</scene_config>", pos);
         if (endPos == std::string::npos)
             break;
 
-        std::string sceneXml = configSection.substr(pos, endPos - pos + 15);
+        std::string sceneXml = xmlContent.substr(pos, endPos - pos + 15);
+        std::cout << "Found scene_config: " << sceneXml.substr(0, 100) << "..." << std::endl;
 
         // Extract scene ID
         size_t idStart = sceneXml.find("id=\"") + 4;
         size_t idEnd = sceneXml.find("\"", idStart);
         std::string sceneId = sceneXml.substr(idStart, idEnd - idStart);
+        std::cout << "Extracted scene ID: " << sceneId << std::endl;
 
         // For DefaultSphereWorldScene, register it as the default scene
         if (sceneId == "DefaultSphereWorldScene")

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scene xmlns="http://fpvfsim.com/scene-schema" 
+       id="procedural_earth_like" 
+       name="Procedural Earth-like World" 
+       version="1.0">
+    
+    <metadata>
+        <title>Procedural Earth-like World</title>
+        <description>Procedural Earth-like sphere world with atmospheric layers and dynamic elements from DeveloperPackage</description>
+        <author>FPV FSim System</author>
+        <tags>
+            <tag>default</tag>
+            <tag>earth</tag>
+            <tag>atmosphere</tag>
+        </tags>
+    </metadata>
+    
+    <environment>
+        <atmosphere enabled="true" material_id="AtmosphereMaterial" mesh_id="atmosphere_sphere"/>
+        <background color_r="0.0" color_g="0.1" color_b="0.3"/>
+    </environment>
+    
+    <terrain>
+        <heightmap enabled="false"/>
+        <procedural enabled="true" type="sphere">
+            <sphere_radius>6371000.0</sphere_radius>
+            <material_id>EarthSurfaceMaterial</material_id>
+        </procedural>
+    </terrain>
+    
+    <entities>
+        <!-- Earth sphere -->
+        <entity id="earth_sphere" type="terrain">
+            <transform>
+                <position x="0.0" y="0.0" z="0.0"/>
+                <rotation x="0.0" y="0.0" z="0.0" w="1.0"/>
+                <scale x="1.0" y="1.0" z="1.0"/>
+            </transform>
+            <mesh id="earth_sphere_mesh" material_id="EarthSurfaceMaterial"/>
+            <physics enabled="true" type="static"/>
+        </entity>
+        
+        <!-- Atmospheric layers -->
+        <entity id="atmosphere_layer_1" type="static_mesh">
+            <transform>
+                <position x="0.0" y="0.0" z="0.0"/>
+                <rotation x="0.0" y="0.0" z="0.0" w="1.0"/>
+                <scale x="1.1" y="1.1" z="1.1"/>
+            </transform>
+            <mesh id="atmosphere_mesh" material_id="AtmosphereMaterial"/>
+            <physics enabled="false"/>
+        </entity>
+        
+        <!-- Cloud layer -->
+        <entity id="cloud_layer" type="static_mesh">
+            <transform>
+                <position x="0.0" y="0.0" z="0.0"/>
+                <rotation x="0.0" y="0.0" z="0.0" w="1.0"/>
+                <scale x="1.05" y="1.05" z="1.05"/>
+            </transform>
+            <mesh id="cloud_mesh" material_id="CloudMaterial"/>
+            <physics enabled="false"/>
+        </entity>
+    </entities>
+    
+    <cameras>
+        <camera id="default_camera" type="free">
+            <transform>
+                <position x="0.0" y="0.0" z="10000000.0"/>
+                <rotation x="0.0" y="0.0" z="0.0" w="1.0"/>
+            </transform>
+            <projection type="perspective">
+                <fov>45.0</fov>
+                <near_plane>1000.0</near_plane>
+                <far_plane>100000000.0</far_plane>
+            </projection>
+        </camera>
+    </cameras>
+    
+    <lights>
+        <light id="sun_light" type="directional">
+            <transform>
+                <position x="100000000.0" y="0.0" z="0.0"/>
+                <rotation x="0.0" y="0.707" z="0.0" w="0.707"/>
+            </transform>
+            <properties>
+                <intensity>1.0</intensity>
+                <color r="1.0" g="0.95" b="0.8"/>
+            </properties>
+        </light>
+    </lights>
+</scene>

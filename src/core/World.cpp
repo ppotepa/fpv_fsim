@@ -1,4 +1,5 @@
 #include "World.h"
+#include <iostream>
 
 /**
  * @brief Construct a world with an event bus for communication.
@@ -47,8 +48,24 @@ void World::addSystem(std::unique_ptr<ISystem> system)
  */
 void World::update(float dt)
 {
+    int systemIndex = 0;
     for (auto &system : systems_)
     {
-        system->update(*this, dt);
+        try {
+            // Debug output to identify the system being updated
+            std::cout << "Updating system: " << system->getName() << " (index: " << systemIndex << ")" << std::endl;
+            system->update(*this, dt);
+            systemIndex++;
+        }
+        catch (const std::exception& e) {
+            std::cerr << "ERROR updating system " << system->getName() 
+                      << " (index: " << systemIndex << "): " << e.what() << std::endl;
+            throw; // Re-throw to handle it in the engine
+        }
+        catch (...) {
+            std::cerr << "UNKNOWN ERROR updating system " << system->getName() 
+                      << " (index: " << systemIndex << ")" << std::endl;
+            throw; // Re-throw to handle it in the engine
+        }
     }
 }

@@ -80,7 +80,7 @@ namespace Input
         ESCAPE = 27,
         TAB = 9,
         BACKSPACE = 8,
-        DELETE = 46,
+        KEY_DELETE = 46,
         INSERT = 45,
         HOME = 36,
         END = 35,

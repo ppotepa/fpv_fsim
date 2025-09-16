@@ -46,7 +46,21 @@ VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND 
     : eventBus(eventBus), worldRef(world), hwnd(windowHandle), materialManager_(materialManager), renderConfig_(renderConfig),
       displayNoPackagesMessage(false), consoleVisible(false), rotationAngle(0.0f)
 {
-    hdc = GetDC(hwnd);
+    // Initialize OpenGL context
+    if (!glContext.Initialize(hwnd))
+    {
+        std::cerr << "Failed to initialize OpenGL context!" << std::endl;
+        return;
+    }
+
+    // Initialize OpenGL renderer
+    if (!glRenderer.Initialize())
+    {
+        std::cerr << "Failed to initialize OpenGL renderer!" << std::endl;
+        return;
+    }
+
+    std::cout << "OpenGL-based VisualizationSystem initialized successfully" << std::endl;
 
     // Subscribe to events
     eventBus.subscribe(EventType::NoPackagesFound, [this](const IEvent &event)
@@ -62,41 +76,46 @@ VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND 
 
 VisualizationSystem::~VisualizationSystem()
 {
-    ReleaseDC(hwnd, hdc);
+    // OpenGL context cleanup is handled by OpenGLContext destructor
 }
 
 void VisualizationSystem::update(World &world, float deltaTime)
 {
-    // Get a fresh device context for this frame
-    HDC frameDC = GetDC(hwnd);
+    // Ensure OpenGL context is current
+    glContext.MakeCurrent();
 
-    // Clear the screen
+    // Get window dimensions for camera setup
     RECT rect;
     GetClientRect(hwnd, &rect);
-    FillRect(frameDC, &rect, (HBRUSH)GetStockObject(BLACK_BRUSH));
+    float aspect = static_cast<float>(rect.right - rect.left) / static_cast<float>(rect.bottom - rect.top);
 
-    // Temporarily switch to frame DC for rendering
-    HDC oldDC = hdc;
-    hdc = frameDC;
+    // Setup 3D camera
+    glRenderer.SetupCamera(45.0f, aspect, 0.1f, 100.0f);
+    glRenderer.SetCameraView(0.0f, 0.0f, 10.0f,  // Eye position
+                            0.0f, 0.0f, 0.0f,    // Look at center
+                            0.0f, 1.0f, 0.0f);   // Up vector
+
+    // Begin frame
+    glRenderer.BeginFrame();
 
     // Render entities
     RenderEntities();
 
-    // Render console if visible
+    // Render console if visible (simplified for OpenGL transition)
     if (consoleVisible)
     {
         RenderConsole();
     }
 
-    // Render no packages message if needed
+    // Render no packages message if needed (simplified for OpenGL transition)
     if (displayNoPackagesMessage)
     {
         RenderNoPackagesMessage();
     }
 
-    // Restore original DC and release frame DC
-    hdc = oldDC;
-    ReleaseDC(hwnd, frameDC);
+    // End frame and swap buffers
+    glRenderer.EndFrame();
+    glContext.SwapBuffers();
 
     // Update rotation for animation
     rotationAngle += deltaTime * 0.1f;
@@ -114,7 +133,7 @@ void VisualizationSystem::OnConsoleVisibilityChanged(const ConsoleVisibilityChan
 
 void VisualizationSystem::RenderEntities()
 {
-    // Efficient rendering using precompiled material color lookup
+    // Render all entities using OpenGL 3D rendering
     for (const auto &entity : worldRef.getEntities())
     {
         auto transform = entity->getComponent<TransformC>();
@@ -122,78 +141,37 @@ void VisualizationSystem::RenderEntities()
 
         if (transform && renderable && renderable->isVisible)
         {
-            // Use configurable 2D projection parameters instead of hardcoded values
-            float screenX = renderConfig_.getScreenCenterX() + transform->position.x * renderConfig_.getWorldToScreenScale();
-            float screenY = renderConfig_.getScreenCenterY() + transform->position.z * renderConfig_.getWorldToScreenScale();
-            float radius = renderConfig_.getDefaultEntityRadius();
+            // Use 3D world coordinates directly
+            float x = transform->position.x;
+            float y = transform->position.y;
+            float z = transform->position.z;
+            float radius = 1.0f; // Default radius
 
             // Load color dynamically from MaterialManager using XML-defined material properties
-            COLORREF color = GetMaterialColor(renderable->materialId);
+            Color color = GetMaterialColor(renderable->materialId);
 
-            DrawSphere(screenX, screenY, radius, color);
+            // Draw 3D sphere at world position
+            DrawSphere(x, y, z, radius, color.r, color.g, color.b);
         }
     }
 }
 
 void VisualizationSystem::RenderConsole()
 {
-    // Console rendering using configurable parameters from render_config.xml
-    RECT rect;
-    GetClientRect(hwnd, &rect);
-
-    // Draw semi-transparent background using configured colors
-    const auto &bgColor = renderConfig_.getConsoleBackgroundColor();
-    HBRUSH bgBrush = CreateSolidBrush(RGB(bgColor.r, bgColor.g, bgColor.b));
-    RECT consoleRect = {0, rect.bottom - renderConfig_.getConsoleHeight(), rect.right, rect.bottom};
-    FillRect(hdc, &consoleRect, bgBrush);
-    DeleteObject(bgBrush);
-
-    // Draw border using configured color and width
-    const auto &borderColor = renderConfig_.getConsoleBorderColor();
-    HPEN pen = CreatePen(PS_SOLID, renderConfig_.getConsoleBorderWidth(), RGB(borderColor.r, borderColor.g, borderColor.b));
-    SelectObject(hdc, pen);
-    Rectangle(hdc, consoleRect.left, consoleRect.top, consoleRect.right, consoleRect.bottom);
-    DeleteObject(pen);
-
-    // Draw console text using configured colors and margins
-    const auto &titleColor = renderConfig_.getConsoleTitleColor();
-    const auto &textColor = renderConfig_.getConsoleTextColor();
-    int marginX = renderConfig_.getConsoleMarginX();
-    int marginY = renderConfig_.getConsoleMarginY();
-
-    DrawText(marginX, rect.bottom - renderConfig_.getConsoleHeight() + marginY,
-             "Developer Console", RGB(titleColor.r, titleColor.g, titleColor.b));
-    DrawText(marginX, rect.bottom - renderConfig_.getConsoleHeight() + marginY * 2,
-             "Press ~ to toggle", RGB(textColor.r, textColor.g, textColor.b));
+    // Console rendering - simplified for OpenGL transition
+    // For now, just indicate console is visible
+    std::cout << "Console visible (OpenGL text rendering to be implemented)" << std::endl;
 }
 
 void VisualizationSystem::RenderNoPackagesMessage()
 {
-    RECT rect;
-    GetClientRect(hwnd, &rect);
-
-    DrawText(rect.right / 2 - 100, rect.bottom / 2 - 50, "No Asset Packages Found", RGB(255, 0, 0));
-    DrawText(rect.right / 2 - 150, rect.bottom / 2 - 20, "Generating Default Earth World...", RGB(255, 255, 0));
+    // No packages message - simplified for OpenGL transition  
+    std::cout << "No Asset Packages Found - Generating Default Earth World..." << std::endl;
 }
 
-void VisualizationSystem::DrawSphere(float x, float y, float radius, COLORREF color)
+void VisualizationSystem::DrawSphere(float x, float y, float z, float radius, float r, float g, float b)
 {
-    HPEN pen = CreatePen(PS_SOLID, 2, color);
-    HBRUSH brush = CreateSolidBrush(color);
-    SelectObject(hdc, pen);
-    SelectObject(hdc, brush);
-
-    Ellipse(hdc, x - radius, y - radius, x + radius, y + radius);
-
-    DeleteObject(pen);
-    DeleteObject(brush);
-}
-
-void VisualizationSystem::DrawText(float x, float y, const std::string &text, COLORREF color)
-{
-    SetTextColor(hdc, color);
-    SetBkMode(hdc, TRANSPARENT);
-    TextOutA(hdc, x, y, text.c_str(), text.length());
+    glRenderer.DrawSphere(x, y, z, radius, r, g, b);
 }
 
 /**
@@ -203,9 +181,9 @@ void VisualizationSystem::DrawText(float x, float y, const std::string &text, CO
  * using hardcoded lookup table. This allows colors to be configured via XML.
  *
  * @param materialId The material ID to look up
- * @return COLORREF color value, or default green if material not found
+ * @return Color struct with r, g, b components in range 0.0-1.0
  */
-COLORREF VisualizationSystem::GetMaterialColor(const std::string &materialId)
+VisualizationSystem::Color VisualizationSystem::GetMaterialColor(const std::string &materialId)
 {
     // Try to get material from MaterialManager
     auto materialOpt = materialManager_.GetMaterial(materialId);
@@ -214,23 +192,11 @@ COLORREF VisualizationSystem::GetMaterialColor(const std::string &materialId)
         const auto &material = materialOpt.value();
         const auto &albedo = material.properties.albedo;
 
-        // Convert from normalized float RGB (0.0-1.0) to Windows COLORREF (0-255)
-        int r = static_cast<int>(albedo.x * 255.0f);
-        int g = static_cast<int>(albedo.y * 255.0f);
-        int b = static_cast<int>(albedo.z * 255.0f);
-
-        // Clamp values to valid range (using Windows macros since std::min/max conflict)
-        r = (r < 0) ? 0 : (r > 255) ? 255
-                                    : r;
-        g = (g < 0) ? 0 : (g > 255) ? 255
-                                    : g;
-        b = (b < 0) ? 0 : (b > 255) ? 255
-                                    : b;
-
-        return RGB(r, g, b);
+        // Return normalized float RGB (0.0-1.0) directly for OpenGL
+        return { albedo.x, albedo.y, albedo.z };
     }
 
     // Fallback to default green if material not found
     std::cout << "Warning: Material '" << materialId << "' not found, using default green color" << std::endl;
-    return RGB(0, 255, 0);
+    return { 0.0f, 1.0f, 0.0f };
 }

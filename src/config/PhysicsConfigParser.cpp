@@ -18,14 +18,14 @@
  * @param configPath Path to the physics configuration XML file
  * @return PhysicsConfig structure with loaded parameters, or defaults if loading fails
  */
-PhysicsConfig PhysicsConfigParser::loadFromFile(const std::string &configPath)
+Physics::PhysicsConfig PhysicsConfigParser::loadFromFile(const std::string &configPath)
 {
     std::ifstream file(configPath);
     if (!file.is_open())
     {
         std::cerr << "Warning: Could not open physics config file: " << configPath << std::endl;
         std::cerr << "Using default physics parameters." << std::endl;
-        return PhysicsConfig{}; // Return default configuration
+        return Physics::PhysicsConfig{}; // Return default configuration
     }
 
     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -43,7 +43,7 @@ PhysicsConfig PhysicsConfigParser::loadFromFile(const std::string &configPath)
  * @param xmlContent XML content as string
  * @return PhysicsConfig structure with loaded parameters, or defaults if parsing fails
  */
-PhysicsConfig PhysicsConfigParser::loadFromString(const std::string &xmlContent)
+Physics::PhysicsConfig PhysicsConfigParser::loadFromString(const std::string &xmlContent)
 {
     return parseConfig(xmlContent);
 }
@@ -57,9 +57,9 @@ PhysicsConfig PhysicsConfigParser::loadFromString(const std::string &xmlContent)
  * @param xmlContent The XML content to parse
  * @return PhysicsConfig structure with parsed parameters
  */
-PhysicsConfig PhysicsConfigParser::parseConfig(const std::string &xmlContent)
+Physics::PhysicsConfig PhysicsConfigParser::parseConfig(const std::string &xmlContent)
 {
-    PhysicsConfig config;
+    Physics::PhysicsConfig config;
 
     try
     {
@@ -91,7 +91,7 @@ PhysicsConfig PhysicsConfigParser::parseConfig(const std::string &xmlContent)
     {
         std::cerr << "Error parsing physics configuration: " << e.what() << std::endl;
         std::cerr << "Using default physics parameters." << std::endl;
-        config = PhysicsConfig{}; // Reset to defaults
+        config = Physics::PhysicsConfig{}; // Reset to defaults
     }
 
     return config;

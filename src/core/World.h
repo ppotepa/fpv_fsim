@@ -6,6 +6,9 @@
 #include "Entity.h"
 #include <vector>
 #include <memory>
+#include <unordered_map>
+#include <functional>
+#include <string>
 
 /**
  * @brief The central world class that manages all entities and systems in the ECS.
@@ -99,10 +102,48 @@ public:
      */
     const std::vector<std::unique_ptr<Entity>> &getEntities() const { return entities_; }
 
+    /**
+     * @brief Store a shared resource with the given name
+     * 
+     * This allows storing and retrieving shared resources that need to be accessed
+     * by multiple systems but aren't systems themselves, such as asset managers.
+     * 
+     * @tparam T The type of the resource
+     * @param name Unique name for the resource
+     * @param resource The resource to store
+     */
+    template <typename T>
+    void storeSharedResource(const std::string& name, std::unique_ptr<T> resource) {
+        // Create a custom deleter that will properly delete the derived type
+        auto deleter = [](void* ptr) {
+            T* typedPtr = static_cast<T*>(ptr);
+            delete typedPtr;
+        };
+        
+        // Store the resource with its custom deleter
+        void* rawPtr = resource.release();
+        sharedResources_[name] = std::unique_ptr<void, std::function<void(void*)>>(rawPtr, deleter);
+    }
+    
+    /**
+     * @brief Get a shared resource by name
+     * 
+     * @param name The name of the resource to retrieve
+     * @return void* Pointer to the resource, or nullptr if not found
+     */
+    void* getSharedResource(const std::string& name) {
+        auto it = sharedResources_.find(name);
+        if (it != sharedResources_.end()) {
+            return it->second.get();
+        }
+        return nullptr;
+    }
+
 private:
     EventBus &eventBus_;                            /**< Reference to the event bus for communication */
     std::vector<std::unique_ptr<Entity>> entities_; /**< All entities in the world */
     std::vector<std::unique_ptr<ISystem>> systems_; /**< All systems in the world, updated in order */
+    std::unordered_map<std::string, std::unique_ptr<void, std::function<void(void*)>>> sharedResources_; /**< Named shared resources */
 };
 
 #endif

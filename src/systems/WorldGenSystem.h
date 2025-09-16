@@ -13,8 +13,7 @@
 #include <memory>
 
 // Forward declaration for EntityFactory
-namespace EntityFactory
-{
+namespace EntityFactory {
     class EntityFactory;
 }
 
