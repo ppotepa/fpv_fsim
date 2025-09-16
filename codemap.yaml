@@ -1,0 +1,857 @@
+project_map:
+  name: "fpv_fsim"
+  description: "First Person View Flight Simulator - C++ ECS-based simulation with OpenGL rendering, physics, and asset management"
+  
+  root_files:
+    - path: "CMakeLists.txt"
+      description: "Main CMake build configuration file for the C++ project, setting up compilation and linking with SDL2, OpenGL, pugixml, and Windows-specific libraries for the flight simulation with asset management system."
+      
+    - path: "README.md"
+      description: "Project README file containing build instructions, toolchain setup, and project overview."
+      
+    - path: "toolchain-arm64.cmake"
+      description: "CMake toolchain file for cross-compilation to ARM64 Linux platform."
+      
+    - path: ".gitignore"
+      description: "Git ignore file for excluding build artifacts, temporary files, and IDE-specific files from version control."
+      
+    - path: "build.ps1"
+      description: "PowerShell script to build the project in debug or release mode based on -r flag."
+      
+    - path: "build.sh"
+      description: "Bash script to build the project in debug or release mode based on -r flag."
+      
+    - path: "run.ps1"
+      description: "PowerShell script to run the built executable in debug or release mode based on -r flag."
+      
+    - path: "run.sh"
+      description: "Bash script to run the built executable in debug or release mode based on -r flag."
+
+  folders:
+    docs:
+      description: "Documentation folder containing project structure, toolchain, IoC, assets, and implementation guides"
+      files:
+        - path: "docs/1.0-structure.md"
+          description: "Documentation outlining the proposed C++ project structure for vehicle simulation."
+          
+        - path: "docs/1.1-toolchain.md"
+          description: "Documentation on the minimal toolchain for C++ development and cross-compilation."
+          
+        - path: "docs/1.2-IoC.md"
+          description: "Documentation on Inversion of Control implementation in the project."
+          
+        - path: "docs/2.0-assets-and-packages.md"
+          description: "Documentation on assets, packages, and configuration for the C++ vehicle simulation."
+          
+        - path: "docs/2.1-assets-logic.md"
+          description: "Documentation on asset and package logic, including principles, structure, and integration."
+          
+        - path: "docs/prompt.md"
+          description: "Prompt file for generating the project code map."
+
+    src:
+      description: "Main source code directory containing core engine, systems, components, and utilities"
+      files:
+        - path: "src/main.cpp"
+          description: "Main application entry point. Initializes World, SimClock, EventBus, asset systems (AssetRegistry, AssetPackLoader), and registers all Systems including BootstrapSystem, WorldGenSystem, ConsoleSystem, VisualizationSystem, and AssetHotReloadSystem."
+          classes: []
+          functions:
+            - name: "main"
+              return_type: "int"
+              parameters: []
+              description: "Main entry point for the flight simulator application"
+              
+            - name: "CreateSimulationWindow"
+              return_type: "HWND"
+              parameters: []
+              description: "Creates the main Windows window for visualization"
+              
+            - name: "WindowProc"
+              return_type: "LRESULT"
+              parameters:
+                - name: "hwnd"
+                  type: "HWND"
+                  description: "Window handle"
+                - name: "uMsg"
+                  type: "UINT"
+                  description: "Message identifier"
+                - name: "wParam"
+                  type: "WPARAM"
+                  description: "Additional message information"
+                - name: "lParam"
+                  type: "LPARAM"
+                  description: "Additional message information"
+              description: "Windows message procedure for handling window events"
+
+      subfolders:
+        core:
+          description: "Core ECS framework including World, Entity, EventBus, and asset management"
+          files:
+            - path: "src/core/IEvent.h"
+              description: "Base interface for all system events (e.g., BatteryLowEvent, CollisionEvent)."
+              classes:
+                - name: "IEvent"
+                  description: "Pure virtual base interface for all events in the system"
+                  methods: []
+                  
+            - path: "src/core/EventBus.h"
+              description: "Event-based communication system using Observer pattern for inter-system communication."
+              classes:
+                - name: "EventBus"
+                  description: "Central event dispatcher for loose coupling between systems"
+                  methods:
+                    - name: "subscribe"
+                      return_type: "void"
+                      parameters:
+                        - name: "eventType"
+                          type: "EventType"
+                          description: "Type of event to subscribe to"
+                        - name: "callback"
+                          type: "std::function<void(const IEvent&)>"
+                          description: "Callback function to invoke when event occurs"
+                      description: "Subscribe to specific event types with callback"
+                      
+                    - name: "publish"
+                      return_type: "void"
+                      parameters:
+                        - name: "event"
+                          type: "const IEvent&"
+                          description: "Event to publish to subscribers"
+                      description: "Publish event to all registered subscribers"
+                      
+            - path: "src/core/EventBus.cpp"
+              description: "Implementation of EventBus class for event handling and publishing."
+              
+            - path: "src/core/IComponent.h"
+              description: "Base interface for ECS components. Pure data structures without behavior."
+              classes:
+                - name: "IComponent"
+                  description: "Pure virtual base class for all ECS components"
+                  methods: []
+                  
+            - path: "src/core/Entity.h"
+              description: "Represents a simulation object (drone, building, etc.) in the ECS architecture."
+              classes:
+                - name: "Entity"
+                  description: "Container for components that define entity properties and behavior"
+                  constructors:
+                    - parameters:
+                        - name: "id"
+                          type: "uint32_t"
+                          description: "Unique entity identifier"
+                        - name: "name"
+                          type: "const std::string&"
+                          description: "Entity name for debugging and identification"
+                      description: "Create entity with unique ID and name"
+                  methods:
+                    - name: "getId"
+                      return_type: "uint32_t"
+                      parameters: []
+                      description: "Get the unique entity ID"
+                      
+                    - name: "getName"
+                      return_type: "const std::string&"
+                      parameters: []
+                      description: "Get the entity name"
+                      
+                    - name: "addComponent"
+                      return_type: "void"
+                      parameters:
+                        - name: "component"
+                          type: "std::unique_ptr<T>"
+                          description: "Component to add to entity"
+                      description: "Add a component to this entity"
+                      template_parameters: ["T"]
+                      
+                    - name: "getComponent"
+                      return_type: "T*"
+                      parameters: []
+                      description: "Get component of specified type"
+                      template_parameters: ["T"]
+                      
+                    - name: "setPhysicsComponent"
+                      return_type: "void"
+                      parameters:
+                        - name: "hasPhysics"
+                          type: "bool"
+                          description: "Whether entity has physics"
+                        - name: "mass"
+                          type: "float"
+                          description: "Entity mass in kg"
+                        - name: "friction"
+                          type: "float"
+                          description: "Friction coefficient"
+                        - name: "restitution"
+                          type: "float"
+                          description: "Restitution (bounciness) coefficient"
+                      description: "Set or update physics component properties"
+                      
+            - path: "src/core/Entity.cpp"
+              description: "Implementation of Entity class with component management and physics configuration."
+              
+            - path: "src/core/ISystem.h"
+              description: "Base interface for ECS systems that process entities with specific components."
+              classes:
+                - name: "ISystem"
+                  description: "Pure virtual base class for all ECS systems"
+                  methods:
+                    - name: "update"
+                      return_type: "void"
+                      parameters:
+                        - name: "world"
+                          type: "World&"
+                          description: "Reference to the world containing entities"
+                        - name: "deltaTime"
+                          type: "float"
+                          description: "Time elapsed since last update"
+                      description: "Update system logic each frame"
+                      virtual: true
+                      
+            - path: "src/core/World.h"
+              description: "Central world class that manages all entities and systems in the ECS architecture."
+              classes:
+                - name: "World"
+                  description: "Container and coordinator for all entities, components, and systems"
+                  constructors:
+                    - parameters:
+                        - name: "eventBus"
+                          type: "EventBus&"
+                          description: "Reference to event bus for inter-system communication"
+                      description: "Create world with event bus for communication"
+                  methods:
+                    - name: "addEntity"
+                      return_type: "void"
+                      parameters:
+                        - name: "entity"
+                          type: "std::unique_ptr<Entity>"
+                          description: "Entity to add to world"
+                      description: "Add entity to world, taking ownership"
+                      
+                    - name: "addSystem"
+                      return_type: "void"
+                      parameters:
+                        - name: "system"
+                          type: "std::unique_ptr<ISystem>"
+                          description: "System to add to world"
+                      description: "Add system to world, taking ownership"
+                      
+                    - name: "update"
+                      return_type: "void"
+                      parameters:
+                        - name: "dt"
+                          type: "float"
+                          description: "Delta time for this frame"
+                      description: "Update all systems with given delta time"
+                      
+                    - name: "getEntities"
+                      return_type: "const std::vector<std::unique_ptr<Entity>>&"
+                      parameters: []
+                      description: "Get read-only access to all entities"
+                      
+                    - name: "getSystem"
+                      return_type: "T*"
+                      parameters: []
+                      description: "Get system of specified type"
+                      template_parameters: ["T"]
+                      
+            - path: "src/core/World.cpp"
+              description: "Implementation of World class for entity and system management."
+              
+            - path: "src/core/SimClock.h"
+              description: "Simulation clock for managing fixed timesteps and frame timing."
+              
+            - path: "src/core/SimClock.cpp"
+              description: "Implementation of SimClock for precise timing control."
+              
+            - path: "src/core/AssetRegistry.h"
+              description: "Registry for tracking and managing loaded assets."
+              
+            - path: "src/core/AssetRegistry.cpp"
+              description: "Implementation of AssetRegistry for asset lifecycle management."
+              
+            - path: "src/core/AssetIds.h"
+              description: "Asset identifier definitions and constants."
+              
+            - path: "src/core/AssetPackLoader.h"
+              description: "Loader for asset packages and bundle management."
+              
+            - path: "src/core/AssetPackLoader.cpp"
+              description: "Implementation of AssetPackLoader for loading and managing asset packages."
+
+        components:
+          description: "ECS components defining entity properties and data"
+          files:
+            - path: "src/components/PhysicsC.h"
+              description: "Physics component defining physical properties for entities in the simulation."
+              classes:
+                - name: "PhysicsC"
+                  description: "Component that defines physical properties for an entity"
+                  inherits: ["IComponent"]
+                  constructors:
+                    - parameters:
+                        - name: "m"
+                          type: "float"
+                          description: "Mass of entity in kg"
+                          default: "1.0f"
+                        - name: "f"
+                          type: "float"
+                          description: "Friction coefficient"
+                          default: "0.5f"
+                        - name: "r"
+                          type: "float"
+                          description: "Restitution coefficient"
+                          default: "0.3f"
+                        - name: "cType"
+                          type: "std::string"
+                          description: "Type of collider"
+                          default: "\"sphere\""
+                        - name: "k"
+                          type: "bool"
+                          description: "Whether entity is kinematic"
+                          default: "false"
+                        - name: "g"
+                          type: "bool"
+                          description: "Whether entity uses gravity"
+                          default: "true"
+                      description: "Create physics component with specified properties"
+                  members:
+                    - name: "mass"
+                      type: "float"
+                      description: "The mass of the entity in kg"
+                    - name: "friction"
+                      type: "float"
+                      description: "Friction coefficient (0.0 = no friction, 1.0 = high friction)"
+                    - name: "restitution"
+                      type: "float"
+                      description: "Restitution (bounciness) coefficient (0.0 = no bounce, 1.0 = perfect bounce)"
+                    - name: "colliderType"
+                      type: "std::string"
+                      description: "Type of collider (e.g., 'box', 'sphere', 'capsule')"
+                    - name: "isKinematic"
+                      type: "bool"
+                      description: "Whether the entity is kinematic (moved by script, not by physics)"
+                    - name: "useGravity"
+                      type: "bool"
+                      description: "Whether the entity is affected by gravity"
+
+        events:
+          description: "Event definitions for inter-system communication"
+          files:
+            - path: "src/events/WorldGenEvents.h"
+              description: "Events related to world generation and scene loading."
+              
+            - path: "src/events/InputEvents.h"
+              description: "Events for input handling and user interaction."
+
+        systems:
+          description: "ECS systems that process entities and implement game logic"
+          files:
+            - path: "src/systems/PhysicsSystem.h"
+              description: "Physics simulation system for entities with physics components."
+              classes:
+                - name: "PhysicsSystem"
+                  description: "System responsible for physics simulation and collision detection"
+                  inherits: ["ISystem"]
+                  constructors:
+                    - parameters:
+                        - name: "eventBus"
+                          type: "EventBus&"
+                          description: "Event bus for communication"
+                        - name: "airDensityModel"
+                          type: "IAirDensityModel&"
+                          description: "Air density model for atmospheric simulation"
+                        - name: "windModel"
+                          type: "IWindModel&"
+                          description: "Wind model for environmental effects"
+                        - name: "collisionResolver"
+                          type: "ICollisionResolver&"
+                          description: "Collision resolution implementation"
+                      description: "Create physics system with required models"
+                  methods:
+                    - name: "update"
+                      return_type: "void"
+                      parameters:
+                        - name: "world"
+                          type: "World&"
+                          description: "World containing entities to update"
+                        - name: "dt"
+                          type: "float"
+                          description: "Delta time for physics integration"
+                      description: "Update physics for all entities with physics components"
+                      override: true
+                      
+            - path: "src/systems/PhysicsSystem.cpp"
+              description: "Implementation of PhysicsSystem for entity physics simulation."
+              
+            - path: "src/systems/InputSystem.h"
+              description: "Enhanced input system with configurable key bindings and input handling."
+              classes:
+                - name: "InputSystem"
+                  description: "System for managing user input through configurable key bindings"
+                  inherits: ["ISystem"]
+                  constructors:
+                    - parameters:
+                        - name: "eventBus"
+                          type: "EventBus&"
+                          description: "Event bus for publishing input events"
+                        - name: "inputDevice"
+                          type: "IInputDevice&"
+                          description: "Platform-specific input device implementation"
+                      description: "Create input system with event bus and input device"
+                  methods:
+                    - name: "loadConfiguration"
+                      return_type: "bool"
+                      parameters:
+                        - name: "configPath"
+                          type: "const std::string&"
+                          description: "Path to input configuration XML file"
+                      description: "Load input configuration from file"
+                      
+                    - name: "setInputContext"
+                      return_type: "void"
+                      parameters:
+                        - name: "contextName"
+                          type: "const std::string&"
+                          description: "Name of the context to activate"
+                      description: "Set the current input context"
+                      
+                    - name: "update"
+                      return_type: "void"
+                      parameters:
+                        - name: "world"
+                          type: "World&"
+                          description: "World reference"
+                        - name: "dt"
+                          type: "float"
+                          description: "Delta time"
+                      description: "Process input and publish events"
+                      override: true
+                      
+            - path: "src/systems/InputSystem.cpp"
+              description: "Implementation of InputSystem for keyboard, mouse, and gamepad input processing."
+              
+            - path: "src/systems/VehicleControlSystem.h"
+              description: "System for controlling vehicle behavior and movement."
+              
+            - path: "src/systems/VehicleControlSystem.cpp"
+              description: "Implementation of VehicleControlSystem for vehicle physics and control."
+              
+            - path: "src/systems/BootstrapSystem.h"
+              description: "Bootstrap system responsible for initializing the world and loading initial assets."
+              classes:
+                - name: "BootstrapSystem"
+                  description: "One-shot system that runs at application startup to initialize world and load assets"
+                  inherits: ["ISystem"]
+                  constructors:
+                    - parameters:
+                        - name: "eventBus"
+                          type: "EventBus&"
+                          description: "Event bus for communication"
+                        - name: "world"
+                          type: "World&"
+                          description: "World reference"
+                        - name: "assetRegistry"
+                          type: "AssetRegistry&"
+                          description: "Asset registry for tracking assets"
+                        - name: "assetLoader"
+                          type: "AssetPackLoader&"
+                          description: "Asset pack loader for loading packages"
+                      description: "Create bootstrap system with required dependencies"
+                  methods:
+                    - name: "update"
+                      return_type: "void"
+                      parameters:
+                        - name: "world"
+                          type: "World&"
+                          description: "World reference"
+                        - name: "deltaTime"
+                          type: "float"
+                          description: "Delta time"
+                      description: "Update bootstrap logic"
+                      override: true
+                      
+                    - name: "Init"
+                      return_type: "void"
+                      parameters: []
+                      description: "Initialize the bootstrap system and load initial packages"
+                      
+            - path: "src/systems/BootstrapSystem.cpp"
+              description: "Implementation of BootstrapSystem for world initialization and asset loading."
+              
+            - path: "src/systems/WorldGenSystem.h"
+              description: "System responsible for procedural world generation and scene loading."
+              
+            - path: "src/systems/WorldGenSystem.cpp"
+              description: "Implementation of WorldGenSystem for generating and loading game worlds."
+              classes:
+                - name: "WorldGenSystem"
+                  description: "System for loading scenes and generating procedural content"
+                  inherits: ["ISystem"]
+                  constructors:
+                    - parameters:
+                        - name: "eventBus"
+                          type: "EventBus&"
+                          description: "Event bus for communication"
+                        - name: "world"
+                          type: "World&"
+                          description: "World reference"
+                        - name: "assetRegistry"
+                          type: "AssetRegistry&"
+                          description: "Asset registry"
+                        - name: "materialManager"
+                          type: "Material::MaterialManager&"
+                          description: "Material manager for rendering"
+                      description: "Create world generation system with dependencies"
+                  methods:
+                    - name: "update"
+                      return_type: "void"
+                      parameters:
+                        - name: "world"
+                          type: "World&"
+                          description: "World reference"
+                        - name: "deltaTime"
+                          type: "float"
+                          description: "Delta time"
+                      description: "Update world generation logic"
+                      override: true
+                      
+                    - name: "LoadScene"
+                      return_type: "bool"
+                      parameters:
+                        - name: "sceneType"
+                          type: "const std::string&"
+                          description: "Type of scene to load"
+                      description: "Load a specific scene type"
+                      
+            - path: "src/systems/ConsoleSystem.h"
+              description: "System for developer console and debug command processing."
+              
+            - path: "src/systems/ConsoleSystem.cpp"
+              description: "Implementation of ConsoleSystem for debug console functionality."
+              
+            - path: "src/systems/VisualizationSystem.h"
+              description: "Rendering system using OpenGL for 3D visualization and UI rendering."
+              classes:
+                - name: "VisualizationSystem"
+                  description: "System responsible for rendering 3D scene, HUD, and debug overlays"
+                  inherits: ["ISystem"]
+                  constructors:
+                    - parameters:
+                        - name: "eventBus"
+                          type: "EventBus&"
+                          description: "Event bus for communication"
+                        - name: "world"
+                          type: "World&"
+                          description: "World reference"
+                        - name: "hwnd"
+                          type: "HWND"
+                          description: "Windows handle for rendering context"
+                        - name: "materialManager"
+                          type: "Material::MaterialManager&"
+                          description: "Material manager for rendering"
+                        - name: "renderConfig"
+                          type: "const Render::RenderConfiguration&"
+                          description: "Rendering configuration"
+                      description: "Create visualization system with OpenGL rendering"
+                  methods:
+                    - name: "update"
+                      return_type: "void"
+                      parameters:
+                        - name: "world"
+                          type: "World&"
+                          description: "World containing entities to render"
+                        - name: "deltaTime"
+                          type: "float"
+                          description: "Delta time for animations"
+                      description: "Main rendering loop for entities and UI"
+                      override: true
+                      
+                    - name: "RenderEntities"
+                      return_type: "void"
+                      parameters: []
+                      description: "Render all entities with TransformC and RenderableC components"
+                      
+                    - name: "DrawCube"
+                      return_type: "void"
+                      parameters:
+                        - name: "x"
+                          type: "float"
+                          description: "X position"
+                        - name: "y"
+                          type: "float"
+                          description: "Y position"
+                        - name: "z"
+                          type: "float"
+                          description: "Z position"
+                        - name: "size"
+                          type: "float"
+                          description: "Cube size"
+                        - name: "r"
+                          type: "float"
+                          description: "Red color component"
+                        - name: "g"
+                          type: "float"
+                          description: "Green color component"
+                        - name: "b"
+                          type: "float"
+                          description: "Blue color component"
+                      description: "Draw a 3D cube at specified position with color"
+                      
+            - path: "src/systems/VisualizationSystem.cpp"
+              description: "Implementation of VisualizationSystem with OpenGL rendering and debug camera integration."
+              
+            - path: "src/systems/DebugCamera.h"
+              description: "Debug camera controller for free-look navigation with WASD movement and smooth transitions."
+              classes:
+                - name: "DebugCamera"
+                  description: "Debug camera controller with smooth transitions and free-look navigation"
+                  constructors:
+                    - parameters:
+                        - name: "eventBus"
+                          type: "EventBus&"
+                          description: "Event bus for listening to debug mode events"
+                      description: "Create debug camera with event bus subscription"
+                  nested_classes:
+                    - name: "Vector3"
+                      description: "3D vector for position and direction calculations"
+                      members:
+                        - name: "x"
+                          type: "float"
+                          description: "X component"
+                        - name: "y"
+                          type: "float"
+                          description: "Y component"
+                        - name: "z"
+                          type: "float"
+                          description: "Z component"
+                      constructors:
+                        - parameters:
+                            - name: "x"
+                              type: "float"
+                              description: "X component"
+                              default: "0.0f"
+                            - name: "y"
+                              type: "float"
+                              description: "Y component"
+                              default: "0.0f"
+                            - name: "z"
+                              type: "float"
+                              description: "Z component"
+                              default: "0.0f"
+                          description: "Create vector with components"
+                      methods:
+                        - name: "operator+"
+                          return_type: "Vector3"
+                          parameters:
+                            - name: "other"
+                              type: "const Vector3&"
+                              description: "Vector to add"
+                          description: "Vector addition"
+                        - name: "operator*"
+                          return_type: "Vector3"
+                          parameters:
+                            - name: "scalar"
+                              type: "float"
+                              description: "Scalar multiplier"
+                          description: "Scalar multiplication"
+                        - name: "length"
+                          return_type: "float"
+                          parameters: []
+                          description: "Get vector magnitude"
+                    - name: "CameraState"
+                      description: "Camera state containing position, direction, and up vectors"
+                      members:
+                        - name: "position"
+                          type: "Vector3"
+                          description: "Camera position"
+                        - name: "direction"
+                          type: "Vector3"
+                          description: "Camera look direction"
+                        - name: "up"
+                          type: "Vector3"
+                          description: "Camera up vector"
+                  methods:
+                    - name: "update"
+                      return_type: "void"
+                      parameters:
+                        - name: "deltaTime"
+                          type: "float"
+                          description: "Time elapsed since last frame"
+                      description: "Update camera based on input and transitions"
+                      
+                    - name: "getCameraState"
+                      return_type: "const CameraState&"
+                      parameters: []
+                      description: "Get current camera state"
+                      
+                    - name: "setCameraState"
+                      return_type: "void"
+                      parameters:
+                        - name: "position"
+                          type: "const Vector3&"
+                          description: "Camera position"
+                        - name: "direction"
+                          type: "const Vector3&"
+                          description: "Camera direction"
+                        - name: "up"
+                          type: "const Vector3&"
+                          description: "Camera up vector"
+                      description: "Set camera state for synchronization with normal camera"
+                      
+            - path: "src/systems/DebugCamera.cpp"
+              description: "Implementation of DebugCamera with smooth transitions, WASD movement, and mouse look controls."
+              
+            - path: "src/systems/AssetHotReloadSystem.h"
+              description: "System for hot-reloading assets during development."
+              
+            - path: "src/systems/AssetHotReloadSystem.cpp"
+              description: "Implementation of AssetHotReloadSystem for live asset updates."
+
+        physics:
+          description: "Physics simulation models and collision detection"
+          files:
+            - path: "src/physics/IAirDensityModel.h"
+              description: "Interface for atmospheric air density models."
+              
+            - path: "src/physics/ExponentialAirDensityModel.h"
+              description: "Exponential air density model for realistic atmospheric simulation."
+              
+            - path: "src/physics/ExponentialAirDensityModel.cpp"
+              description: "Implementation of exponential air density model."
+              
+            - path: "src/physics/IWindModel.h"
+              description: "Interface for wind simulation models."
+              
+            - path: "src/physics/PerlinWindModel.h"
+              description: "Perlin noise-based wind model for realistic wind simulation."
+              
+            - path: "src/physics/PerlinWindModel.cpp"
+              description: "Implementation of Perlin wind model."
+              
+            - path: "src/physics/ICollisionResolver.h"
+              description: "Interface for collision resolution algorithms."
+              
+            - path: "src/physics/ImpulseCollisionResolver.h"
+              description: "Impulse-based collision resolution implementation."
+              
+            - path: "src/physics/ImpulseCollisionResolver.cpp"
+              description: "Implementation of impulse collision resolver."
+
+        vehicles:
+          description: "Vehicle builders and configuration for different vehicle types"
+          files:
+            - path: "src/vehicles/IVehicleBuilder.h"
+              description: "Interface for vehicle builders using builder pattern."
+              
+            - path: "src/vehicles/DroneBuilder.h"
+              description: "Builder for creating drone entities with specific configurations."
+              
+            - path: "src/vehicles/DroneBuilder.cpp"
+              description: "Implementation of DroneBuilder for drone entity creation."
+
+        utils:
+          description: "Utility classes for XML parsing and common operations"
+          files:
+            - path: "src/utils/IXmlParser.h"
+              description: "Interface for XML parsing implementations."
+              
+            - path: "src/utils/PugiXmlParser.h"
+              description: "XML parser implementation using pugixml library."
+              
+            - path: "src/utils/PugiXmlParser.cpp"
+              description: "Implementation of PugiXmlParser for XML file processing."
+
+        platform:
+          description: "Platform-specific implementations for input and system interfaces"
+          files:
+            - path: "src/platform/IInputDevice.h"
+              description: "Interface for platform-specific input device implementations."
+              
+            - path: "src/platform/WinInputDevice.h"
+              description: "Windows-specific input device implementation."
+              
+            - path: "src/platform/WinInputDevice.cpp"
+              description: "Implementation of Windows input device for keyboard, mouse, and gamepad."
+
+        generators:
+          description: "Procedural content generators for meshes, textures, and shaders"
+          files:
+            - path: "src/generators/VoxelMeshGenerator.h"
+              description: "Generator for creating voxel-based mesh geometry."
+              
+            - path: "src/generators/VoxelMeshGenerator.cpp"
+              description: "Implementation of voxel mesh generation algorithms."
+              
+            - path: "src/generators/ProceduralTextureGenerator.h"
+              description: "Generator for creating procedural textures."
+              
+            - path: "src/generators/ProceduralTextureGenerator.cpp"
+              description: "Implementation of procedural texture generation."
+              
+            - path: "src/generators/BasicShaderGenerator.h"
+              description: "Generator for basic shader programs."
+              
+            - path: "src/generators/BasicShaderGenerator.cpp"
+              description: "Implementation of basic shader generation."
+
+    assets:
+      description: "Asset management including schemas, runtime data, build tools, and packages"
+      subfolders:
+        schemas:
+          description: "Asset schema definitions for entities and scenes"
+          
+        runtime:
+          description: "Runtime asset data and compiled assets"
+          
+        build_tools:
+          description: "Tools for asset compilation and code generation"
+          
+        packages:
+          description: "Asset packages containing game content"
+
+    packages:
+      description: "Modular packages for different game systems and content"
+      subfolders:
+        core:
+          description: "Core package with fundamental systems"
+          files:
+            - path: "packages/core/CMakeLists.txt"
+              description: "CMake configuration for core package"
+              
+        physics:
+          description: "Physics package with simulation components"
+          files:
+            - path: "packages/physics/CMakeLists.txt"
+              description: "CMake configuration for physics package"
+              
+        vehicles:
+          description: "Vehicle packages with different vehicle types"
+          
+        environment:
+          description: "Environment package with world generation and assets"
+          files:
+            - path: "packages/environment/CMakeLists.txt"
+              description: "CMake configuration for environment package"
+              
+        ui:
+          description: "UI package with interface components and assets"
+          files:
+            - path: "packages/ui/CMakeLists.txt"
+              description: "CMake configuration for UI package"
+
+    configs:
+      description: "Configuration files for various systems and components"
+
+  additional_info:
+    build_system: "CMake with MinGW-w64 GCC 15.2.0"
+    architecture: "Entity Component System (ECS)"
+    rendering: "OpenGL with Windows integration"
+    physics: "Custom physics with air density, wind, and collision models"
+    assets: "Hot-reloadable asset system with XML configuration"
+    input: "Configurable input system supporting keyboard, mouse, and gamepad"
+    debug_features: "F9 debug camera with WASD movement and smooth transitions"
+    recent_additions:
+      - "Enhanced debug camera with smooth transitions to origin (0,0,0)"
+      - "White cube rendering at world origin during debug mode"
+      - "Fluid camera movement with lerp interpolation"
+      - "DrawCube function for 3D primitive rendering"
