@@ -1,11 +1,16 @@
 #pragma once
+
+// Forward declarations for circular dependency resolution
+namespace EntityFactory {
+    class EntityFactory;
+}
+
 #include "core/ISystem.h"
 #include "core/EventBus.h"
 #include "core/World.h"
 #include "core/AssetRegistry.h"
 #include "events/WorldGenEvents.h"
 #include "../config/SceneConfigParser.h"
-#include "../factory/EntityFactory.h"
 #include "../generators/VoxelMeshGenerator.h"
 #include "../generators/ProceduralTextureGenerator.h"
 #include "MaterialManager.h"

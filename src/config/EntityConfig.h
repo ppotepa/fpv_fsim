@@ -9,14 +9,30 @@
 namespace EntityConfig
 {
 
+    // Basic transform data structures
+    struct Vec3
+    {
+        float x = 0.0f;
+        float y = 0.0f;
+        float z = 0.0f;
+    };
+
+    struct Vec4
+    {
+        float x = 0.0f;
+        float y = 0.0f;
+        float z = 0.0f;
+        float w = 1.0f;
+    };
+
     /**
      * @brief 3D position and rotation structure
      */
     struct Transform
     {
-        float position[3] = {0.0f, 0.0f, 0.0f};
-        float rotation[3] = {0.0f, 0.0f, 0.0f}; // Euler angles
-        float scale[3] = {1.0f, 1.0f, 1.0f};
+        Vec3 position;
+        Vec4 rotation; // Quaternion 
+        Vec3 scale{1.0f, 1.0f, 1.0f};
 
         Transform() = default;
     };
@@ -29,6 +45,8 @@ namespace EntityConfig
         std::string meshId;
         std::string materialId;
         bool isVisible = true;
+        float opacity = 1.0f;
+        int renderLayer = 0;
     };
 
     /**
@@ -36,10 +54,14 @@ namespace EntityConfig
      */
     struct PhysicsComponent
     {
+        bool hasPhysics = true;
         float mass = 1.0f;
+        float friction = 0.5f;
+        float restitution = 0.3f;
         float colliderSize[3] = {1.0f, 1.0f, 1.0f};
         bool isKinematic = false;
         bool useGravity = true;
+        std::string colliderType = "sphere";
     };
 
     /**
@@ -60,6 +82,8 @@ namespace EntityConfig
         std::string vehicleType = "drone";
         float maxSpeed = 100.0f;
         float acceleration = 10.0f;
+        float maneuverability = 5.0f;
+        std::string controllerType = "manual";
     };
 
     /**

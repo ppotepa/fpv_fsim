@@ -1,7 +1,7 @@
+#include "../factory/EntityFactory.h"
 #include "WorldGenSystem.h"
 #include "MaterialManager.h"
 #include "core/Entity.h"
-#include "../factory/EntityFactory.h"
 #include "../math/MathUtils.h"
 #include <iostream>
 #include <cmath>
