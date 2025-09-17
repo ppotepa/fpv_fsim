@@ -89,6 +89,7 @@ namespace Material
 
         // Bulk operations
         bool LoadMaterialsFromFile(const std::string &filePath);
+        bool LoadMaterialsFromJsonPackages(); // Load materials from JSON packages
         void LoadDefaultMaterials(); // Deprecated - use LoadMaterialsFromFile
         void ClearAllMaterials();
         size_t GetMaterialCount() const;
@@ -117,9 +118,6 @@ namespace Material
         MaterialProperties CreateAtmosphereProperties(int layer, float density);
         MaterialProperties CreateCloudProperties(float coverage, float density);
         MaterialProperties CreateContrailProperties(const Math::float3 &color);
-
-        // Material loading methods
-        bool LoadMaterialsFromJsonPackages();
 
         // Texture assignment helpers
         void AssignEarthTextures(MaterialProperties &properties, float radius, int detailLevel);

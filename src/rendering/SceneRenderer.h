@@ -8,6 +8,7 @@
 #include "../core/AssetManager.h"
 #include "../assets/AssetRegistry.h"
 #include "../components/Transform.h"
+#include "../systems/MaterialManager.h"
 
 /**
  * @brief Simple class to render a scene with multiple objects
@@ -36,6 +37,14 @@ public:
     {
         sceneAssetId_ = sceneAssetId;
         
+        // Initialize MaterialManager and load materials from JSON packages
+        materialManager_ = std::make_unique<Material::MaterialManager>();
+        if (!materialManager_->LoadMaterialsFromJsonPackages())
+        {
+            // Fallback to default materials if JSON loading fails
+            materialManager_->LoadDefaultMaterials();
+        }
+        
         // TODO: In a real implementation, we would load the scene from the asset manager
         // For now, we'll load entities from the JSON package data
         // The main.cpp should eventually use WorldGenSystem to load entities from packages
@@ -60,6 +69,52 @@ public:
         violetCube.transform.scale = {1.0f, 1.0f, 1.0f};
         violetCube.rotationSpeedX = 60.0f;  // From package.json violetCube behavior parameters
         objects_.push_back(violetCube);
+
+        // Load blue cube entity from package
+        RenderObject blueCube;
+        blueCube.meshId = "cubeMesh";  // From package.json meshes
+        blueCube.materialId = "blueCubeMaterial";  // From package.json materials
+        blueCube.transform.position = {-2.5f, 0.0f, 0.0f};  // From package.json blueCube entity
+        blueCube.transform.scale = {1.0f, 1.0f, 1.0f};
+        blueCube.rotationSpeedZ = 30.0f;  // From package.json blueCube behavior parameters
+        objects_.push_back(blueCube);
+
+        // Load green sphere entity from package
+        RenderObject greenSphere;
+        greenSphere.meshId = "sphereMesh";  // From package.json meshes
+        greenSphere.materialId = "greenSphereMaterial";  // From package.json materials
+        greenSphere.transform.position = {0.0f, 2.0f, 0.0f};  // From package.json greenSphere entity
+        greenSphere.transform.scale = {1.5f, 1.5f, 1.5f};
+        greenSphere.rotationSpeedX = 15.0f;  // From package.json greenSphere behavior (rotates on X+Y axis)
+        greenSphere.rotationSpeedY = 15.0f;
+        objects_.push_back(greenSphere);
+
+        // Load yellow triangle formation from package
+        RenderObject triangle1;
+        triangle1.meshId = "triangleMesh";  // From package.json meshes
+        triangle1.materialId = "yellowTriangleMaterial";  // From package.json materials
+        triangle1.transform.position = {1.0f, -1.5f, 0.0f};  // From package.json yellowTriangle1 entity
+        triangle1.transform.scale = {0.8f, 0.8f, 0.8f};
+        triangle1.rotationSpeedY = 90.0f;  // From package.json yellowTriangle1 behavior parameters
+        objects_.push_back(triangle1);
+
+        RenderObject triangle2;
+        triangle2.meshId = "triangleMesh";  // From package.json meshes
+        triangle2.materialId = "yellowTriangleMaterial";  // From package.json materials
+        triangle2.transform.position = {-1.0f, -1.5f, 0.0f};  // From package.json yellowTriangle2 entity
+        triangle2.transform.scale = {0.8f, 0.8f, 0.8f};
+        triangle2.rotationSpeedX = 45.0f;  // From package.json yellowTriangle2 behavior (rotates on X+Z axis)
+        triangle2.rotationSpeedZ = 45.0f;
+        objects_.push_back(triangle2);
+
+        RenderObject triangle3;
+        triangle3.meshId = "triangleMesh";  // From package.json meshes
+        triangle3.materialId = "yellowTriangleMaterial";  // From package.json materials
+        triangle3.transform.position = {0.0f, -1.5f, 1.0f};  // From package.json yellowTriangle3 entity
+        triangle3.transform.scale = {0.8f, 0.8f, 0.8f};
+        triangle3.rotationSpeedY = 60.0f;  // From package.json yellowTriangle3 behavior (rotates on Y+Z axis)
+        triangle3.rotationSpeedZ = 60.0f;
+        objects_.push_back(triangle3);
 
         return true;
     }
@@ -124,22 +179,37 @@ public:
             // Apply scale
             glScalef(obj.transform.scale.x, obj.transform.scale.y, obj.transform.scale.z);
 
-            // Set material color based on material ID
-            if (obj.materialId == "material.red")
+            // Get material color from MaterialManager (loaded from JSON package)
+            auto materialOpt = materialManager_->GetMaterial(obj.materialId);
+            if (materialOpt.has_value())
             {
-                glColor3f(1.0f, 0.0f, 0.0f); // Red color
-            }
-            else if (obj.materialId == "material.green")
-            {
-                glColor3f(0.0f, 1.0f, 0.0f); // Green color
+                const auto& material = materialOpt.value();
+                const auto& albedo = material.properties.albedo;
+                glColor3f(albedo.x, albedo.y, albedo.z);
             }
             else
             {
-                glColor3f(0.7f, 0.7f, 0.7f); // Default gray color
+                // Fallback color if material not found
+                glColor3f(0.8f, 0.8f, 0.8f); // Light gray
             }
 
-            // Draw cube
-            renderCube();
+            // Render appropriate mesh based on mesh ID
+            if (obj.meshId == "cubeMesh")
+            {
+                renderCube();
+            }
+            else if (obj.meshId == "sphereMesh")
+            {
+                renderSphere();
+            }
+            else if (obj.meshId == "triangleMesh")
+            {
+                renderTriangle();
+            }
+            else
+            {
+                renderCube(); // Default to cube for unknown mesh types
+            }
 
             glPopMatrix();
         }
@@ -198,6 +268,72 @@ private:
         glEnd();
     }
 
+    // Helper to render a sphere (simplified as an octahedron for now)
+    void renderSphere()
+    {
+        // Simple octahedron approximation of a sphere
+        glBegin(GL_TRIANGLES);
+        
+        float radius = 0.5f;
+        
+        // Top pyramid (4 triangles)
+        glVertex3f(0.0f, radius, 0.0f);    // Top
+        glVertex3f(radius, 0.0f, 0.0f);    // Right
+        glVertex3f(0.0f, 0.0f, radius);    // Front
+        
+        glVertex3f(0.0f, radius, 0.0f);    // Top
+        glVertex3f(0.0f, 0.0f, radius);    // Front
+        glVertex3f(-radius, 0.0f, 0.0f);   // Left
+        
+        glVertex3f(0.0f, radius, 0.0f);    // Top
+        glVertex3f(-radius, 0.0f, 0.0f);   // Left
+        glVertex3f(0.0f, 0.0f, -radius);   // Back
+        
+        glVertex3f(0.0f, radius, 0.0f);    // Top
+        glVertex3f(0.0f, 0.0f, -radius);   // Back
+        glVertex3f(radius, 0.0f, 0.0f);    // Right
+        
+        // Bottom pyramid (4 triangles)
+        glVertex3f(0.0f, -radius, 0.0f);   // Bottom
+        glVertex3f(0.0f, 0.0f, radius);    // Front
+        glVertex3f(radius, 0.0f, 0.0f);    // Right
+        
+        glVertex3f(0.0f, -radius, 0.0f);   // Bottom
+        glVertex3f(-radius, 0.0f, 0.0f);   // Left
+        glVertex3f(0.0f, 0.0f, radius);    // Front
+        
+        glVertex3f(0.0f, -radius, 0.0f);   // Bottom
+        glVertex3f(0.0f, 0.0f, -radius);   // Back
+        glVertex3f(-radius, 0.0f, 0.0f);   // Left
+        
+        glVertex3f(0.0f, -radius, 0.0f);   // Bottom
+        glVertex3f(radius, 0.0f, 0.0f);    // Right
+        glVertex3f(0.0f, 0.0f, -radius);   // Back
+        
+        glEnd();
+    }
+
+    // Helper to render a triangle (single triangle in 3D space)
+    void renderTriangle()
+    {
+        glBegin(GL_TRIANGLES);
+        
+        float size = 0.8f;
+        
+        // Front-facing triangle
+        glVertex3f(0.0f, size * 0.5f, 0.0f);           // Top
+        glVertex3f(-size * 0.5f, -size * 0.5f, 0.1f);  // Bottom left
+        glVertex3f(size * 0.5f, -size * 0.5f, 0.1f);   // Bottom right
+        
+        // Back-facing triangle (for visibility from behind)
+        glVertex3f(0.0f, size * 0.5f, 0.0f);           // Top
+        glVertex3f(size * 0.5f, -size * 0.5f, -0.1f);  // Bottom right
+        glVertex3f(-size * 0.5f, -size * 0.5f, -0.1f); // Bottom left
+        
+        glEnd();
+    }
+
     std::string sceneAssetId_;
     std::vector<RenderObject> objects_;
+    std::unique_ptr<Material::MaterialManager> materialManager_;
 };

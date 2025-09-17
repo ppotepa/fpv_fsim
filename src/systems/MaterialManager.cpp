@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <fstream>
 #include "../debug.h"
+#include "../assets/PackageManager.h"
+#include "../platform/NlohmannJsonParser.h"
 
 namespace Material
 {
@@ -341,10 +343,107 @@ namespace Material
 
     bool MaterialManager::LoadMaterialsFromJsonPackages()
     {
-        // TODO: Implement JSON material loading from packages
-        // For now, this is a stub that returns false to force fallback to hardcoded materials
-        DEBUG_LOG("JSON material loading not yet implemented, using hardcoded defaults");
-        return false;
+        DEBUG_LOG("Loading materials from JSON packages...");
+        
+        // Direct JSON loading approach to properly parse color objects
+        std::string packagePath = "assets/packages/core/package.json";
+        
+        try {
+            // Use NlohmannJsonParser to load the JSON file
+            NlohmannJsonParser jsonParser;
+            if (!jsonParser.loadFile(packagePath))
+            {
+                DEBUG_LOG("Failed to load package file: " + packagePath);
+                return false;
+            }
+            
+            const auto& rootJson = jsonParser.getRootJson();
+            
+            if (!rootJson.contains("assets") || !rootJson["assets"].contains("materials"))
+            {
+                DEBUG_LOG("No materials section found in package");
+                return false;
+            }
+            
+            const auto& materials = rootJson["assets"]["materials"];
+            if (!materials.is_array())
+            {
+                DEBUG_LOG("Materials section is not an array");
+                return false;
+            }
+            
+            size_t materialsLoaded = 0;
+            
+            // Process each material in the JSON
+            for (const auto& materialJson : materials)
+            {
+                if (!materialJson.contains("id"))
+                {
+                    DEBUG_LOG("Material missing ID, skipping");
+                    continue;
+                }
+                
+                std::string materialId = materialJson["id"].get<std::string>();
+                
+                // Create Material
+                Material material(materialId, "json_material");
+                
+                // Set default properties
+                material.properties.albedo = {0.8f, 0.8f, 0.8f}; // Default gray
+                material.properties.roughness = 0.5f;
+                material.properties.metallic = 0.0f;
+                material.properties.toonSteps = 4;
+                
+                // Parse diffuseColor if present
+                if (materialJson.contains("diffuseColor") && materialJson["diffuseColor"].is_object())
+                {
+                    const auto& color = materialJson["diffuseColor"];
+                    if (color.contains("r") && color.contains("g") && color.contains("b"))
+                    {
+                        material.properties.albedo.x = color["r"].get<float>();
+                        material.properties.albedo.y = color["g"].get<float>();
+                        material.properties.albedo.z = color["b"].get<float>();
+                    }
+                }
+                
+                // Parse other material properties
+                if (materialJson.contains("shininess"))
+                {
+                    float shininess = materialJson["shininess"].get<float>();
+                    // Convert shininess to roughness (inverse relationship)
+                    material.properties.roughness = 1.0f - std::min(1.0f, shininess / 128.0f);
+                }
+                
+                material.isDynamic = false;
+                ApplyGlobalCelShadingSettings(material.properties);
+                
+                if (LoadMaterial(materialId, material))
+                {
+                    materialsLoaded++;
+                    DEBUG_LOG("Loaded material: " + materialId + 
+                             " (albedo: " + std::to_string(material.properties.albedo.x) + ", " +
+                             std::to_string(material.properties.albedo.y) + ", " +
+                             std::to_string(material.properties.albedo.z) + ")");
+                }
+                else
+                {
+                    DEBUG_LOG("Failed to load material: " + materialId);
+                }
+            }
+            
+            if (materialsLoaded > 0)
+            {
+                DEBUG_LOG("Successfully loaded " + std::to_string(materialsLoaded) + " materials from JSON packages");
+                return true;
+            }
+            
+            DEBUG_LOG("No materials processed from JSON packages");
+            return false;
+            
+        } catch (const std::exception& e) {
+            DEBUG_LOG("Exception while loading materials from JSON: " + std::string(e.what()));
+            return false;
+        }
     }
 
     void MaterialManager::ClearAllMaterials()

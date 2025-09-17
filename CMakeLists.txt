@@ -50,6 +50,7 @@ set(SOURCES
     src/core/AssetManager_Integration.cpp
     # Behavior system
     src/systems/BehaviorSystem.cpp
+    src/systems/MaterialManager.cpp
     src/factory/BehaviorRegistry.cpp
     src/behaviors/SpinBehavior.cpp
     src/behaviors/DebugOverlayBehavior.cpp
