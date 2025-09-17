@@ -25,6 +25,10 @@ bool running = true;
 float cubeRotation = 0.0f;
 AssetManager assetManager;
 
+// Include the SceneRenderer
+#include "rendering/SceneRenderer.h"
+SceneRenderer sceneRenderer;
+
 /**
  * @brief Windows entry point with OpenGL window and package system
  */
@@ -52,6 +56,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         DEBUG_LOG("✅ Dual asset system initialized successfully!");
         DEBUG_LOG("   - Internal assets path: internal_assets");
         DEBUG_LOG("   - User assets path: assets");
+        
+        // Initialize the scene renderer with our green cubes scene
+        if (!sceneRenderer.initialize("scene.green_cubes", assetManager)) {
+            std::cerr << "❌ Failed to initialize scene renderer" << std::endl;
+            return 1;
+        }
         
         std::cout << "\n📦 Initializing package system..." << std::endl;
 
@@ -205,12 +215,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             auto& behaviorSystem = bootstrap.getBehaviorSystem();
             behaviorSystem.update(deltaTime);
 
-            // Update cube rotation for rendering
-            cubeRotation += 45.0f * deltaTime; // 45 degrees per second
-            if (cubeRotation > 360.0f) cubeRotation -= 360.0f;
+            // Update the scene renderer
+            sceneRenderer.update(deltaTime);
 
-            // Render
-            renderRedCube();
+            // Render the scene
+            sceneRenderer.render();
 
             // Cap frame rate
             std::this_thread::sleep_for(std::chrono::milliseconds(16)); // ~60 FPS

@@ -26,6 +26,7 @@ find_package(OpenGL REQUIRED)
 include_directories(src)
 include_directories(src/components)
 include_directories(src/behaviors)
+include_directories(src/rendering)
 
 # Minimal package system with OpenGL visualization
 set(SOURCES

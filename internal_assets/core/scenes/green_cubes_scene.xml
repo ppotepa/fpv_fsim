@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scene id="green_cubes_scene" name="Three Green Cubes">
+    <entities>
+        <entity id="green_cube_1" name="Green Cube 1">
+            <transform position="-1.5,0,0" rotation="0,0,0,1" scale="0.8,0.8,0.8" />
+            <mesh asset="mesh.cube" />
+            <material asset="material.green" />
+            <behavior codeBehind="SpinBehavior">
+                <param name="speed" value="30.0" />
+                <param name="axisY" value="1.0" />
+                <param name="axisX" value="0.5" />
+            </behavior>
+        </entity>
+        
+        <entity id="green_cube_2" name="Green Cube 2">
+            <transform position="0,0,0" rotation="0,0,0,1" scale="0.8,0.8,0.8" />
+            <mesh asset="mesh.cube" />
+            <material asset="material.green" />
+            <behavior codeBehind="SpinBehavior">
+                <param name="speed" value="45.0" />
+                <param name="axisY" value="1.0" />
+            </behavior>
+        </entity>
+        
+        <entity id="green_cube_3" name="Green Cube 3">
+            <transform position="1.5,0,0" rotation="0,0,0,1" scale="0.8,0.8,0.8" />
+            <mesh asset="mesh.cube" />
+            <material asset="material.green" />
+            <behavior codeBehind="SpinBehavior">
+                <param name="speed" value="60.0" />
+                <param name="axisY" value="1.0" />
+                <param name="axisZ" value="0.5" />
+            </behavior>
+        </entity>
+        <entity id="green_cube_4" name="Green Cube 3">
+            <transform position="1.5,1,0" rotation="0,0,0,1" scale="0.8,0.8,0.8" />
+            <mesh asset="mesh.cube" />
+            <material asset="material.green" />
+            <behavior codeBehind="SpinBehavior">
+                <param name="speed" value="60.0" />
+                <param name="axisY" value="1.0" />
+                <param name="axisZ" value="0.5" />
+            </behavior>
+        </entity>
+    </entities>
+</scene>

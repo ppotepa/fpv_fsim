@@ -34,6 +34,9 @@
   <asset id="material.default" type="material">
     <path>core/materials/default_material.xml</path>
   </asset>
+  <asset id="material.green" type="material">
+    <path>core/materials/green_material.xml</path>
+  </asset>
   
   <!-- Core meshes -->
   <asset id="mesh.cube" type="mesh">
@@ -44,6 +47,11 @@
   </asset>
   <asset id="mesh.plane" type="mesh">
     <path>core/meshes/plane.obj</path>
+  </asset>
+  
+  <!-- Core scenes -->
+  <asset id="scene.green_cubes" type="scene">
+    <path>core/scenes/green_cubes_scene.xml</path>
   </asset>
   
   <!-- Core shaders -->
