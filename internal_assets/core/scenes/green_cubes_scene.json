@@ -69,7 +69,7 @@
                 "behavior": {
                     "codeBehind": "SpinBehavior",
                     "params": {
-                        "speed": 45.0,
+                        "speed": 5.0,
                         "axisY": 1.0
                     }
                 }

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <filesystem>
 
 #include "debug.h"
 #include "core/PackageBootstrap.h"
@@ -39,6 +40,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         std::cout << "🚀 FPV Flight Simulator - Enhanced Package System with OpenGL" << std::endl;
         std::cout << "=============================================================" << std::endl;
 
+        // Log current working directory for debugging
+        std::filesystem::path currentPath = std::filesystem::current_path();
+        DEBUG_LOG("Current working directory: " << currentPath.string());
+        std::cout << "Working directory: " << currentPath.string() << std::endl;
+
         // ====================================================================
         // Step 1: Package System Initialization
         // ====================================================================
@@ -60,11 +66,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         // Initialize the scene renderer with our green cubes scene
         if (!sceneRenderer.initialize("scene.green_cubes", assetManager))
         {
+            ERROR_LOG("Failed to initialize scene renderer");
             std::cerr << "❌ Failed to initialize scene renderer" << std::endl;
             return 1;
         }
 
         std::cout << "\n📦 Initializing package system..." << std::endl;
+        DEBUG_LOG("Initializing package system...");
 
         Core::PackageBootstrap bootstrap;
         Core::PackageBootstrap::BootstrapConfig config;
@@ -72,8 +80,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         config.requiredPackages = {"core"};
         config.enableHotReload = true;
 
+        DEBUG_LOG("Package configuration:");
+        DEBUG_LOG("  - packagesDirectory: " << config.packagesDirectory);
+        DEBUG_LOG("  - requiredPackages: core");
+        DEBUG_LOG("  - enableHotReload: " << (config.enableHotReload ? "true" : "false"));
+
         if (!bootstrap.initialize(config))
         {
+            ERROR_LOG("CODE PACKAGE NOT PRESENT - core package required");
+            ERROR_LOG("The KERNEL package 'core' is required but not found in: " << config.packagesDirectory);
             std::cerr << "❌ CODE PACKAGE NOT PRESENT" << std::endl;
             std::cerr << "   The KERNEL package 'core' is required but not found." << std::endl;
             MessageBoxA(NULL, "CODE PACKAGE NOT PRESENT - core package required", "Error", MB_OK);

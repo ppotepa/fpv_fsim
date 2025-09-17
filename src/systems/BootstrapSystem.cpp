@@ -82,10 +82,10 @@ for (const auto &entry : std::filesystem::directory_iterator(packagesDir))
             return false;
         }
 
-        // Check for any .xml package files
+        // Check for any .json package files
         for (const auto &entry : std::filesystem::recursive_directory_iterator(packagesDir))
         {
-            if (entry.is_regular_file() && entry.path().extension() == ".xml")
+            if (entry.is_regular_file() && entry.path().extension() == ".json")
             {
                 return true;
             }

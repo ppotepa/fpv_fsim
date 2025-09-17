@@ -183,6 +183,34 @@ inline std::string extractClassName(const std::string &functionName)
     return "Global";
 }
 
+// ERROR_LOG - Always works regardless of debug mode
+#ifdef __linux__
+#define ERROR_LOG(message)                                                                                                \
+    do                                                                                                                    \
+    {                                                                                                                     \
+        auto caller = get_caller_class_method();                                                                          \
+        std::string className = caller.first.empty() ? "Global" : caller.first;                                           \
+        std::stringstream ss;                                                                                             \
+        ss << "[" << getCurrentTimestamp() << "] [ERROR] [" << caller.first << "::" << caller.second << "]: " << message; \
+        std::string logLine = ss.str();                                                                                   \
+        std::cerr << logLine << std::endl;                                                                                \
+        writeToLogFile(logLine, className + "_ERROR");                                                                    \
+    } while (0)
+#else
+// Windows version - use __FUNCTION__ for better caller info
+#define ERROR_LOG(message)                                                                       \
+    do                                                                                           \
+    {                                                                                            \
+        std::string functionName = __FUNCTION__;                                                 \
+        std::string className = extractClassName(functionName);                                  \
+        std::stringstream ss;                                                                    \
+        ss << "[" << getCurrentTimestamp() << "] [ERROR] [" << functionName << "]: " << message; \
+        std::string logLine = ss.str();                                                          \
+        std::cerr << logLine << std::endl;                                                       \
+        writeToLogFile(logLine, className + "_ERROR");                                           \
+    } while (0)
+#endif
+
 #ifdef DEBUG
 // Use different approaches for Linux vs Windows
 #ifdef __linux__

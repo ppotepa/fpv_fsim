@@ -1,4 +1,5 @@
 #include "PackageBootstrap.h"
+#include "../debug.h"
 #include <chrono>
 #include <algorithm>
 #include <iostream>
@@ -136,10 +137,12 @@ namespace Core
 
         for (const auto &path : packagePaths)
         {
+            DEBUG_LOG("Loading package: " << path);
             std::cout << "🔍 Loading package: " << path << std::endl;
             auto result = packageManager->loadPackage(path);
             if (result.success)
             {
+                DEBUG_LOG("Successfully loaded package: " << result.package.metadata.id);
                 std::cout << "✅ Successfully loaded package: " << result.package.metadata.id << std::endl;
                 // Register assets from the package
                 assetRegistry->registerPackageAssets(result.package);
@@ -155,8 +158,11 @@ namespace Core
             }
             else
             {
+                ERROR_LOG("Failed to load package: " << path);
                 std::cout << "❌ Failed to load package: " << path << std::endl;
-                for (const auto& error : result.errors) {
+                for (const auto &error : result.errors)
+                {
+                    ERROR_LOG("  - " << error);
                     std::cout << "   - " << error << std::endl;
                 }
             }
@@ -303,20 +309,28 @@ namespace Core
 
     bool PackageBootstrap::loadInitialPackages()
     {
+        DEBUG_LOG("Starting package discovery in directory: " << currentConfig.packagesDirectory);
         std::cout << "🔍 Discovering packages in directory: " << currentConfig.packagesDirectory << std::endl;
+
         // Discover packages in the packages directory
         auto discoveryResult = packageManager->discoverPackages(currentConfig.packagesDirectory);
         if (!discoveryResult.errors.empty())
         {
+            ERROR_LOG("Package discovery errors found:");
             std::cout << "❌ Package discovery errors:" << std::endl;
-            for (const auto& error : discoveryResult.errors) {
+            for (const auto &error : discoveryResult.errors)
+            {
+                ERROR_LOG("  - " << error);
                 std::cout << "   - " << error << std::endl;
             }
             return false;
         }
 
+        DEBUG_LOG("Found " << discoveryResult.packagePaths.size() << " package paths");
         std::cout << "✅ Found " << discoveryResult.packagePaths.size() << " package paths:" << std::endl;
-        for (const auto& path : discoveryResult.packagePaths) {
+        for (const auto &path : discoveryResult.packagePaths)
+        {
+            DEBUG_LOG("  - " << path);
             std::cout << "   - " << path << std::endl;
         }
 
@@ -324,6 +338,7 @@ namespace Core
         // Validate dependencies
         if (!validatePackageDependencies(discoveryResult.packagePaths))
         {
+            ERROR_LOG("Package dependency validation failed");
             std::cout << "❌ Package dependency validation failed" << std::endl;
             return false;
         }
@@ -331,6 +346,7 @@ namespace Core
         std::cout << "🔍 Loading packages..." << std::endl;
         // Load packages in dependency order
         size_t loadedCount = loadPackages(discoveryResult.packagePaths);
+        DEBUG_LOG("Loaded " << loadedCount << " packages");
         std::cout << "✅ Loaded " << loadedCount << " packages" << std::endl;
 
         std::cout << "🔍 Checking required packages..." << std::endl;
@@ -338,8 +354,11 @@ namespace Core
         // Check if all required packages were loaded
         for (const auto &requiredPackage : currentConfig.requiredPackages)
         {
-            if (!packageManager->isPackageLoaded(requiredPackage))
+            bool isLoaded = packageManager->isPackageLoaded(requiredPackage);
+            DEBUG_LOG("Required package '" << requiredPackage << "': " << (isLoaded ? "LOADED" : "NOT FOUND"));
+            if (!isLoaded)
             {
+                ERROR_LOG("Required package '" << requiredPackage << "' was not loaded!");
                 return false;
             }
         }
