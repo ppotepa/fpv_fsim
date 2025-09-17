@@ -4,8 +4,11 @@
 #include <chrono>
 #include <thread>
 
+#include "debug.h"
 #include "core/PackageBootstrap.h"
+#include "core/AssetManager.h"
 #include "behaviors/SpinBehavior.h"
+#include "behaviors/DebugOverlayBehavior.h"
 #include "factory/BehaviorRegistry.h"
 #include "core/Entity.h"
 #include "core/World.h"
@@ -20,6 +23,7 @@ HDC hdc;
 HGLRC hglrc;
 bool running = true;
 float cubeRotation = 0.0f;
+AssetManager assetManager;
 
 /**
  * @brief Windows entry point with OpenGL window and package system
@@ -34,36 +38,56 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         // ====================================================================
         // Step 1: Package System Initialization
         // ====================================================================
+        std::cout << "\n📦 Initializing dual asset system..." << std::endl;
+        
+        // Initialize the asset manager with internal and user assets paths
+        if (!assetManager.initialize("internal_assets", "assets"))
+        {
+            std::cerr << "❌ INTERNAL ASSETS NOT FOUND" << std::endl;
+            std::cerr << "   The internal assets are required but not found." << std::endl;
+            MessageBoxA(NULL, "INTERNAL ASSETS NOT FOUND - Required for core functionality", "Error", MB_OK);
+            return 1;
+        }
+        
+        DEBUG_LOG("✅ Dual asset system initialized successfully!");
+        DEBUG_LOG("   - Internal assets path: internal_assets");
+        DEBUG_LOG("   - User assets path: assets");
+        
         std::cout << "\n📦 Initializing package system..." << std::endl;
 
         Core::PackageBootstrap bootstrap;
         Core::PackageBootstrap::BootstrapConfig config;
-        config.packagesDirectory = "packages";
+        config.packagesDirectory = "assets/packages";
         config.requiredPackages = {"core"};
         config.enableHotReload = true;
 
         if (!bootstrap.initialize(config))
         {
-            std::cerr << "❌ Failed to initialize package system" << std::endl;
-            MessageBoxA(NULL, "Failed to initialize package system", "Error", MB_OK);
+            std::cerr << "❌ CODE PACKAGE NOT PRESENT" << std::endl;
+            std::cerr << "   The KERNEL package 'core' is required but not found." << std::endl;
+            MessageBoxA(NULL, "CODE PACKAGE NOT PRESENT - core package required", "Error", MB_OK);
             return 1;
         }
 
         auto stats = bootstrap.getStats();
-        std::cout << "✅ Package system initialized successfully!" << std::endl;
-        std::cout << "   - Packages loaded: " << stats.packagesLoaded << std::endl;
+        DEBUG_LOG("✅ KERNEL package system initialized successfully!");
+        DEBUG_LOG("   - Packages loaded: " << stats.packagesLoaded);
 
         // ====================================================================
         // Step 2: Register Enhanced Behaviors
         // ====================================================================
-        std::cout << "\n📦 Registering enhanced behaviors..." << std::endl;
+        DEBUG_LOG("\n📦 Registering enhanced behaviors...");
 
         auto& behaviorRegistry = Factory::BehaviorRegistry::instance();
         behaviorRegistry.registerBehavior("SpinBehavior", []() {
             return std::make_unique<Behaviors::SpinBehavior>();
         });
+        behaviorRegistry.registerBehavior("DebugOverlayBehavior", []() {
+            return std::make_unique<DebugOverlayBehavior>();
+        });
         
-        std::cout << "✅ SpinBehavior registered successfully!" << std::endl;
+        DEBUG_LOG("✅ SpinBehavior registered successfully!");
+        DEBUG_LOG("✅ DebugOverlayBehavior registered successfully!");
 
         // ====================================================================
         // Step 3: Create OpenGL Window

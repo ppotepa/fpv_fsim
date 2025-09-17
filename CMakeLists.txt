@@ -42,10 +42,14 @@ set(SOURCES
     src/assets/Package.cpp
     src/assets/PackageManager.cpp
     src/assets/PackageParser.cpp
+    # Dual Asset System
+    src/core/AssetManager.cpp
+    src/core/AssetManager_Integration.cpp
     # Behavior system
     src/systems/BehaviorSystem.cpp
     src/factory/BehaviorRegistry.cpp
     src/behaviors/SpinBehavior.cpp
+    src/behaviors/DebugOverlayBehavior.cpp
     # Platform
     src/platform/PugiXmlParser.cpp
 )
@@ -57,7 +61,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} OpenGL::GL)
 # Windows specific libraries for Engine
 if(WIN32)
-    target_link_libraries(${PROJECT_NAME} user32 gdi32 shell32)
+    target_link_libraries(${PROJECT_NAME} user32 gdi32 shell32 winmm)
 endif()
 # Add SDL2 when properly configured
 if(TARGET SDL2::SDL2)
@@ -70,4 +74,12 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     ${CMAKE_SOURCE_DIR}/assets
     $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
     COMMENT "Copying assets to build directory"
+)
+
+# Copy internal_assets folder to build directory
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/internal_assets
+    $<TARGET_FILE_DIR:${PROJECT_NAME}>/internal_assets
+    COMMENT "Copying internal_assets to build directory"
 )
