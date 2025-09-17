@@ -55,7 +55,7 @@ WorldGenSystem::WorldGenSystem(EventBus &eventBus, World &world, AssetRegistry &
         const auto& packagesEvent = static_cast<const NoPackagesFoundEvent&>(event);
         OnNoPackagesFound(packagesEvent); });
 
-    // Subscribe to default world generated event (when we have XML configuration)
+    // Subscribe to default world generated event (when we have JSON configuration)
     eventBus.subscribe(EventType::DefaultWorldGenerated, [this](const IEvent &event)
                        {
         const auto& worldEvent = static_cast<const DefaultWorldGeneratedEvent&>(event);
@@ -85,14 +85,14 @@ bool WorldGenSystem::LoadScene(const std::string &sceneType)
         DEBUG_LOG("Loading scene of type: " << sceneType);
     }
 
-    // Try to load XML scene configuration first
-    auto parseResult = sceneParser_->loadXmlScene(sceneType);
+    // Try to load JSON scene configuration first
+    auto parseResult = sceneParser_->loadJsonScene(sceneType);
 
     if (parseResult.success && parseResult.scene)
     {
         if (Debug())
         {
-            DEBUG_LOG("Successfully loaded XML scene: " << parseResult.scene->name);
+            DEBUG_LOG("Successfully loaded JSON scene: " << parseResult.scene->name);
         }
         LoadSceneEntities(*parseResult.scene);
         sceneLoaded = true;
@@ -103,7 +103,7 @@ bool WorldGenSystem::LoadScene(const std::string &sceneType)
 
     if (Debug())
     {
-        DEBUG_LOG("XML scene loading failed: " << parseResult.errorMessage);
+        DEBUG_LOG("JSON scene loading failed: " << parseResult.errorMessage);
         DEBUG_LOG("Falling back to hardcoded scene generation...");
     }
 
@@ -202,7 +202,7 @@ void WorldGenSystem::LoadSceneEntities(const SceneConfig::Scene &sceneData)
 {
     if (Debug())
     {
-        DEBUG_LOG("Loading scene entities from XML configuration...");
+        DEBUG_LOG("Loading scene entities from JSON configuration...");
         DEBUG_LOG("Scene: " << sceneData.name << " (ID: " << sceneData.id << ")");
     }
 
@@ -266,12 +266,12 @@ void WorldGenSystem::LoadSceneEntities(const SceneConfig::Scene &sceneData)
 
         if (sceneData.id == "loading_indicator")
         {
-            // Create loading indicator entities programmatically based on XML structure
-            CreateLoadingIndicatorEntitiesFromXmlStructure(nextEntityId, entitiesCreated);
+            // Create loading indicator entities programmatically based on JSON structure
+            CreateLoadingIndicatorEntitiesFromJsonStructure(nextEntityId, entitiesCreated);
         }
         else if (sceneData.id == "default_sphere_world" || sceneData.id == "procedural_earth_like")
         {
-            CreateDefaultSphereEntitiesFromXmlStructure(nextEntityId, entitiesCreated);
+            CreateDefaultSphereEntitiesFromJsonStructure(nextEntityId, entitiesCreated);
         }
         else
         {
@@ -284,7 +284,7 @@ void WorldGenSystem::LoadSceneEntities(const SceneConfig::Scene &sceneData)
 
     if (Debug())
     {
-        DEBUG_LOG("Successfully created " << entitiesCreated << " entities from XML scene data");
+        DEBUG_LOG("Successfully created " << entitiesCreated << " entities from JSON scene data");
     }
 }
 
@@ -478,25 +478,15 @@ void WorldGenSystem::OnDefaultWorldRequested(const DefaultWorldGeneratedEvent &e
     // Try to load the default scene configuration from the asset registry
     try
     {
-        const std::string *defaultSceneXml = assetRegistry_.getDefaultScene();
-        if (defaultSceneXml != nullptr)
+        const std::string *defaultSceneJson = assetRegistry_.getDefaultScene();
+        if (defaultSceneJson != nullptr)
         {
             DEBUG_LOG("Loading default scene configuration from package...");
 
-            // Parse the scene type from the XML (looking for type="procedural_earth_like")
-            size_t typeStart = defaultSceneXml->find("type=\"") + 6;
-            size_t typeEnd = defaultSceneXml->find("\"", typeStart);
-            if (typeStart != std::string::npos + 6 && typeEnd != std::string::npos)
-            {
-                std::string sceneType = defaultSceneXml->substr(typeStart, typeEnd - typeStart);
-                DEBUG_LOG("Loading scene of type: " << sceneType);
-                LoadScene(sceneType);
-            }
-            else
-            {
-                DEBUG_LOG("Unable to parse scene type from default scene XML, falling back to hardcoded generation...");
-                GenerateDefaultSphereWorld();
-            }
+            // Parse the scene type from the JSON (looking for type="procedural_earth_like")
+            // For now we'll just fallback to hardcoded generation since JSON scene parsing is not yet implemented
+            DEBUG_LOG("JSON scene parsing not yet implemented, falling back to hardcoded generation...");
+            GenerateDefaultSphereWorld();
         }
         else
         {
@@ -549,9 +539,9 @@ AssetId WorldGenSystem::GetCloudMaterialId()
     return MaterialIdToAssetId(materialId);
 }
 
-void WorldGenSystem::CreateLoadingIndicatorEntitiesFromXmlStructure(unsigned int &nextEntityId, int &entitiesCreated)
+void WorldGenSystem::CreateLoadingIndicatorEntitiesFromJsonStructure(unsigned int &nextEntityId, int &entitiesCreated)
 {
-    DEBUG_LOG("Creating loading indicator entities based on XML structure...");
+    DEBUG_LOG("Creating loading indicator entities based on JSON structure...");
 
     // Create central globe entity (from XML: central_globe)
     auto globeEntity = std::make_unique<Entity>(nextEntityId++);
@@ -608,12 +598,12 @@ void WorldGenSystem::CreateLoadingIndicatorEntitiesFromXmlStructure(unsigned int
         entitiesCreated++;
     }
 
-    DEBUG_LOG("Created " << entitiesCreated << " entities based on loading_indicator.xml structure");
+    DEBUG_LOG("Created " << entitiesCreated << " entities based on loading_indicator.json structure");
 }
 
-void WorldGenSystem::CreateDefaultSphereEntitiesFromXmlStructure(unsigned int &nextEntityId, int &entitiesCreated)
+void WorldGenSystem::CreateDefaultSphereEntitiesFromJsonStructure(unsigned int &nextEntityId, int &entitiesCreated)
 {
-    DEBUG_LOG("Creating default sphere entities based on XML structure...");
+    DEBUG_LOG("Creating default sphere entities based on JSON structure...");
 
     // Create earth sphere entity using EntityFactory (from XML: earth_sphere)
     auto earthEntity = entityFactory_->createFromTemplate("earth_sphere", "Earth", nextEntityId++);
@@ -678,5 +668,5 @@ void WorldGenSystem::CreateDefaultSphereEntitiesFromXmlStructure(unsigned int &n
         entitiesCreated++;
     }
 
-    DEBUG_LOG("Created " << entitiesCreated << " entities based on default_sphere_world.xml structure");
+    DEBUG_LOG("Created " << entitiesCreated << " entities based on default_sphere_world.json structure");
 }

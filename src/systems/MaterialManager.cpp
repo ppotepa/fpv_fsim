@@ -286,15 +286,15 @@ namespace Material
     {
         DEBUG_LOG("Loading default materials...");
 
-        // Load materials from the developer package
-        if (LoadMaterialsFromFile("assets/packages/DeveloperPackage/materials.xml"))
+        // Load materials from the JSON packages
+        if (LoadMaterialsFromJsonPackages())
         {
             DEBUG_LOG("Default materials loaded successfully");
             return;
         }
 
         // Fallback to hardcoded materials if file loading fails
-        std::cerr << "Failed to load materials from file, using hardcoded defaults" << std::endl;
+        std::cerr << "Failed to load materials from JSON packages, using hardcoded defaults" << std::endl;
 
         // Default Earth material (blue)
         Material earthMaterial("EarthSurfaceMaterial", "earth");
@@ -339,110 +339,12 @@ namespace Material
         DEBUG_LOG("Hardcoded default materials loaded");
     }
 
-    bool MaterialManager::LoadMaterialsFromFile(const std::string &filePath)
+    bool MaterialManager::LoadMaterialsFromJsonPackages()
     {
-        // Read XML file
-        std::ifstream file(filePath);
-        if (!file.is_open())
-        {
-            std::cerr << "Failed to open materials file: " << filePath << std::endl;
-            return false;
-        }
-
-        std::stringstream buffer;
-        buffer << file.rdbuf();
-        std::string xmlContent = buffer.str();
-        file.close();
-
-        size_t materialsStart = xmlContent.find("<materials>");
-        size_t materialsEnd = xmlContent.find("</materials>");
-
-        if (materialsStart == std::string::npos || materialsEnd == std::string::npos)
-        {
-            std::cerr << "Invalid materials file format: " << filePath << std::endl;
-            return false;
-        }
-
-        std::string materialsSection = xmlContent.substr(
-            materialsStart,
-            materialsEnd - materialsStart + std::string("</materials>").length());
-
-        // Parse individual material elements using regex
-        size_t currentPos = 0;
-        while (true)
-        {
-            size_t materialStart = materialsSection.find("<material", currentPos);
-            if (materialStart == std::string::npos)
-                break;
-
-            size_t materialEnd = materialsSection.find("</material>", materialStart);
-            if (materialEnd == std::string::npos)
-                break;
-
-            materialEnd += std::string("</material>").length();
-
-            std::string materialXml = materialsSection.substr(materialStart, materialEnd - materialStart);
-
-            // Extract material attributes
-            std::string materialId = ExtractAttributeValue(materialXml, "id");
-            std::string materialType = ExtractAttributeValue(materialXml, "type");
-
-            if (materialId.empty() || materialType.empty())
-            {
-                std::cerr << "Material missing required attributes: " << materialXml << std::endl;
-                currentPos = materialEnd;
-                continue;
-            }
-
-            // Create material
-            Material material(materialId, materialType);
-
-            // Parse properties section
-            size_t propsStart = materialXml.find("<properties>");
-            size_t propsEnd = materialXml.find("</properties>");
-
-            if (propsStart != std::string::npos && propsEnd != std::string::npos)
-            {
-                std::string propsSection = materialXml.substr(propsStart, propsEnd - propsStart + std::string("</properties>").length());
-
-                // Parse albedo color
-                ParseColorProperty(propsSection, "albedo", material.properties.albedo);
-
-                // Parse emission color
-                ParseColorProperty(propsSection, "emission", material.properties.emission);
-
-                // Parse rim color
-                ParseColorProperty(propsSection, "rimColor", material.properties.rimColor);
-
-                // Parse float properties
-                ParseFloatProperty(propsSection, "roughness", material.properties.roughness);
-                ParseFloatProperty(propsSection, "metallic", material.properties.metallic);
-                ParseFloatProperty(propsSection, "rimPower", material.properties.rimPower);
-                ParseFloatProperty(propsSection, "rimStrength", material.properties.rimStrength);
-
-                // Parse integer properties
-                ParseIntProperty(propsSection, "toonSteps", material.properties.toonSteps);
-
-                // Parse boolean properties
-                ParseBoolProperty(propsSection, "enableRimLighting", material.properties.enableRimLighting);
-                ParseBoolProperty(propsSection, "enableOutlines", material.properties.enableOutlines);
-
-                // Parse texture references
-                material.properties.albedoTexture = ExtractTagValue(propsSection, "albedoTexture");
-                material.properties.normalTexture = ExtractTagValue(propsSection, "normalTexture");
-                material.properties.metallicTexture = ExtractTagValue(propsSection, "metallicTexture");
-                material.properties.roughnessTexture = ExtractTagValue(propsSection, "roughnessTexture");
-                material.properties.emissionTexture = ExtractTagValue(propsSection, "emissionTexture");
-            }
-
-            // Load the material
-            LoadMaterial(materialId, material);
-
-            currentPos = materialEnd;
-        }
-
-        DEBUG_LOG("Loaded materials from file: " << filePath);
-        return true;
+        // TODO: Implement JSON material loading from packages
+        // For now, this is a stub that returns false to force fallback to hardcoded materials
+        DEBUG_LOG("JSON material loading not yet implemented, using hardcoded defaults");
+        return false;
     }
 
     void MaterialManager::ClearAllMaterials()
@@ -756,98 +658,5 @@ namespace Material
             return;
 
         properties.albedoTexture = "contrail_albedo";
-    }
-
-    // XML parsing helper methods
-    std::string MaterialManager::ExtractAttributeValue(const std::string &xml, const std::string &attributeName)
-    {
-        std::string searchStr = attributeName + "=\"";
-        size_t start = xml.find(searchStr);
-        if (start == std::string::npos)
-            return "";
-
-        start += searchStr.length();
-        size_t end = xml.find("\"", start);
-        if (end == std::string::npos)
-            return "";
-
-        return xml.substr(start, end - start);
-    }
-
-    std::string MaterialManager::ExtractTagValue(const std::string &xml, const std::string &tagName)
-    {
-        std::string openTag = "<" + tagName + ">";
-        std::string closeTag = "</" + tagName + ">";
-
-        size_t start = xml.find(openTag);
-        if (start == std::string::npos)
-            return "";
-
-        start += openTag.length();
-        size_t end = xml.find(closeTag, start);
-        if (end == std::string::npos)
-            return "";
-
-        return xml.substr(start, end - start);
-    }
-
-    void MaterialManager::ParseColorProperty(const std::string &xml, const std::string &propName, Math::float3 &colorValue)
-    {
-        std::string startTag = "<" + propName;
-        size_t start = xml.find(startTag);
-        if (start == std::string::npos)
-            return;
-
-        std::string r = ExtractAttributeValue(xml.substr(start), "r");
-        std::string g = ExtractAttributeValue(xml.substr(start), "g");
-        std::string b = ExtractAttributeValue(xml.substr(start), "b");
-
-        if (!r.empty())
-            colorValue.x = std::stof(r);
-        if (!g.empty())
-            colorValue.y = std::stof(g);
-        if (!b.empty())
-            colorValue.z = std::stof(b);
-    }
-
-    void MaterialManager::ParseFloatProperty(const std::string &xml, const std::string &propName, float &floatValue)
-    {
-        std::string value = ExtractTagValue(xml, propName);
-        if (!value.empty())
-        {
-            try
-            {
-                floatValue = std::stof(value);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "Error parsing float property " << propName << ": " << e.what() << std::endl;
-            }
-        }
-    }
-
-    void MaterialManager::ParseIntProperty(const std::string &xml, const std::string &propName, int &intValue)
-    {
-        std::string value = ExtractTagValue(xml, propName);
-        if (!value.empty())
-        {
-            try
-            {
-                intValue = std::stoi(value);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "Error parsing int property " << propName << ": " << e.what() << std::endl;
-            }
-        }
-    }
-
-    void MaterialManager::ParseBoolProperty(const std::string &xml, const std::string &propName, bool &boolValue)
-    {
-        std::string value = ExtractTagValue(xml, propName);
-        if (!value.empty())
-        {
-            boolValue = (value == "true" || value == "1");
-        }
     }
 }

@@ -72,7 +72,7 @@ private:
     void DrawCube(float x, float y, float z, float size, float r, float g, float b);
 
     /**
-     * @brief Get RGB color from material properties loaded from XML.
+     * @brief Get RGB color from material properties loaded from JSON.
      *
      * @param materialId The material ID to look up
      * @return Color components as vec3 (r, g, b) in range 0.0-1.0

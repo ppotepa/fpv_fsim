@@ -118,19 +118,13 @@ namespace Material
         MaterialProperties CreateCloudProperties(float coverage, float density);
         MaterialProperties CreateContrailProperties(const Math::float3 &color);
 
+        // Material loading methods
+        bool LoadMaterialsFromJsonPackages();
+
         // Texture assignment helpers
         void AssignEarthTextures(MaterialProperties &properties, float radius, int detailLevel);
         void AssignAtmosphereTextures(MaterialProperties &properties, int layer);
         void AssignCloudTextures(MaterialProperties &properties, float coverage);
         void AssignContrailTextures(MaterialProperties &properties);
-
-        // XML parsing helpers
-        std::string ExtractAttributeValue(const std::string &xml, const std::string &attributeName);
-        std::string ExtractTagValue(const std::string &xml, const std::string &tagName);
-        void ParseColorProperty(const std::string &xml, const std::string &propName, Math::float3 &colorValue);
-        void ParseFloatProperty(const std::string &xml, const std::string &propName, float &floatValue);
-        void ParseIntProperty(const std::string &xml, const std::string &propName, int &intValue);
-        void ParseBoolProperty(const std::string &xml, const std::string &propName, bool &boolValue);
     };
 }
-

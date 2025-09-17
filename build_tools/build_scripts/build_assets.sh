@@ -126,8 +126,8 @@ CODEGEN_ARGS=(
 
 "$CODEGEN_EXE" "${CODEGEN_ARGS[@]}"
 
-# Process each package
-find "$ASSETS_DIR" -name "package.xml" -type f | while read -r PACKAGE_FILE; do
+# Process each JSON package
+find "$ASSETS_DIR" -name "package.json" -type f | while read -r PACKAGE_FILE; do
     echo "Processing package: $PACKAGE_FILE"
     
     COMPILER_ARGS=(

@@ -80,8 +80,7 @@ VisualizationSystem::VisualizationSystem(EventBus &eventBus, World &world, HWND 
     debugCamera->setCameraState(
         DebugCamera::Vector3(camera->position.x, camera->position.y, camera->position.z),
         DebugCamera::Vector3(camera->direction.x, camera->direction.y, camera->direction.z),
-        DebugCamera::Vector3(camera->up.x, camera->up.y, camera->up.z)
-    );
+        DebugCamera::Vector3(camera->up.x, camera->up.y, camera->up.z));
 
     DEBUG_LOG("Debug camera initialized");
 
@@ -115,7 +114,8 @@ void VisualizationSystem::update(World &world, float deltaTime)
     glContext.MakeCurrent();
 
     // Update debug camera if active
-    if (debugCamera) {
+    if (debugCamera)
+    {
         debugCamera->update(deltaTime);
     }
 
@@ -138,9 +138,10 @@ void VisualizationSystem::update(World &world, float deltaTime)
         glRenderer.SetupCamera(camera->fov, aspect, camera->nearPlane, camera->farPlane);
 
         // Use debug camera coordinates if debug mode is active
-        if (debugModeActive && debugCamera) {
-            const auto& debugState = debugCamera->getCameraState();
-            
+        if (debugModeActive && debugCamera)
+        {
+            const auto &debugState = debugCamera->getCameraState();
+
             // Calculate look-at point based on debug camera position and direction
             float lookAtX = debugState.position.x + debugState.direction.x;
             float lookAtY = debugState.position.y + debugState.direction.y;
@@ -149,16 +150,18 @@ void VisualizationSystem::update(World &world, float deltaTime)
             glRenderer.SetCameraView(
                 debugState.position.x, debugState.position.y, debugState.position.z,
                 lookAtX, lookAtY, lookAtZ,
-                debugState.up.x, debugState.up.y, debugState.up.z
-            );
+                debugState.up.x, debugState.up.y, debugState.up.z);
 
             // Debug output for debug camera
-            if (frameCount % 300 == 0) {
+            if (frameCount % 300 == 0)
+            {
                 DEBUG_LOG("Debug Camera position: (" + std::to_string(debugState.position.x) + ", " +
                           std::to_string(debugState.position.y) + ", " + std::to_string(debugState.position.z) + ")");
                 DEBUG_LOG("Debug Camera looking at: (" + std::to_string(lookAtX) + ", " + std::to_string(lookAtY) + ", " + std::to_string(lookAtZ) + ")");
             }
-        } else {
+        }
+        else
+        {
             // Use normal camera
             // Calculate look-at point based on camera position and direction
             float lookAtX = camera->position.x + camera->direction.x;
@@ -172,7 +175,8 @@ void VisualizationSystem::update(World &world, float deltaTime)
             );
 
             // Debug output for normal camera
-            if (frameCount % 300 == 0) {
+            if (frameCount % 300 == 0)
+            {
                 DEBUG_LOG("Camera position: (" + std::to_string(camera->position.x) + ", " +
                           std::to_string(camera->position.y) + ", " + std::to_string(camera->position.z) + ")");
                 DEBUG_LOG("Looking at: (" + std::to_string(lookAtX) + ", " + std::to_string(lookAtY) + ", " + std::to_string(lookAtZ) + ")");
@@ -233,18 +237,21 @@ void VisualizationSystem::OnConsoleVisibilityChanged(const ConsoleVisibilityChan
 void VisualizationSystem::OnDebugModeToggled(const DebugModeToggled &event)
 {
     debugModeActive = event.isActive;
-    
-    if (debugModeActive) {
+
+    if (debugModeActive)
+    {
         // Sync debug camera with current camera position when entering debug mode
-        if (camera && debugCamera) {
+        if (camera && debugCamera)
+        {
             debugCamera->setCameraState(
                 DebugCamera::Vector3(camera->position.x, camera->position.y, camera->position.z),
                 DebugCamera::Vector3(camera->direction.x, camera->direction.y, camera->direction.z),
-                DebugCamera::Vector3(camera->up.x, camera->up.y, camera->up.z)
-            );
+                DebugCamera::Vector3(camera->up.x, camera->up.y, camera->up.z));
         }
         DEBUG_LOG("Debug mode activated - free camera enabled");
-    } else {
+    }
+    else
+    {
         DEBUG_LOG("Debug mode deactivated - normal camera resumed");
     }
 }
@@ -324,7 +331,7 @@ void VisualizationSystem::RenderEntities()
             float z = transform->position.z;
             float radius = 1.0f; // Default radius
 
-            // Load color dynamically from MaterialManager using XML-defined material properties
+            // Load color dynamically from MaterialManager using JSON-defined material properties
             Color color = GetMaterialColor(renderable->materialId);
 
             // Debug output for rendered entities (occasional)
@@ -364,58 +371,58 @@ void VisualizationSystem::RenderDebugModeIndicator()
 {
     // Render debug mode indicator in upper right corner
     // Since text rendering is not fully implemented, we'll draw a simple colored rectangle
-    
+
     // Get window dimensions
     RECT rect;
     GetClientRect(hwnd, &rect);
     float screenWidth = static_cast<float>(rect.right - rect.left);
     float screenHeight = static_cast<float>(rect.bottom - rect.top);
-    
+
     // Switch to 2D rendering mode
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
     glOrtho(0.0, screenWidth, screenHeight, 0.0, -1.0, 1.0);
-    
+
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    
+
     // Disable depth testing for UI overlay
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
+
     // Draw a red rectangle in the upper right corner as debug indicator
     float indicatorWidth = 120.0f;
     float indicatorHeight = 30.0f;
     float margin = 10.0f;
-    
+
     float x = screenWidth - indicatorWidth - margin;
     float y = margin;
-    
+
     glColor4f(1.0f, 0.0f, 0.0f, 0.7f); // Semi-transparent red
     glBegin(GL_QUADS);
-        glVertex2f(x, y);
-        glVertex2f(x + indicatorWidth, y);
-        glVertex2f(x + indicatorWidth, y + indicatorHeight);
-        glVertex2f(x, y + indicatorHeight);
+    glVertex2f(x, y);
+    glVertex2f(x + indicatorWidth, y);
+    glVertex2f(x + indicatorWidth, y + indicatorHeight);
+    glVertex2f(x, y + indicatorHeight);
     glEnd();
-    
+
     // Draw border
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f); // White border
     glLineWidth(2.0f);
     glBegin(GL_LINE_LOOP);
-        glVertex2f(x, y);
-        glVertex2f(x + indicatorWidth, y);
-        glVertex2f(x + indicatorWidth, y + indicatorHeight);
-        glVertex2f(x, y + indicatorHeight);
+    glVertex2f(x, y);
+    glVertex2f(x + indicatorWidth, y);
+    glVertex2f(x + indicatorWidth, y + indicatorHeight);
+    glVertex2f(x, y + indicatorHeight);
     glEnd();
-    
+
     // Restore 3D rendering mode
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
-    
+
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
@@ -423,7 +430,7 @@ void VisualizationSystem::RenderDebugModeIndicator()
 
     // Render the debug cube at origin (0, 0, 0) in 3D world space
     DrawCube(0.0f, 0.0f, 0.0f, 2.0f, 1.0f, 1.0f, 1.0f); // White cube with 2 unit size
-    
+
     // Log debug info occasionally
     static int frameCount = 0;
     if (frameCount++ % 300 == 0) // Log every 5 seconds at 60fps
@@ -479,54 +486,54 @@ void VisualizationSystem::DrawCube(float x, float y, float z, float size, float 
 
     // Draw the cube using OpenGL immediate mode
     float halfSize = size * 0.5f;
-    
+
     glColor3f(r, g, b);
     glBegin(GL_QUADS);
-    
+
     // Front face
     glVertex3f(x - halfSize, y - halfSize, z + halfSize);
     glVertex3f(x + halfSize, y - halfSize, z + halfSize);
     glVertex3f(x + halfSize, y + halfSize, z + halfSize);
     glVertex3f(x - halfSize, y + halfSize, z + halfSize);
-    
+
     // Back face
     glVertex3f(x - halfSize, y - halfSize, z - halfSize);
     glVertex3f(x - halfSize, y + halfSize, z - halfSize);
     glVertex3f(x + halfSize, y + halfSize, z - halfSize);
     glVertex3f(x + halfSize, y - halfSize, z - halfSize);
-    
+
     // Top face
     glVertex3f(x - halfSize, y + halfSize, z - halfSize);
     glVertex3f(x - halfSize, y + halfSize, z + halfSize);
     glVertex3f(x + halfSize, y + halfSize, z + halfSize);
     glVertex3f(x + halfSize, y + halfSize, z - halfSize);
-    
+
     // Bottom face
     glVertex3f(x - halfSize, y - halfSize, z - halfSize);
     glVertex3f(x + halfSize, y - halfSize, z - halfSize);
     glVertex3f(x + halfSize, y - halfSize, z + halfSize);
     glVertex3f(x - halfSize, y - halfSize, z + halfSize);
-    
+
     // Right face
     glVertex3f(x + halfSize, y - halfSize, z - halfSize);
     glVertex3f(x + halfSize, y + halfSize, z - halfSize);
     glVertex3f(x + halfSize, y + halfSize, z + halfSize);
     glVertex3f(x + halfSize, y - halfSize, z + halfSize);
-    
+
     // Left face
     glVertex3f(x - halfSize, y - halfSize, z - halfSize);
     glVertex3f(x - halfSize, y - halfSize, z + halfSize);
     glVertex3f(x - halfSize, y + halfSize, z + halfSize);
     glVertex3f(x - halfSize, y + halfSize, z - halfSize);
-    
+
     glEnd();
 }
 
 /**
- * @brief Get RGB color from material properties loaded from XML.
+ * @brief Get RGB color from material properties loaded from JSON.
  *
  * Dynamically retrieves material color from MaterialManager instead of
- * using hardcoded lookup table. This allows colors to be configured via XML.
+ * using hardcoded lookup table. This allows colors to be configured via JSON.
  *
  * @param materialId The material ID to look up
  * @return Color struct with r, g, b components in range 0.0-1.0

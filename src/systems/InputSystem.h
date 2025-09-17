@@ -14,7 +14,7 @@
  * @class InputSystem
  * @brief Enhanced input system with configurable key bindings and input handling
  *
- * This system manages user input through configurable key bindings loaded from XML.
+ * This system manages user input through configurable key bindings loaded from JSON.
  * It supports keyboard, mouse, and gamepad input with context-sensitive binding sets.
  */
 class InputSystem : public ISystem
@@ -29,7 +29,7 @@ public:
 
     /**
      * @brief Load input configuration from file
-     * @param configPath Path to input configuration XML file
+     * @param configPath Path to input configuration JSON file
      * @return True if loaded successfully, false otherwise
      */
     bool loadConfiguration(const std::string &configPath);

@@ -107,11 +107,11 @@ if (-not (Test-Path $OutputDir)) {
 # Process assets
 Write-Host "Processing assets..." -ForegroundColor Yellow
 
-# Generate asset IDs
+# Generate asset IDs from JSON packages
 Write-Host "Generating asset ID mappings..." -ForegroundColor Cyan
 $CodegenArgs = @(
     "-o", "src/core/AssetIds.h"
-    "assets/packages/DeveloperPackage/package.xml"
+    "assets/packages/core/package.json"
 )
 
 & $CodegenExe @CodegenArgs
@@ -120,8 +120,8 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# Process each package
-$PackageFiles = Get-ChildItem -Path $AssetsDir -Name "package.xml" -Recurse
+# Process each JSON package
+$PackageFiles = Get-ChildItem -Path $AssetsDir -Name "package.json" -Recurse
 
 foreach ($PackageFile in $PackageFiles) {
     $FullPath = Join-Path $AssetsDir $PackageFile

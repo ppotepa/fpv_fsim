@@ -19,7 +19,7 @@ namespace EntityFactory
 }
 
 /**
- * Generic world generation system using XML-driven scene configuration.
+ * Generic world generation system using JSON-driven scene configuration.
  * Supports all scene types through SceneConfigParser and VoxelMeshGenerator.
  */
 class WorldGenSystem : public ISystem
@@ -30,7 +30,6 @@ public:
 
     void update(World &world, float deltaTime) override;
     void GenerateDefaultSphereWorld();
-    void GenerateWorldFromXMLScene(const std::string &sceneXml);
     void GenerateWorldFromSceneFile(const std::string &sceneFilePath);
     void LoadScene(const SceneConfig::Scene &scene);
     bool LoadScene(const std::string &sceneType);
@@ -57,9 +56,9 @@ private:
     void OnNoPackagesFound(const NoPackagesFoundEvent &event);
     void OnDefaultWorldRequested(const DefaultWorldGeneratedEvent &event);
 
-    // XML-based entity creation helpers
-    void CreateLoadingIndicatorEntitiesFromXmlStructure(unsigned int &nextEntityId, int &entitiesCreated);
-    void CreateDefaultSphereEntitiesFromXmlStructure(unsigned int &nextEntityId, int &entitiesCreated);
+    // JSON-based entity creation helpers
+    void CreateLoadingIndicatorEntitiesFromJsonStructure(unsigned int &nextEntityId, int &entitiesCreated);
+    void CreateDefaultSphereEntitiesFromJsonStructure(unsigned int &nextEntityId, int &entitiesCreated);
 
     // Legacy material methods (will be removed when MaterialManager is fully integrated)
     AssetId GetEarthMaterialId();
@@ -69,4 +68,3 @@ private:
     // Helper method to convert MaterialId to numeric AssetId
     AssetId MaterialIdToAssetId(const std::string &materialId);
 };
-
