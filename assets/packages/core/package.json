@@ -93,6 +93,40 @@
                     "a": 1.0
                 },
                 "shininess": 16.0
+            },
+            {
+                "id": "earthOceanMaterial",
+                "name": "Earth Ocean Material",
+                "diffuseColor": {
+                    "r": 0.1,
+                    "g": 0.3,
+                    "b": 0.8,
+                    "a": 1.0
+                },
+                "specularColor": {
+                    "r": 0.3,
+                    "g": 0.6,
+                    "b": 1.0,
+                    "a": 1.0
+                },
+                "shininess": 128.0
+            },
+            {
+                "id": "earthLandMaterial",
+                "name": "Earth Land Material",
+                "diffuseColor": {
+                    "r": 0.2,
+                    "g": 0.7,
+                    "b": 0.1,
+                    "a": 1.0
+                },
+                "specularColor": {
+                    "r": 0.3,
+                    "g": 0.8,
+                    "b": 0.2,
+                    "a": 1.0
+                },
+                "shininess": 64.0
             }
         ],
         "meshes": [
@@ -132,6 +166,64 @@
                     "type": "triangle",
                     "size": 0.8,
                     "uvMapping": true
+                }
+            },
+            {
+                "id": "earthSphereMesh",
+                "name": "Earth Sphere Mesh",
+                "type": "procedural",
+                "primitive": {
+                    "type": "sphere",
+                    "radius": 2.0,
+                    "segments": {
+                        "horizontal": 32,
+                        "vertical": 24
+                    },
+                    "uvMapping": true,
+                    "terrainGeneration": {
+                        "enabled": true,
+                        "noiseAmplitude": 0.15,
+                        "noiseLayers": [
+                            {
+                                "name": "continental",
+                                "amplitude": 0.5,
+                                "frequency": {
+                                    "latitude": 3.0,
+                                    "longitude": 2.0
+                                },
+                                "type": "sine_cosine"
+                            },
+                            {
+                                "name": "mountain_ranges",
+                                "amplitude": 0.3,
+                                "frequency": {
+                                    "latitude": 7.0,
+                                    "longitude": 5.0,
+                                    "latitudeOffset": 4.0
+                                },
+                                "type": "sine_cosine_complex"
+                            },
+                            {
+                                "name": "local_variation",
+                                "amplitude": 0.2,
+                                "frequency": {
+                                    "latitude": 15.0,
+                                    "longitude": 12.0
+                                },
+                                "type": "sine"
+                            },
+                            {
+                                "name": "detail_noise",
+                                "amplitude": 0.1,
+                                "frequency": {
+                                    "latitude": 23.7,
+                                    "longitude": 17.3
+                                },
+                                "type": "sine"
+                            }
+                        ],
+                        "normalizationFactor": 1.1
+                    }
                 }
             }
         ]
@@ -481,6 +573,41 @@
             ]
         }
     ],
+    "terrainGeneration": {
+        "noiseAmplitude": 0.15,
+        "normalizationFactor": 1.1,
+        "meshes": [
+            {
+                "name": "earthLandSphere"
+            }
+        ],
+        "noiseLayers": [
+            {
+                "type": "sine_cosine",
+                "amplitude": 0.5,
+                "frequency": 3.0,
+                "phase": 0.0
+            },
+            {
+                "type": "sine_cosine_complex",
+                "amplitude": 0.3,
+                "frequency": 7.0,
+                "phase": 4.0
+            },
+            {
+                "type": "sine",
+                "amplitude": 0.2,
+                "frequency": 15.0,
+                "phase": 0.0
+            },
+            {
+                "type": "sine",
+                "amplitude": 0.1,
+                "frequency": 23.7,
+                "phase": 0.0
+            }
+        ]
+    },
     "behaviors": [
         {
             "class": "core.SpinBehavior",

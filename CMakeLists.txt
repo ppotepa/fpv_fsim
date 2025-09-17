@@ -54,6 +54,8 @@ set(SOURCES
     src/factory/BehaviorRegistry.cpp
     src/behaviors/SpinBehavior.cpp
     src/behaviors/DebugOverlayBehavior.cpp
+    # Terrain generation
+    src/generators/TerrainGenerator.cpp
     # Platform - JSON parsing instead of XML
     src/platform/NlohmannJsonParser.cpp
 )

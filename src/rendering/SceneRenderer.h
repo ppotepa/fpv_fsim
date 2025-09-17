@@ -3,12 +3,18 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <cmath>
 #include <GL/gl.h>
 #include <windows.h>
 #include "../core/AssetManager.h"
 #include "../assets/AssetRegistry.h"
 #include "../components/Transform.h"
 #include "../systems/MaterialManager.h"
+#include "../generators/TerrainGenerator.h"
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 /**
  * @brief Simple class to render a scene with multiple objects
@@ -45,58 +51,38 @@ public:
             materialManager_->LoadDefaultMaterials();
         }
         
+        // Initialize TerrainGenerator and load terrain config from JSON packages
+        terrainGenerator_ = std::make_unique<Terrain::TerrainGenerator>();
+        if (!terrainGenerator_->LoadTerrainConfig("assets/packages/core/package.json"))
+        {
+            // Log warning but continue - terrain generation will be disabled
+            // DEBUG_LOG would be here but we'll continue without terrain
+        }
+        
         // TODO: In a real implementation, we would load the scene from the asset manager
         // For now, we'll load entities from the JSON package data
         // The main.cpp should eventually use WorldGenSystem to load entities from packages
         
         // Load entities from JSON package instead of hardcoded cubes
-        // These should match what's defined in assets/packages/core/package.json
+        // Create Earth rendering with ocean and land spheres
         
-        // Load red cube entity from package
-        RenderObject redCube;
-        redCube.meshId = "cubeMesh";  // From package.json meshes
-        redCube.materialId = "redCubeMaterial";  // From package.json materials
-        redCube.transform.position = {0.0f, 0.0f, 0.0f};  // From package.json redCube entity
-        redCube.transform.scale = {1.0f, 1.0f, 1.0f};
-        redCube.rotationSpeedY = 45.0f;  // From package.json redCube behavior parameters
-        objects_.push_back(redCube);
-
-        // Load violet cube entity from package  
-        RenderObject violetCube;
-        violetCube.meshId = "cubeMesh";  // From package.json meshes
-        violetCube.materialId = "violetCubeMaterial";  // From package.json materials
-        violetCube.transform.position = {2.5f, 0.0f, 0.0f};  // From package.json violetCube entity
-        violetCube.transform.scale = {1.0f, 1.0f, 1.0f};
-        violetCube.rotationSpeedX = 60.0f;  // From package.json violetCube behavior parameters
-        objects_.push_back(violetCube);
-
-        // Load blue cube entity from package
-        RenderObject blueCube;
-        blueCube.meshId = "cubeMesh";  // From package.json meshes
-        blueCube.materialId = "blueCubeMaterial";  // From package.json materials
-        blueCube.transform.position = {-2.5f, 0.0f, 0.0f};  // From package.json blueCube entity
-        blueCube.transform.scale = {1.0f, 1.0f, 1.0f};
-        blueCube.rotationSpeedZ = 30.0f;  // From package.json blueCube behavior parameters
-        objects_.push_back(blueCube);
-
-        // Load green sphere entity from package
-        RenderObject greenSphere;
-        greenSphere.meshId = "sphereMesh";  // From package.json meshes
-        greenSphere.materialId = "greenSphereMaterial";  // From package.json materials
-        greenSphere.transform.position = {0.0f, 2.0f, 0.0f};  // From package.json greenSphere entity
-        greenSphere.transform.scale = {1.5f, 1.5f, 1.5f};
-        greenSphere.rotationSpeedX = 15.0f;  // From package.json greenSphere behavior (rotates on X+Y axis)
-        greenSphere.rotationSpeedY = 15.0f;
-        objects_.push_back(greenSphere);
-
-        // Load yellow triangle formation from package
-        RenderObject triangle1;
-        triangle1.meshId = "triangleMesh";  // From package.json meshes
-        triangle1.materialId = "yellowTriangleMaterial";  // From package.json materials
-        triangle1.transform.position = {1.0f, -1.5f, 0.0f};  // From package.json yellowTriangle1 entity
-        triangle1.transform.scale = {0.8f, 0.8f, 0.8f};
-        triangle1.rotationSpeedY = 90.0f;  // From package.json yellowTriangle1 behavior parameters
-        objects_.push_back(triangle1);
+        // Create Ocean sphere (blue water base)
+        RenderObject oceanSphere;
+        oceanSphere.meshId = "earthSphereMesh";  // From package.json meshes - higher detail sphere
+        oceanSphere.materialId = "earthOceanMaterial";  // From package.json materials - blue ocean
+        oceanSphere.transform.position = {0.0f, 0.0f, 0.0f};  // Centered at origin
+        oceanSphere.transform.scale = {1.0f, 1.0f, 1.0f};  // Base Earth size
+        oceanSphere.rotationSpeedY = 10.0f;  // Slow rotation to show Earth spinning
+        objects_.push_back(oceanSphere);
+        
+        // Create Land sphere (green continents with noise)
+        RenderObject landSphere;
+        landSphere.meshId = "earthSphereMesh";  // From package.json meshes - same high detail sphere
+        landSphere.materialId = "earthLandMaterial";  // From package.json materials - green land
+        landSphere.transform.position = {0.0f, 0.0f, 0.0f};  // Same position as ocean
+        landSphere.transform.scale = {1.01f, 1.01f, 1.01f};  // Slightly larger to appear above water
+        landSphere.rotationSpeedY = 10.0f;  // Same rotation as ocean for synchronized spinning
+        objects_.push_back(landSphere);
 
         RenderObject triangle2;
         triangle2.meshId = "triangleMesh";  // From package.json meshes
@@ -201,6 +187,18 @@ public:
             else if (obj.meshId == "sphereMesh")
             {
                 renderSphere();
+            }
+            else if (obj.meshId == "earthSphereMesh")
+            {
+                // Check if this is the land sphere (needs irregular terrain)
+                if (obj.materialId == "earthLandMaterial")
+                {
+                    renderEarthLandSphere();
+                }
+                else
+                {
+                    renderEarthOceanSphere();
+                }
             }
             else if (obj.meshId == "triangleMesh")
             {
@@ -333,7 +331,137 @@ private:
         glEnd();
     }
 
+    // Helper to render a perfect sphere for Earth's ocean
+    void renderEarthOceanSphere()
+    {
+        // Render a smooth, perfect sphere for ocean
+        const int latSegments = 24;  // Vertical segments
+        const int lonSegments = 32;  // Horizontal segments
+        const float radius = 1.0f;   // Will be scaled by transform
+        
+        glBegin(GL_TRIANGLES);
+        
+        for (int lat = 0; lat < latSegments; ++lat) {
+            float lat0 = (float)lat / latSegments * M_PI - M_PI/2;
+            float lat1 = (float)(lat + 1) / latSegments * M_PI - M_PI/2;
+            
+            float y0 = radius * sin(lat0);
+            float y1 = radius * sin(lat1);
+            float r0 = radius * cos(lat0);
+            float r1 = radius * cos(lat1);
+            
+            for (int lon = 0; lon < lonSegments; ++lon) {
+                float lon0 = (float)lon / lonSegments * 2 * M_PI;
+                float lon1 = (float)(lon + 1) / lonSegments * 2 * M_PI;
+                
+                float x00 = r0 * cos(lon0);
+                float z00 = r0 * sin(lon0);
+                float x01 = r0 * cos(lon1);
+                float z01 = r0 * sin(lon1);
+                float x10 = r1 * cos(lon0);
+                float z10 = r1 * sin(lon0);
+                float x11 = r1 * cos(lon1);
+                float z11 = r1 * sin(lon1);
+                
+                // First triangle
+                glVertex3f(x00, y0, z00);
+                glVertex3f(x10, y1, z10);
+                glVertex3f(x01, y0, z01);
+                
+                // Second triangle
+                glVertex3f(x01, y0, z01);
+                glVertex3f(x10, y1, z10);
+                glVertex3f(x11, y1, z11);
+            }
+        }
+        
+        glEnd();
+    }
+
+    // Helper to render an irregular sphere for Earth's land with terrain noise
+    void renderEarthLandSphere()
+    {
+        // Render an irregular sphere with noise for land terrain
+        const int latSegments = 24;  // Vertical segments
+        const int lonSegments = 32;  // Horizontal segments
+        const float baseRadius = 1.0f;   // Base radius
+        
+        // Get noise amplitude from terrain generator config
+        float noiseAmplitude = 0.15f;  // Default fallback
+        if (terrainGenerator_ && terrainGenerator_->IsConfigLoaded())
+        {
+            noiseAmplitude = 0.15f; // Use default for now, terrain generation in GenerateTerrainNoise
+        }
+        
+        glBegin(GL_TRIANGLES);
+        
+        for (int lat = 0; lat < latSegments; ++lat) {
+            float lat0 = (float)lat / latSegments * M_PI - M_PI/2;
+            float lat1 = (float)(lat + 1) / latSegments * M_PI - M_PI/2;
+            
+            for (int lon = 0; lon < lonSegments; ++lon) {
+                float lon0 = (float)lon / lonSegments * 2 * M_PI;
+                float lon1 = (float)(lon + 1) / lonSegments * 2 * M_PI;
+                
+                // Generate terrain noise for each vertex using TerrainGenerator
+                float noise00 = 0.0f;
+                float noise01 = 0.0f;
+                float noise10 = 0.0f;
+                float noise11 = 0.0f;
+                
+                if (terrainGenerator_ && terrainGenerator_->IsConfigLoaded())
+                {
+                    noise00 = terrainGenerator_->GenerateTerrainNoise(lat0, lon0);
+                    noise01 = terrainGenerator_->GenerateTerrainNoise(lat0, lon1);
+                    noise10 = terrainGenerator_->GenerateTerrainNoise(lat1, lon0);
+                    noise11 = terrainGenerator_->GenerateTerrainNoise(lat1, lon1);
+                }
+                
+                // Apply noise to radius for terrain variation
+                float radius00 = baseRadius + noise00 * noiseAmplitude;
+                float radius01 = baseRadius + noise01 * noiseAmplitude;
+                float radius10 = baseRadius + noise10 * noiseAmplitude;
+                float radius11 = baseRadius + noise11 * noiseAmplitude;
+                
+                // Calculate positions with terrain-modified radius
+                float y0 = sin(lat0);
+                float y1 = sin(lat1);
+                float r0_base = cos(lat0);
+                float r1_base = cos(lat1);
+                
+                float x00 = radius00 * r0_base * cos(lon0);
+                float z00 = radius00 * r0_base * sin(lon0);
+                float y00 = radius00 * y0;
+                
+                float x01 = radius01 * r0_base * cos(lon1);
+                float z01 = radius01 * r0_base * sin(lon1);
+                float y01 = radius01 * y0;
+                
+                float x10 = radius10 * r1_base * cos(lon0);
+                float z10 = radius10 * r1_base * sin(lon0);
+                float y10 = radius10 * y1;
+                
+                float x11 = radius11 * r1_base * cos(lon1);
+                float z11 = radius11 * r1_base * sin(lon1);
+                float y11 = radius11 * y1;
+                
+                // First triangle
+                glVertex3f(x00, y00, z00);
+                glVertex3f(x10, y10, z10);
+                glVertex3f(x01, y01, z01);
+                
+                // Second triangle
+                glVertex3f(x01, y01, z01);
+                glVertex3f(x10, y10, z10);
+                glVertex3f(x11, y11, z11);
+            }
+        }
+        
+        glEnd();
+    }
+    
     std::string sceneAssetId_;
     std::vector<RenderObject> objects_;
     std::unique_ptr<Material::MaterialManager> materialManager_;
+    std::unique_ptr<Terrain::TerrainGenerator> terrainGenerator_;
 };
