@@ -1,239 +1,244 @@
 #include "BootstrapSystem.h"
 #include "events/WorldGenEvents.h"
-#include "../assets/AssetCompilerService.h"
+#include "../    // Check for any .json package files
+for (const auto &entry : std::filesystem::directory_iterator(packagesDir))
+{
+    if (entry.is_regular_file() && entry.path().extension() == ".json")
+        ts / AssetCompilerService.h "
 #include <iostream>
 #include <filesystem>
 #include "../debug.h"
 
-BootstrapSystem::BootstrapSystem(EventBus &eventBus, World &world, AssetRegistry &assetRegistry, AssetPackLoader &assetLoader)
-    : eventBus(eventBus), worldRef(world), assetRegistry_(assetRegistry), assetLoader_(assetLoader), initialized(false)
-{
-    DEBUG_LOG("Initializing BootstrapSystem");
-}
-
-void BootstrapSystem::update(World &world, float deltaTime)
-{
-    // Bootstrap system doesn't need continuous updates
-}
-
-void BootstrapSystem::Init()
-{
-    DEBUG_LOG("Initializing bootstrap system");
-    if (initialized)
-        return;
-
-    DEBUG_LOG("Initializing bootstrap system...");
-
-    // Initialize and run asset compilation
-    InitializeAssetCompilation();
-
-    // Try to load available packages
-    bool packagesLoaded = LoadAvailablePackages();
-
-    if (!packagesLoaded)
-    {
-        DEBUG_LOG("No asset packages found, triggering default world generation...");
-        eventBus.publish(NoPackagesFoundEvent{});
-    }
-    else
-    {
-        DEBUG_LOG("Asset packages loaded successfully. Available packages:");
-        for (const auto &package : assetRegistry_.getLoadedPackages())
+             BootstrapSystem::BootstrapSystem(EventBus & eventBus, World & world, AssetRegistry & assetRegistry, AssetPackLoader & assetLoader)
+            : eventBus(eventBus),
+        worldRef(world), assetRegistry_(assetRegistry), assetLoader_(assetLoader), initialized(false)
         {
-            DEBUG_LOG("  - " << package);
+            DEBUG_LOG("Initializing BootstrapSystem");
         }
 
-        // Check if we have a default scene configuration to use for world generation
-        const std::string *defaultScene = assetRegistry_.getDefaultScene();
-        if (defaultScene != nullptr)
+    void BootstrapSystem::update(World & world, float deltaTime)
+    {
+        // Bootstrap system doesn't need continuous updates
+    }
+
+    void BootstrapSystem::Init()
+    {
+        DEBUG_LOG("Initializing bootstrap system");
+        if (initialized)
+            return;
+
+        DEBUG_LOG("Initializing bootstrap system...");
+
+        // Initialize and run asset compilation
+        InitializeAssetCompilation();
+
+        // Try to load available packages
+        bool packagesLoaded = LoadAvailablePackages();
+
+        if (!packagesLoaded)
         {
-            DEBUG_LOG("Found default scene configuration, triggering world generation from XML...");
-            // Trigger world generation with the loaded scene configuration
-            eventBus.publish(DefaultWorldGeneratedEvent{});
+            DEBUG_LOG("No asset packages found, triggering default world generation...");
+            eventBus.publish(NoPackagesFoundEvent{});
         }
         else
         {
-            DEBUG_LOG("No default scene found in loaded packages, falling back to default world generation...");
-            eventBus.publish(NoPackagesFoundEvent{});
+            DEBUG_LOG("Asset packages loaded successfully. Available packages:");
+            for (const auto &package : assetRegistry_.getLoadedPackages())
+            {
+                DEBUG_LOG("  - " << package);
+            }
+
+            // Check if we have a default scene configuration to use for world generation
+            const std::string *defaultScene = assetRegistry_.getDefaultScene();
+            if (defaultScene != nullptr)
+            {
+                DEBUG_LOG("Found default scene configuration, triggering world generation from XML...");
+                // Trigger world generation with the loaded scene configuration
+                eventBus.publish(DefaultWorldGeneratedEvent{});
+            }
+            else
+            {
+                DEBUG_LOG("No default scene found in loaded packages, falling back to default world generation...");
+                eventBus.publish(NoPackagesFoundEvent{});
+            }
         }
+
+        initialized = true;
     }
 
-    initialized = true;
-}
-
-void BootstrapSystem::PostFrameUpdate()
-{
-    DEBUG_LOG("Post-frame update in BootstrapSystem");
-    // Could handle hot-reloading here in the future
-}
-
-bool BootstrapSystem::CheckForAssetPackages()
-{
-    // Check if assets/packages directory exists and has package files
-    std::filesystem::path packagesDir = "assets/packages";
-
-    if (!std::filesystem::exists(packagesDir))
+    void BootstrapSystem::PostFrameUpdate()
     {
-        return false;
+        DEBUG_LOG("Post-frame update in BootstrapSystem");
+        // Could handle hot-reloading here in the future
     }
 
-    // Check for any .xml package files
-    for (const auto &entry : std::filesystem::recursive_directory_iterator(packagesDir))
+    bool BootstrapSystem::CheckForAssetPackages()
     {
-        if (entry.is_regular_file() && entry.path().extension() == ".xml")
+        // Check if assets/packages directory exists and has package files
+        std::filesystem::path packagesDir = "assets/packages";
+
+        if (!std::filesystem::exists(packagesDir))
         {
-            return true;
+            return false;
         }
-    }
 
-    // Check runtime/data/packs for .pak files
-    std::filesystem::path packsDir = "assets/runtime/data/packs";
-
-    if (std::filesystem::exists(packsDir))
-    {
-        for (const auto &entry : std::filesystem::directory_iterator(packsDir))
+        // Check for any .xml package files
+        for (const auto &entry : std::filesystem::recursive_directory_iterator(packagesDir))
         {
-            if (entry.is_regular_file() && entry.path().extension() == ".pak")
+            if (entry.is_regular_file() && entry.path().extension() == ".xml")
             {
                 return true;
             }
         }
-    }
 
-    return false;
-}
+        // Check runtime/data/packs for .pak files
+        std::filesystem::path packsDir = "assets/runtime/data/packs";
 
-bool BootstrapSystem::LoadAvailablePackages()
-{
-    DEBUG_LOG("Loading available packages");
-    std::filesystem::path packagesDir = "assets/packages";
+        if (std::filesystem::exists(packsDir))
+        {
+            for (const auto &entry : std::filesystem::directory_iterator(packsDir))
+            {
+                if (entry.is_regular_file() && entry.path().extension() == ".pak")
+                {
+                    return true;
+                }
+            }
+        }
 
-    if (!std::filesystem::exists(packagesDir))
-    {
         return false;
     }
 
-    bool loadedAny = false;
-
-    // Load DeveloperPackage first (fallback package)
-    std::filesystem::path devPackagePath = packagesDir / "DeveloperPackage" / "package.xml";
-    if (std::filesystem::exists(devPackagePath))
+    bool BootstrapSystem::LoadAvailablePackages()
     {
-        if (assetLoader_.loadPackage(devPackagePath.string()))
+        DEBUG_LOG("Loading available packages");
+        std::filesystem::path packagesDir = "assets/packages";
+
+        if (!std::filesystem::exists(packagesDir))
         {
-            loadedAny = true;
+            return false;
         }
-    }
 
-    // Load other packages
-    for (const auto &entry : std::filesystem::directory_iterator(packagesDir))
-    {
-        if (entry.is_directory() && entry.path().filename() != "DeveloperPackage")
+        bool loadedAny = false;
+
+        // Load DeveloperPackage first (fallback package)
+        std::filesystem::path devPackagePath = packagesDir / "DeveloperPackage" / "package.json";
+        if (std::filesystem::exists(devPackagePath))
         {
-            std::filesystem::path packageXml = entry.path() / "package.xml";
-            if (std::filesystem::exists(packageXml))
+            if (assetLoader_.loadPackage(devPackagePath.string()))
             {
-                if (assetLoader_.loadPackage(packageXml.string()))
+                loadedAny = true;
+            }
+        }
+
+        // Load other packages
+        for (const auto &entry : std::filesystem::directory_iterator(packagesDir))
+        {
+            if (entry.is_directory() && entry.path().filename() != "DeveloperPackage")
+            {
+                std::filesystem::path packageJson = entry.path() / "package.json";
+                if (std::filesystem::exists(packageJson))
                 {
-                    loadedAny = true;
+                    if (assetLoader_.loadPackage(packageJson.string()))
+                    {
+                        loadedAny = true;
+                    }
                 }
             }
         }
+
+        return loadedAny;
     }
 
-    return loadedAny;
-}
-
-void BootstrapSystem::InitializeAssetCompilation()
-{
-    DEBUG_LOG("Initializing asset compilation pipeline");
-    DEBUG_LOG("Initializing asset compilation pipeline...");
-
-    try
+    void BootstrapSystem::InitializeAssetCompilation()
     {
-        // Create asset compiler service
-        AssetCompilation::AssetCompilerService compiler;
-        compiler.setDebugMode(true);
-        compiler.setOptimizationLevel(1);
-        compiler.setOutputDirectory("runtime/data/compiled");
+        DEBUG_LOG("Initializing asset compilation pipeline");
+        DEBUG_LOG("Initializing asset compilation pipeline...");
 
-        // Compile assets from packages directory only
-        if (std::filesystem::exists("assets/packages"))
+        try
         {
-            DEBUG_LOG("Compiling assets from 'assets/packages' directory...");
-            auto results = compiler.compileDirectory("assets/packages", true);
+            // Create asset compiler service
+            AssetCompilation::AssetCompilerService compiler;
+            compiler.setDebugMode(true);
+            compiler.setOptimizationLevel(1);
+            compiler.setOutputDirectory("runtime/data/compiled");
 
-            int successful = 0;
-            int failed = 0;
-            int skipped = 0;
-
-            for (const auto &result : results)
+            // Compile assets from packages directory only
+            if (std::filesystem::exists("assets/packages"))
             {
-                if (result.success)
+                DEBUG_LOG("Compiling assets from 'assets/packages' directory...");
+                auto results = compiler.compileDirectory("assets/packages", true);
+
+                int successful = 0;
+                int failed = 0;
+                int skipped = 0;
+
+                for (const auto &result : results)
                 {
-                    if (result.errorMessage.find("skipped") != std::string::npos)
+                    if (result.success)
                     {
-                        skipped++;
+                        if (result.errorMessage.find("skipped") != std::string::npos)
+                        {
+                            skipped++;
+                        }
+                        else
+                        {
+                            successful++;
+                        }
                     }
                     else
                     {
-                        successful++;
+                        failed++;
+                        std::cerr << "Asset compilation failed: " << result.errorMessage << std::endl;
                     }
                 }
-                else
-                {
-                    failed++;
-                    std::cerr << "Asset compilation failed: " << result.errorMessage << std::endl;
-                }
+
+                DEBUG_LOG("Asset compilation completed: "
+                          << successful << " compiled, "
+                          << skipped << " skipped, "
+                          << failed << " failed");
             }
 
-            DEBUG_LOG("Asset compilation completed: "
-                      << successful << " compiled, "
-                      << skipped << " skipped, "
-                      << failed << " failed");
-        }
-
-        // Compile assets from packages
-        std::string packagesDir = "assets/packages";
-        if (std::filesystem::exists(packagesDir))
-        {
-            DEBUG_LOG("Compiling package assets...");
-
-            for (const auto &entry : std::filesystem::directory_iterator(packagesDir))
+            // Compile assets from packages
+            std::string packagesDir = "assets/packages";
+            if (std::filesystem::exists(packagesDir))
             {
-                if (entry.is_directory())
+                DEBUG_LOG("Compiling package assets...");
+
+                for (const auto &entry : std::filesystem::directory_iterator(packagesDir))
                 {
-                    std::string packagePath = entry.path().string();
-                    DEBUG_LOG("Compiling package: " << packagePath);
-
-                    auto results = compiler.compileAssetPackage(packagePath);
-
-                    for (const auto &result : results)
+                    if (entry.is_directory())
                     {
-                        if (!result.success && result.errorMessage.find("skipped") == std::string::npos)
+                        std::string packagePath = entry.path().string();
+                        DEBUG_LOG("Compiling package: " << packagePath);
+
+                        auto results = compiler.compileAssetPackage(packagePath);
+
+                        for (const auto &result : results)
                         {
-                            std::cerr << "Package asset compilation failed: " << result.errorMessage << std::endl;
+                            if (!result.success && result.errorMessage.find("skipped") == std::string::npos)
+                            {
+                                std::cerr << "Package asset compilation failed: " << result.errorMessage << std::endl;
+                            }
                         }
                     }
                 }
             }
+
+            // Print compilation statistics
+            const auto &stats = compiler.getStatistics();
+            DEBUG_LOG("Asset compilation statistics:");
+            DEBUG_LOG("  Assets compiled: " << stats.assetsCompiled);
+            DEBUG_LOG("  Assets skipped: " << stats.assetsSkipped);
+            DEBUG_LOG("  Total compilation time: " << stats.totalCompilationTime << "ms");
+
+            if (stats.totalInputSize > 0)
+            {
+                double compressionRatio = (double)stats.totalOutputSize / stats.totalInputSize;
+                DEBUG_LOG("  Compression ratio: " << (compressionRatio * 100.0) << "%");
+            }
         }
-
-        // Print compilation statistics
-        const auto &stats = compiler.getStatistics();
-        DEBUG_LOG("Asset compilation statistics:");
-        DEBUG_LOG("  Assets compiled: " << stats.assetsCompiled);
-        DEBUG_LOG("  Assets skipped: " << stats.assetsSkipped);
-        DEBUG_LOG("  Total compilation time: " << stats.totalCompilationTime << "ms");
-
-        if (stats.totalInputSize > 0)
+        catch (const std::exception &e)
         {
-            double compressionRatio = (double)stats.totalOutputSize / stats.totalInputSize;
-            DEBUG_LOG("  Compression ratio: " << (compressionRatio * 100.0) << "%");
+            std::cerr << "Error during asset compilation: " << e.what() << std::endl;
         }
     }
-    catch (const std::exception &e)
-    {
-        std::cerr << "Error during asset compilation: " << e.what() << std::endl;
-    }
-}

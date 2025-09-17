@@ -6,19 +6,19 @@
 
 // Additional BootstrapSystem method declarations
 private:
-    void InitializeInternalAssets(AssetManager& assetManager);
+void InitializeInternalAssets(AssetManager &assetManager);
 
 // Implementation in BootstrapSystem.cpp
-void BootstrapSystem::InitializeInternalAssets(AssetManager& assetManager)
+void BootstrapSystem::InitializeInternalAssets(AssetManager &assetManager)
 {
     DEBUG_LOG("Registering internal assets with asset registry");
-    
+
     if (!assetManager.isInitialized())
     {
         DEBUG_LOG("ERROR: AssetManager not initialized");
         return;
     }
-    
+
     // Register all internal assets with the AssetRegistry
     if (assetManager.registerWithAssetRegistry(assetRegistry_))
     {
@@ -39,13 +39,13 @@ void BootstrapSystem::Init()
         return;
 
     DEBUG_LOG("Initializing bootstrap system...");
-    
+
     // Initialize internal assets before running asset compilation
     InitializeInternalAssets(assetManager); // Get AssetManager instance from IoC or global
-    
+
     // Initialize and run asset compilation
     InitializeAssetCompilation();
-    
+
     // Rest of the method...
 }
 */

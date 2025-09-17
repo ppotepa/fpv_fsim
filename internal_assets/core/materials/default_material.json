@@ -1,0 +1,46 @@
+{
+    "material": {
+        "id": "default_material",
+        "name": "Default Material",
+        "shader": "default_shader",
+        "params": {
+            "albedo": {
+                "type": "color",
+                "r": 0.8,
+                "g": 0.8,
+                "b": 0.8,
+                "a": 1.0
+            },
+            "roughness": {
+                "type": "float",
+                "value": 0.5
+            },
+            "metallic": {
+                "type": "float",
+                "value": 0.0
+            },
+            "specular": {
+                "type": "float",
+                "value": 0.5
+            }
+        },
+        "textures": [
+            {
+                "name": "albedoMap",
+                "path": "textures/default.png"
+            },
+            {
+                "name": "normalMap",
+                "path": "textures/default_normal.png"
+            },
+            {
+                "name": "roughnessMap",
+                "path": "textures/default_roughness.png"
+            },
+            {
+                "name": "metallicMap",
+                "path": "textures/default_metallic.png"
+            }
+        ]
+    }
+}

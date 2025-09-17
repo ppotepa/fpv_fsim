@@ -2,9 +2,9 @@
 
 ## Constructors
 
-- `DroneBuilder(IXmlParser &xmlParser)`
+- `DroneBuilder(IJsonParser &jsonParser)`
 
-  **Summary:** Constructor taking XML parser reference.
+  **Summary:** Constructor taking JSON parser reference.
 
 ## Public Methods
 

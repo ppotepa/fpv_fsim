@@ -44,7 +44,7 @@ WorldGenSystem::WorldGenSystem(EventBus &eventBus, World &world, AssetRegistry &
 
     // Initialize EntityFactory
     entityFactory_ = std::make_unique<EntityFactory::EntityFactory>(eventBus, materialManager);
-    entityFactory_->loadConfiguration("configs/entity_factory_config.xml");
+    entityFactory_->loadConfiguration("configs/entity_factory_config.json");
 
     // Connect systems together
     materialManager_.SetTextureGenerator(textureGenerator_.get());

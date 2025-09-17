@@ -1,0 +1,28 @@
+{
+    "settings": {
+        "mouseSensitivity": 1.0,
+        "mouseInvertY": false,
+        "keyboardRepeatDelay": 300,
+        "keyboardRepeatRate": 50,
+        "gamepadDeadzone": 0.1,
+        "gamepadSensitivity": 1.0
+    },
+    "keyBindings": [
+        {
+            "action": "ToggleDebugConsole",
+            "key": "TILDE",
+            "modifiers": []
+        }
+    ],
+    "mouseBindings": [],
+    "gamepadBindings": [],
+    "contexts": [
+        {
+            "name": "Flight",
+            "activeBindings": [
+                "ToggleDebugConsole"
+            ]
+        }
+    ],
+    "defaultContext": "Flight"
+}

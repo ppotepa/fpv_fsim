@@ -1,0 +1,110 @@
+{
+    "internal_assets": {
+        "version": "1.0",
+        "description": "Internal Assets Configuration - Core internal assets required by the engine. These assets are used when user assets are not available.",
+        "assets": [
+            {
+                "id": "texture.default",
+                "type": "texture",
+                "path": "core/textures/default.png"
+            },
+            {
+                "id": "texture.default_normal",
+                "type": "texture",
+                "path": "core/textures/default_normal.png"
+            },
+            {
+                "id": "texture.default_roughness",
+                "type": "texture",
+                "path": "core/textures/default_roughness.png"
+            },
+            {
+                "id": "texture.default_metallic",
+                "type": "texture",
+                "path": "core/textures/default_metallic.png"
+            },
+            {
+                "id": "font.default",
+                "type": "font",
+                "path": "core/fonts/default.ttf"
+            },
+            {
+                "id": "audio.default",
+                "type": "audio",
+                "path": "core/audio/default.wav"
+            },
+            {
+                "id": "material.default",
+                "type": "material",
+                "path": "core/materials/default_material.json"
+            },
+            {
+                "id": "material.green",
+                "type": "material",
+                "path": "core/materials/green_material.json"
+            },
+            {
+                "id": "material.red",
+                "type": "material",
+                "path": "core/materials/red_material.json"
+            },
+            {
+                "id": "mesh.cube",
+                "type": "mesh",
+                "path": "core/meshes/cube.obj"
+            },
+            {
+                "id": "mesh.sphere",
+                "type": "mesh",
+                "path": "core/meshes/sphere.obj"
+            },
+            {
+                "id": "mesh.plane",
+                "type": "mesh",
+                "path": "core/meshes/plane.obj"
+            },
+            {
+                "id": "scene.green_cubes",
+                "type": "scene",
+                "path": "core/scenes/green_cubes_scene.json"
+            },
+            {
+                "id": "shader.default",
+                "type": "shader",
+                "path": "core/shaders/default_shader.glsl"
+            }
+        ],
+        "fallbacks": [
+            {
+                "type": "texture",
+                "asset_id": "texture.error",
+                "path": "error.png"
+            },
+            {
+                "type": "font",
+                "asset_id": "font.error",
+                "path": "error.ttf"
+            },
+            {
+                "type": "audio",
+                "asset_id": "audio.error",
+                "path": "error.wav"
+            },
+            {
+                "type": "material",
+                "asset_id": "material.error",
+                "path": "core/materials/error_material.json"
+            },
+            {
+                "type": "mesh",
+                "asset_id": "mesh.error",
+                "path": "core/meshes/cube.obj"
+            },
+            {
+                "type": "shader",
+                "asset_id": "shader.error",
+                "path": "core/shaders/error_shader.glsl"
+            }
+        ]
+    }
+}

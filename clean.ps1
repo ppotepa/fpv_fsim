@@ -17,7 +17,8 @@ function Remove-DirectoryIfExists {
         Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
         if (-not (Test-Path -Path $path)) {
             Write-Host "✓ Successfully removed $path" -ForegroundColor Green
-        } else {
+        }
+        else {
             Write-Host "✗ Failed to remove $path" -ForegroundColor Red
         }
     }
@@ -32,7 +33,8 @@ function Remove-FileIfExists {
         Remove-Item -Path $path -Force -ErrorAction SilentlyContinue
         if (-not (Test-Path -Path $path)) {
             Write-Host "✓ Successfully removed $path" -ForegroundColor Green
-        } else {
+        }
+        else {
             Write-Host "✗ Failed to remove $path" -ForegroundColor Red
         }
     }

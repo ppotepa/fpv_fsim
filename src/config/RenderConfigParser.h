@@ -2,116 +2,100 @@
 #define RENDER_CONFIG_PARSER_H
 
 #include "RenderConfig.h"
+#include "../utils/IJsonParserUnified.h"
 #include <string>
+#include <memory>
 
 namespace Render
 {
 
     /**
-     * @brief Parser for render configuration XML files
+     * @brief Parser for render configuration JSON files
      *
-     * Loads render configuration from XML files, providing configurable
+     * Loads render configuration from JSON files, providing configurable
      * rendering parameters instead of hardcoded values throughout the system.
      */
     class RenderConfigParser
     {
     public:
         /**
-         * @brief Load render configuration from XML file
+         * @brief Constructor
+         * @param jsonParser JSON parser implementation to use
+         */
+        explicit RenderConfigParser(std::unique_ptr<IJsonParserUnified> jsonParser);
+
+        /**
+         * @brief Load render configuration from JSON file
          *
-         * @param filePath Path to the render_config.xml file
+         * @param filePath Path to the render_config.json file
          * @return RenderConfiguration Parsed configuration with all render settings
          * @throws std::runtime_error if file cannot be loaded or parsed
          */
-        static RenderConfiguration loadFromFile(const std::string &filePath);
+        RenderConfiguration loadFromFile(const std::string &filePath);
 
         /**
-         * @brief Load render configuration from XML string
+         * @brief Load render configuration from JSON string
          *
-         * @param xmlContent XML content as string
+         * @param jsonContent JSON content as string
          * @return RenderConfiguration Parsed configuration
-         * @throws std::runtime_error if XML cannot be parsed
+         * @throws std::runtime_error if JSON cannot be parsed
          */
-        static RenderConfiguration loadFromString(const std::string &xmlContent);
+        RenderConfiguration loadFromString(const std::string &jsonContent);
 
     private:
-        /**
-         * @brief Parse display configuration from XML content
-         */
-        static DisplayConfig parseDisplayConfig(const std::string &xmlContent);
+        std::unique_ptr<IJsonParserUnified> m_jsonParser;
 
         /**
-         * @brief Parse camera configuration from XML content
+         * @brief Parse display configuration from JSON content
          */
-        static CameraConfig parseCameraConfig(const std::string &xmlContent);
+        DisplayConfig parseDisplayConfig();
 
         /**
-         * @brief Parse 2D projection configuration from XML content
+         * @brief Parse camera configuration from JSON content
          */
-        static Projection2DConfig parseProjection2DConfig(const std::string &xmlContent);
+        CameraConfig parseCameraConfig();
 
         /**
-         * @brief Parse console configuration from XML content
+         * @brief Parse 2D projection configuration from JSON content
          */
-        static ConsoleConfig parseConsoleConfig(const std::string &xmlContent);
+        Projection2DConfig parseProjection2DConfig();
 
         /**
-         * @brief Parse anti-aliasing configuration from XML content
+         * @brief Parse console configuration from JSON content
          */
-        static AntiAliasingConfig parseAntiAliasingConfig(const std::string &xmlContent);
+        ConsoleConfig parseConsoleConfig();
 
         /**
-         * @brief Parse performance configuration from XML content
+         * @brief Parse anti-aliasing configuration from JSON content
          */
-        static PerformanceConfig parsePerformanceConfig(const std::string &xmlContent);
+        AntiAliasingConfig parseAntiAliasingConfig();
 
         /**
-         * @brief Parse quality configuration from XML content
+         * @brief Parse performance configuration from JSON content
          */
-        static QualityConfig parseQualityConfig(const std::string &xmlContent);
+        PerformanceConfig parsePerformanceConfig();
 
         /**
-         * @brief Parse debug configuration from XML content
+         * @brief Parse quality configuration from JSON content
          */
-        static DebugConfig parseDebugConfig(const std::string &xmlContent);
+        QualityConfig parseQualityConfig();
 
         /**
-         * @brief Parse color from XML attributes
+         * @brief Parse debug configuration from JSON content
          */
-        static Color parseColor(const std::string &xmlContent, const std::string &elementName);
+        DebugConfig parseDebugConfig();
 
         /**
-         * @brief Parse 3D position from XML attributes
+         * @brief Parse color from JSON object
          */
-        static Position3D parsePosition3D(const std::string &xmlContent, const std::string &elementName);
+        Color parseColor(const std::string &path);
 
         /**
-         * @brief Extract single value from XML element
+         * @brief Parse 3D position from JSON object
          */
-        static std::string extractValue(const std::string &xmlContent, const std::string &elementName);
-
-        /**
-         * @brief Extract attribute value from XML element
-         */
-        static std::string extractAttribute(const std::string &xmlContent, const std::string &elementName, const std::string &attributeName);
-
-        /**
-         * @brief Convert string to integer with validation
-         */
-        static int toInt(const std::string &value, int defaultValue = 0);
-
-        /**
-         * @brief Convert string to float with validation
-         */
-        static float toFloat(const std::string &value, float defaultValue = 0.0f);
-
-        /**
-         * @brief Convert string to boolean with validation
-         */
-        static bool toBool(const std::string &value, bool defaultValue = false);
+        Position3D parsePosition3D(const std::string &path);
     };
 
 } // namespace Render
 
 #endif // RENDER_CONFIG_PARSER_H
-

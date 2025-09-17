@@ -16,7 +16,7 @@
 #include "../systems/AssetHotReloadSystem.h"
 #include "../systems/MaterialManager.h"
 #include "../platform/WinInputDevice.h"
-#include "../platform/PugiXmlParser.h"
+#include "../platform/NlohmannJsonParser.h"
 #include "../debug.h"
 
 #include <filesystem>
@@ -63,9 +63,14 @@ bool Engine::initialize(const std::string &physicsConfigPath,
 
     // Load configuration files
     DEBUG_LOG("Loading physics config from " + physicsConfigPath);
-    physicsConfig = PhysicsConfigParser::loadFromFile(physicsConfigPath);
+    auto physicsJsonParser = std::make_unique<NlohmannJsonParser>();
+    PhysicsConfigParser physicsParser(std::move(physicsJsonParser));
+    physicsConfig = physicsParser.loadFromFile(physicsConfigPath);
+
     DEBUG_LOG("Loading render config from " + renderConfigPath);
-    renderConfig = Render::RenderConfigParser::loadFromFile(renderConfigPath);
+    auto renderJsonParser = std::make_unique<NlohmannJsonParser>();
+    Render::RenderConfigParser renderParser(std::move(renderJsonParser));
+    renderConfig = renderParser.loadFromFile(renderConfigPath);
 
     // Initialize simulation clock with physics timestep
     simClock = SimClock(physicsConfig.fixedTimestep);

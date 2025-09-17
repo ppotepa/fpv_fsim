@@ -22,9 +22,9 @@
 
   **Summary:** Generates a default Earth-like sphere world with atmosphere and clouds.
 
-- `void GenerateWorldFromXMLScene(const std::string &sceneXml)`
+- `void GenerateWorldFromJSONScene(const std::string &sceneJson)`
 
-  **Summary:** Generates the world based on XML scene configuration.
+  **Summary:** Generates the world based on JSON scene configuration.
 
 ## Private Methods
 
@@ -34,7 +34,7 @@
 
 - `void OnDefaultWorldRequested(const DefaultWorldGeneratedEvent &event)`
 
-  **Summary:** Event handler that generates world from XML or falls back to default.
+  **Summary:** Event handler that generates world from JSON or falls back to default.
 
 - `AssetId GenerateProceduralSphereMesh(float radius, int segments)`
 

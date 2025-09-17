@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **Package Asset Compiler** transforms human-authored package XML files into optimized runtime representations, processing assets, scenes, and behaviors for efficient loading and execution. This compilation system enables hot-reload during development while ensuring optimal runtime performance.
+The **Package Asset Compiler** transforms human-authored package JSON files into optimized runtime representations, processing assets, scenes, and behaviors for efficient loading and execution. This compilation system enables hot-reload during development while ensuring optimal runtime performance.
 
 ## Compilation Pipeline
 
@@ -11,25 +11,25 @@ The **Package Asset Compiler** transforms human-authored package XML files into 
 ```
 packages/
 ├── core/
-│   └── package.xml          # Core engine assets
+│   └── package.json          # Core engine assets
 ├── environment/
-│   └── package.xml          # Environment assets  
+│   └── package.json          # Environment assets  
 ├── vehicles/
-│   └── package.xml          # Vehicle definitions
+│   └── package.json          # Vehicle definitions
 └── ui/
-    └── package.xml          # UI components
+    └── package.json          # UI components
 ```
 
 **Discovery Process:**
-- Scan package directories for `package.xml` files
+- Scan package directories for `package.json` files
 - Build dependency graph based on package dependencies
 - Determine compilation order (topological sort)
 - Validate package schemas and references
 
 ### 2. Asset Compilation
 
-#### Input: XML Asset Definitions
-```xml
+#### Input: JSON Asset Definitions
+```json
 <assets>
     <material id="RedMaterial">
         <shader>core.StandardLit</shader>
@@ -61,7 +61,7 @@ struct CompiledAsset {
 ```
 
 #### Compilation Steps:
-1. **Parse XML Definition** - Extract asset properties and source paths
+1. **Parse JSON Definition** - Extract asset properties and source paths
 2. **Resolve Dependencies** - Link to required assets (textures, shaders)
 3. **Process Source Data** - Convert source files (OBJ, PNG, etc.) to runtime format
 4. **Optimize Data** - Compress textures, optimize meshes, bake lighting
@@ -70,8 +70,8 @@ struct CompiledAsset {
 
 ### 3. Scene Compilation
 
-#### Input: XML Scene Definitions
-```xml
+#### Input: JSON Scene Definitions
+```json
 <scenes>
     <scene id="DeveloperScene" name="Developer Test Scene">
         <entity id="rotateCube" name="Rotating Red Cube" codeBehind="behaviors.RotatingCube">
@@ -117,7 +117,7 @@ struct CompiledScene {
 ```
 
 #### Scene Compilation Process:
-1. **Parse Scene XML** - Extract entities and their properties
+1. **Parse Scene JSON** - Extract entities and their properties
 2. **Resolve Asset References** - Link mesh/material assets to IDs
 3. **Validate Components** - Ensure required components are present
 4. **Compile Behavior Parameters** - Serialize behavior params to binary
@@ -141,7 +141,7 @@ namespace BehaviorRegistry {
 **Behavior Compilation Steps:**
 1. **Scan C++ Source** - Find REGISTER_BEHAVIOR() macros
 2. **Extract Behavior Names** - Build registry of available behaviors
-3. **Validate References** - Ensure XML references match registered behaviors
+3. **Validate References** - Ensure JSON references match registered behaviors
 4. **Generate Factory Code** - Auto-generate behavior factory functions
 5. **Compile Parameter Schema** - Extract parameter types for validation
 
@@ -163,7 +163,7 @@ Source Mesh → Vertices → Index Buffer → Normal Maps → .mesh file
 
 ### Material Processing
 ```
-XML Material → Shader Linkage → Property Validation → Binary Output
+JSON Material → Shader Linkage → Property Validation → Binary Output
      ↓             ↓               ↓                   ↓
 Material Def → Shader Programs → Uniform Layout → .material file
 ```

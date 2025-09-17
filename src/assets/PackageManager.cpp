@@ -217,7 +217,7 @@ namespace Assets
         {
             for (const auto &entry : std::filesystem::recursive_directory_iterator(directory))
             {
-                if (entry.is_regular_file() && entry.path().filename() == "package.xml")
+                if (entry.is_regular_file() && entry.path().filename() == "package.json")
                 {
                     packagePaths.push_back(entry.path().string());
                 }

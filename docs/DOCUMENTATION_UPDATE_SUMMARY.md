@@ -19,7 +19,7 @@ All major documentation files have been comprehensively updated to reflect the e
    - Cross-platform build configuration for ARM64 deployment
    - Package compiler integration with CMake
    - Hot-reload development server architecture
-   - Enhanced VSCode configuration with XML validation
+   - Enhanced VSCode configuration with JSON validation
 
 3. **1.2-IoC.md** - Enhanced IoC architecture with package system integration
    - Package-aware dependency injection
@@ -53,7 +53,7 @@ All major documentation files have been comprehensively updated to reflect the e
    - Debug visualization and hot-reload support
 
 7. **3.1-implementation.md** - Enhanced package system implementation
-   - Package system architecture with XML schema
+   - Package system architecture with JSON schema
    - Package loader implementation with validation
    - Code-behind behavior system with registration macros
    - Asset compiler integration with dependency management
@@ -70,7 +70,7 @@ All major documentation files have been comprehensively updated to reflect the e
    - Performance metrics and hot-reload integration
 
 9. **compiler_design.md** - Package asset compiler design (NEW)
-   - Complete compilation pipeline from XML to binary packages
+   - Complete compilation pipeline from JSON to binary packages
    - Asset processing pipeline for different asset types
    - Parallel compilation and incremental updates
    - Hot-reload system architecture
@@ -81,11 +81,11 @@ All major documentation files have been comprehensively updated to reflect the e
 ### Package Modularity System
 - **Hierarchical Structure**: Clean separation between packages, assets, scenes, and entities
 - **Asset Reference System**: Stable ID-based asset resolution with dependency management
-- **Code-Behind Integration**: Seamless bridging between XML declarations and C++ implementations
+- **Code-Behind Integration**: Seamless bridging between JSON declarations and C++ implementations
 
 ### Behavior System Architecture
 - **Dynamic Registration**: Runtime behavior factory registration with package support
-- **Parameter Binding**: Type-safe parameter system with XML integration
+- **Parameter Binding**: Type-safe parameter system with JSON integration
 - **Lifecycle Management**: Comprehensive entity behavior lifecycle with event integration
 
 ### Development Workflow Support
@@ -94,7 +94,7 @@ All major documentation files have been comprehensively updated to reflect the e
 - **Debug Integration**: Enhanced debugging support with visualization and inspection tools
 
 ### Cross-Platform Deployment
-- **Dual-Mode Operation**: Unified codebase supporting development (XML) and production (binary) modes
+- **Dual-Mode Operation**: Unified codebase supporting development (JSON) and production (binary) modes
 - **ARM64 Optimization**: Cross-compilation toolchain with platform-specific optimizations
 - **Performance Monitoring**: Comprehensive metrics and profiling integration
 

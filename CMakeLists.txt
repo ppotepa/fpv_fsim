@@ -20,6 +20,7 @@ endif()
 add_definitions(-DDEBUG)
 
 find_package(OpenGL REQUIRED)
+# We'll use nlohmann/json as header-only include
 # SDL2 will be linked via vcpkg target
 
 # Include directories
@@ -27,6 +28,7 @@ include_directories(src)
 include_directories(src/components)
 include_directories(src/behaviors)
 include_directories(src/rendering)
+include_directories(third_party)
 
 # Minimal package system with OpenGL visualization
 set(SOURCES
@@ -42,7 +44,7 @@ set(SOURCES
     src/assets/AssetRegistry.cpp
     src/assets/Package.cpp
     src/assets/PackageManager.cpp
-    src/assets/PackageParser.cpp
+    src/assets/PackageJsonParser.cpp
     # Dual Asset System
     src/core/AssetManager.cpp
     src/core/AssetManager_Integration.cpp
@@ -51,12 +53,12 @@ set(SOURCES
     src/factory/BehaviorRegistry.cpp
     src/behaviors/SpinBehavior.cpp
     src/behaviors/DebugOverlayBehavior.cpp
-    # Platform
-    src/platform/PugiXmlParser.cpp
+    # Platform - JSON parsing instead of XML
+    src/platform/NlohmannJsonParser.cpp
 )
 
 # Executable
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} WIN32 ${SOURCES})
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME} OpenGL::GL)

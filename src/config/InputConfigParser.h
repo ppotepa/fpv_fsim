@@ -2,7 +2,7 @@
 #define INPUT_CONFIG_PARSER_H
 
 #include "InputConfig.h"
-#include "../utils/IXmlParserUnified.h"
+#include "../utils/IJsonParserUnified.h"
 #include <memory>
 #include <string>
 
@@ -11,9 +11,9 @@ namespace Input
 
     /**
      * @class InputConfigParser
-     * @brief Parser for input configuration XML files
+     * @brief Parser for input configuration JSON files
      *
-     * This class handles loading and parsing input configuration XML files,
+     * This class handles loading and parsing input configuration JSON files,
      * converting them into InputConfiguration structures that can be used
      * by the InputSystem.
      */
@@ -22,9 +22,9 @@ namespace Input
     public:
         /**
          * @brief Constructor
-         * @param xmlParser XML parser implementation to use
+         * @param jsonParser JSON parser implementation to use
          */
-        explicit InputConfigParser(std::unique_ptr<IXmlParserUnified> xmlParser);
+        explicit InputConfigParser(std::unique_ptr<IJsonParserUnified> jsonParser);
 
         /**
          * @brief Load input configuration from file
@@ -34,11 +34,11 @@ namespace Input
         InputConfiguration loadFromFile(const std::string &filePath);
 
         /**
-         * @brief Load input configuration from XML string
-         * @param xmlContent XML content as string
+         * @brief Load input configuration from JSON string
+         * @param jsonContent JSON content as string
          * @return InputConfiguration structure, or empty config on failure
          */
-        InputConfiguration loadFromString(const std::string &xmlContent);
+        InputConfiguration loadFromString(const std::string &jsonContent);
 
         /**
          * @brief Save input configuration to file
@@ -55,28 +55,25 @@ namespace Input
         const std::string &getLastError() const { return lastError_; }
 
     private:
-        std::unique_ptr<IXmlParserUnified> xmlParser_;
+        std::unique_ptr<IJsonParserUnified> m_jsonParser;
         std::string lastError_;
 
         // Helper methods for parsing different sections
-        void parseSettings(const std::string &settingsXml, InputConfiguration &config);
-        void parseKeyBindings(const std::string &bindingsXml, InputConfiguration &config);
-        void parseMouseBindings(const std::string &bindingsXml, InputConfiguration &config);
-        void parseGamepadBindings(const std::string &bindingsXml, InputConfiguration &config);
-        void parseContexts(const std::string &contextsXml, InputConfiguration &config);
+        void parseSettings(InputConfiguration &config);
+        void parseKeyBindings(InputConfiguration &config);
+        void parseMouseBindings(InputConfiguration &config);
+        void parseGamepadBindings(InputConfiguration &config);
+        void parseContexts(InputConfiguration &config);
 
         // Helper methods for parsing individual elements
-        InputBinding parseKeyBinding(const std::string &bindingXml);
-        InputBinding parseMouseBinding(const std::string &bindingXml);
-        InputBinding parseGamepadBinding(const std::string &bindingXml);
-        InputContext parseContext(const std::string &contextXml);
+        InputBinding parseKeyBinding(const std::string &path, int index);
+        InputBinding parseMouseBinding(const std::string &path, int index);
+        InputBinding parseGamepadBinding(const std::string &path, int index);
+        InputContext parseContext(const std::string &path, int index);
 
         // Utility methods
-        std::string extractAttributeValue(const std::string &xml, const std::string &attributeName);
-        std::vector<std::string> parseActiveBindings(const std::string &activeBindingsStr);
         void logError(const std::string &message);
     };
 }
 
 #endif
-

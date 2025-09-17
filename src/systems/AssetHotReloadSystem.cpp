@@ -85,7 +85,7 @@ void AssetHotReloadSystem::watchPackage(const std::string &packagePath)
 /**
  * @brief Automatically discover and watch all packages in the packages directory.
  *
- * Scans the packages directory for package.xml files and automatically
+ * Scans the packages directory for package.json files and automatically
  * adds them to the watch list, making the engine package-agnostic.
  *
  * @param packagesDirectory Path to the packages directory
@@ -112,8 +112,8 @@ int AssetHotReloadSystem::watchAllPackages(const std::string &packagesDirectory)
         {
             if (entry.is_directory())
             {
-                // Look for package.xml in each subdirectory
-                std::string packagePath = entry.path().string() + "/package.xml";
+                // Look for package.json in each subdirectory
+                std::string packagePath = entry.path().string() + "/package.json";
                 if (std::filesystem::exists(packagePath))
                 {
                     watchPackage(packagePath);
@@ -323,5 +323,3 @@ std::chrono::system_clock::time_point AssetHotReloadSystem::getFileModifiedTime(
 
     return std::chrono::system_clock::time_point::min();
 }
-
-

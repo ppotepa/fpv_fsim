@@ -1,0 +1,20 @@
+{
+    "simulation": {
+        "fixedTimestep": 0.016667,
+        "maxSubsteps": 4
+    },
+    "airDensity": {
+        "seaLevelDensity": 1.225,
+        "scaleHeight": 8400.0
+    },
+    "wind": {
+        "baseWindSpeed": 5.0,
+        "turbulenceScale": 100.0,
+        "turbulenceIntensity": 0.1,
+        "randomSeed": 42
+    },
+    "collision": {
+        "restitution": 0.6,
+        "friction": 0.7
+    }
+}

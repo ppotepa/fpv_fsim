@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Package.h"
-#include "PackageParser.h"
+#include "PackageJsonParser.h"
 #include <unordered_map>
 #include <functional>
 #include <memory>
@@ -62,7 +62,7 @@ namespace Assets
     private:
         // Internal storage
         std::unordered_map<std::string, std::unique_ptr<Package>> loadedPackages;
-        PackageParser parser;
+        PackageJsonParser parser;
 
         // Callbacks
         PackageLoadedCallback packageLoadedCallback;

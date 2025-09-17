@@ -1,7 +1,7 @@
 #include "InputSystem.h"
 #include "core/World.h"
 #include "events/InputEvents.h"
-#include "platform/PugiXmlParser.h"
+#include "../platform/NlohmannJsonParser.h"
 #include <iostream>
 #include <algorithm>
 #include <windows.h>
@@ -22,8 +22,8 @@ bool InputSystem::loadConfiguration(const std::string &configPath)
     DEBUG_LOG("Loading input configuration from '" + configPath + "'");
     try
     {
-        auto xmlParser = std::make_unique<PugiXmlParser>();
-        Input::InputConfigParser parser(std::move(xmlParser));
+        auto jsonParser = std::make_unique<NlohmannJsonParser>();
+        Input::InputConfigParser parser(std::move(jsonParser));
 
         config_ = parser.loadFromFile(configPath);
 

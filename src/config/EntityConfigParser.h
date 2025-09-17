@@ -19,7 +19,7 @@ namespace EntityConfig
         /**
          * @brief Load entity factory configuration from XML file
          *
-         * @param filePath Path to entity_factory_config.xml
+         * @param filePath Path to entity_factory_config.json
          * @return EntityFactoryConfiguration Parsed configuration
          */
         static EntityFactoryConfiguration loadFromFile(const std::string &filePath);
@@ -104,4 +104,3 @@ namespace EntityConfig
 } // namespace EntityConfig
 
 #endif // ENTITY_CONFIG_PARSER_H
-

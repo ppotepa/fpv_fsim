@@ -4,14 +4,14 @@ Here's a detailed logic tree algorithm, in ASCII format, for the entirety of you
 APP_FLOW
 ├── BUILD_TIME_TOOLS (Pre-runtime Asset & ID Generation)
 │   ├── Asset Compiler CLI Tool
-│   │   ├── Input: Raw Asset Definitions (XML, .obj, .png, .gltf, etc.)
-│   │   ├── Execution: `asset_compiler --in packages/city_01/package.xml --out runtime/data/packs/city_01.pak`
+│   │   ├── Input: Raw Asset Definitions (JSON, .obj, .png, .gltf, etc.)
+│   │   ├── Execution: `asset_compiler --in packages/city_01/package.json --out runtime/data/packs/city_01.pak`
 │   │   └── Processing Steps (AssetCompilerService)
 │   │       ├── Configure Compiler: Set Output Directory, Debug Mode, Optimization Level
-│   │       ├── Register Asset Types: Map file extensions (.png, .obj, .xml) to AssetType::Texture, Mesh, Scene/Entity
-│   │       ├── Process Asset Configuration (e.g., `package.xml` or source directory)
-│   │       │   ├── Load XML Configuration
-│   │       │   ├── Schema Validation (against formal XSD schemas, e.g., `scene.xsd`)
+│   │       ├── Register Asset Types: Map file extensions (.png, .obj, .json) to AssetType::Texture, Mesh, Scene/Entity
+│   │       ├── Process Asset Configuration (e.g., `package.json` or source directory)
+│   │       │   ├── Load JSON Configuration
+│   │       │   ├── Schema Validation (against formal JSON schemas, e.g., `scene.schema.json`)
 │   │       │   ├── Asset Resolution (resolve file paths and dependencies)
 │   │       │   ├── Parameter Extraction (from config files)
 │   │       │   ├── Asset Optimization (asset-specific processing)
@@ -23,10 +23,10 @@ APP_FLOW
 │   │       │   └── Manifest Creation (for runtime loading)
 │   │       └── Generate Compilation Result & Statistics
 │   └── Codegen Tool for Asset IDs
-│       ├── Input: XML Asset & Scene Definitions (from `/assets/packages/`)
-│       ├── Execution: `codegen --in packages/city_01/package.xml --out runtime/data/packs/city_01.ids.bin`
+│       ├── Input: JSON Asset & Scene Definitions (from `/assets/packages/`)
+│       ├── Execution: `codegen --in packages/city_01/package.json --out runtime/data/packs/city_01.ids.bin`
 │       └── Processing Steps (AssetIdGenerator)
-│           ├── Scan XML files: `scanPackageFile(package.xml)`, `scanSceneFile(scene.xml)`
+│           ├── Scan JSON files: `scanPackageFile(package.json)`, `scanSceneFile(scene.json)`
 │           ├── Process Asset Definitions: Collect symbolic names and asset types
 │           ├── Process Asset References: Extract dependencies for consistent ID mapping across assets
 │           ├── Generate Stable Numeric IDs: Use FNV-1a hash or sequential assignment for `AssetId` mappings
@@ -59,12 +59,12 @@ APP_FLOW
 │   │   ├── `Engine::discoverAssets()`
 │   │   │   └── `BootstrapSystem::Init()` (one-shot system call)
 │   │   │       ├── InitializeAssetCompilation() (internal call to AssetCompilerService with debug mode)
-│   │   │       │   └── Compile Assets from `assets/` and `assets/packages/` (XML -> IR -> cooked binaries)
+│   │   │       │   └── Compile Assets from `assets/` and `assets/packages/` (JSON -> IR -> cooked binaries)
 │   │   │       ├── `LoadAvailablePackages()`
 │   │   │       │   ├── Iterate through `/assets/packages/*` directories
-│   │   │       │   ├── `AssetPackLoader::loadPackage(package.xml)`
-│   │   │       │   │   ├── Parse Assets Section (XML -> AssetRegistry)
-│   │   │       │   │   └── Parse Configurations Section (XML -> SceneConfig in AssetRegistry)
+│   │   │       │   ├── `AssetPackLoader::loadPackage(package.json)`
+│   │   │       │   │   ├── Parse Assets Section (JSON -> AssetRegistry)
+│   │   │       │   │   └── Parse Configurations Section (JSON -> SceneConfig in AssetRegistry)
 │   │   │       │   └── `AssetRegistry::markPackageLoaded()`
 │   │   │       └── Check for Default Scene Configuration (e.g., in AssetRegistry)
 │   │   │           ├── IF Default Scene Found -> Publish `DefaultWorldGeneratedEvent`
@@ -72,17 +72,17 @@ APP_FLOW
 │   │   ├── `Engine::resolveAssets()` (Placeholder for future complex resolution, currently no-op as initial resolution is in `BootstrapSystem::Init()`)
 │   │   └── `Engine::loadAndDisplayScene("DeveloperScene")` (or `Engine::displayCompiledScene()`)
 │   │       └── `WorldGenSystem::LoadScene("DeveloperScene")` (triggered by Bootstrap event)
-│   │           ├── Attempt `SceneParser::loadXmlScene(sceneId)`
-│   │           │   ├── Read scene XML file (e.g., `configs/scenes/DeveloperScene.xml`)
-│   │           │   ├── Validate XML Structure & Schema
-│   │           │   ├── Parse Scene Data (XML -> `SceneConfig::Scene` data structure)
+│   │           ├── Attempt `SceneParser::loadJsonScene(sceneId)`
+│   │           │   ├── Read scene JSON file (e.g., `configs/scenes/DeveloperScene.json`)
+│   │           │   ├── Validate JSON Structure & Schema
+│   │           │   ├── Parse Scene Data (JSON -> `SceneConfig::Scene` data structure)
 │   │           │   └── Resolve Asset Paths (e.g., relative to scene file)
-│   │           ├── IF XML Scene Loaded Successfully -> `LoadSceneEntities(parsedScene)`
-│   │           │   ├── `EntityFactory::createEntity()` (from `ComponentBlueprints` defined in scene XML or baked pack)
+│   │           ├── IF JSON Scene Loaded Successfully -> `LoadSceneEntities(parsedScene)`
+│   │           │   ├── `EntityFactory::createEntity()` (from `ComponentBlueprints` defined in scene JSON or baked pack)
 │   │           │   │   └── Allocate component storage, populate from binary parameter block
 │   │           │   ├── Add Components to `Entity` (e.g., `TransformC`, `RenderableC`, `PhysicsC`, `VehicleC`, `AudioC`, `LightC`)
 │   │           │   └── Add `Entity` to `World`
-│   │           └── ELSE (XML loading failed or no default scene found) -> Fallback: `WorldGenSystem::GenerateDefaultSphereWorld()`
+│   │           └── ELSE (JSON loading failed or no default scene found) -> Fallback: `WorldGenSystem::GenerateDefaultSphereWorld()`
 │   │
 └── MAIN_SIMULATION_LOOP (`Engine::run()` - Continuous Execution)
     ├── Show Window (if graphical target)
@@ -114,7 +114,7 @@ APP_FLOW
     │   │       ├── `InputSystem::update(world, deltaTime)`
     │   │       │   ├── Poll input device (`inputDevice_.poll()`, e.g., `WinInputDevice::poll()`)
     │   │       │   ├── Update internal Keyboard, Mouse, and Gamepad States
-    │   │       │   ├── Process Input (based on current input context and loaded bindings from `input_config.xml`)
+    │   │       │   ├── Process Input (based on current input context and loaded bindings from `input_config.json`)
     │   │       │   └── Trigger Input Action (Publish `InputEvents` like "ConsoleToggle", "ReloadAssets", "Quit")
     │   │       ├── `WorldGenSystem::update(world, deltaTime)` (Primarily event-driven, typically no continuous updates in loop)
     │   │       │   └── Responds to events like `NoPackagesFoundEvent`, `DefaultWorldGeneratedEvent`
@@ -122,7 +122,7 @@ APP_FLOW
     │   │       │   └── `ConsoleSystem::ToggleVisibility()` (triggered by `ConsoleToggleEvent` from InputSystem)
     │   │       └── `VisualizationSystem::update(world, deltaTime)`
     │   │           ├── Clear Frame Buffer (color and depth)
-    │   │           ├── Setup Camera (projection, view matrix based on `render_config.xml`)
+    │   │           ├── Setup Camera (projection, view matrix based on `render_config.json`)
     │   │           ├── Render Entities (queries `World` for entities with `TransformC` & `RenderableC` components)
     │   │           ├── Render Console UI (if visible)
     │   │           ├── Render HUD / Debug Overlays (e.g., force vectors, wind fields, FPS, AGL, SPD, BAT)
@@ -130,7 +130,7 @@ APP_FLOW
     │   ├── 6. `AssetHotReloadSystem::update(world, deltaTime)` (end-of-frame update for atomic commits)
     │   │   ├── `watcher.hasChanges()` (monitors asset and scene files for modifications)
     │   │   ├── IF Changes Detected {
-    │   │   │   ├── Cook modified XML to IR (using AssetCompilerService)
+    │   │   │   ├── Cook modified JSON to IR (using AssetCompilerService)
     │   │   │   ├── Build/Update Plugins (`.so` for aarch64, if code changes)
     │   │   │   ├── Build Staging Registry from IR (temporary asset registry)
     │   │   │   ├── Commit atomically: `registry.swapWith(s.registry)` (swap active registry with staging)

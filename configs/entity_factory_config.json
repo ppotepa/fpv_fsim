@@ -1,0 +1,61 @@
+{
+    "entityFactory": {
+        "maxEntities": 10000,
+        "defaultComponents": [
+            "Transform",
+            "Render"
+        ]
+    },
+    "componentDefinitions": {
+        "Transform": {
+            "type": "TransformComponent",
+            "required": true
+        },
+        "Render": {
+            "type": "RenderComponent",
+            "required": false
+        },
+        "Physics": {
+            "type": "PhysicsComponent",
+            "required": false
+        },
+        "Battery": {
+            "type": "BatteryComponent",
+            "required": false
+        }
+    },
+    "entityTemplates": {
+        "Drone": {
+            "components": [
+                "Transform",
+                "Render",
+                "Physics",
+                "Battery"
+            ],
+            "defaultValues": {
+                "Transform": {
+                    "position": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "scale": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1
+                    }
+                },
+                "Battery": {
+                    "maxCapacity": 5000,
+                    "currentCharge": 5000,
+                    "drainRate": 10
+                }
+            }
+        }
+    }
+}

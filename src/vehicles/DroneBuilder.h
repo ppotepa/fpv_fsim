@@ -2,17 +2,17 @@
 #define DRONEBUILDER_H
 
 #include "IVehicleBuilder.h"
-#include "utils/IXmlQuery.h"
+#include "../utils/IJsonQuery.h"
+#include <memory>
 
 class DroneBuilder : public IVehicleBuilder
 {
 public:
-    DroneBuilder(IXmlQuery &xmlParser);
+    DroneBuilder(std::unique_ptr<IJsonQuery> jsonParser);
     std::unique_ptr<Entity> build(const std::string &configPath, EventBus &eventBus) override;
 
 private:
-    IXmlQuery &xmlParser_;
+    std::unique_ptr<IJsonQuery> m_jsonParser;
 };
 
 #endif
-

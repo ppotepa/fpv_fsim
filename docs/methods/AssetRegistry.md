@@ -64,9 +64,9 @@
 
 ## Scene Configuration Methods
 
-- `void registerSceneConfig(AssetId id, const std::string &sceneXml)`
+- `void registerSceneConfig(AssetId id, const std::string &sceneJson)`
 
-  **Summary:** Registers a scene configuration with the given ID and XML content.
+  **Summary:** Registers a scene configuration with the given ID and JSON content.
 
 - `const std::string *getSceneConfig(AssetId id) const`
 
@@ -78,7 +78,7 @@
 
 - `const std::string *getDefaultScene() const`
 
-  **Summary:** Retrieves the default scene configuration XML, returns nullptr if not set.
+  **Summary:** Retrieves the default scene configuration JSON, returns nullptr if not set.
 
 - `AssetId getDefaultSceneId() const`
 

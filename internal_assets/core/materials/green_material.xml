@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<material id="green">
-    <diffuse r="0.0" g="1.0" b="0.0" a="1.0" />
-    <specular r="0.5" g="1.0" b="0.5" a="1.0" />
-    <shininess>32.0</shininess>
-    <texture>texture.default</texture>
-</material>

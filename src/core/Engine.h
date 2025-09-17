@@ -56,9 +56,9 @@ public:
      * @return true if initialization succeeded
      * @return false if initialization failed
      */
-    bool initialize(const std::string &physicsConfigPath = "configs/physics_config.xml",
-                    const std::string &renderConfigPath = "configs/render_config.xml",
-                    const std::string &inputConfigPath = "configs/input_config.xml");
+    bool initialize(const std::string &physicsConfigPath = "configs/physics_config.json",
+                    const std::string &renderConfigPath = "configs/render_config.json",
+                    const std::string &inputConfigPath = "configs/input_config.json");
 
     /**
      * @brief Discover and load assets from development directories

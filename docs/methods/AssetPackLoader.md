@@ -16,7 +16,7 @@
 
 - `bool loadPackage(const std::string &packagePath)`
 
-  **Summary:** Loads an asset package from the specified XML file path, parsing assets and configurations.
+  **Summary:** Loads an asset package from the specified JSON file path, parsing assets and configurations.
 
 - `bool loadDeveloperPackage()`
 
@@ -24,26 +24,26 @@
 
 ## Private Methods
 
-- `bool parseAssets(const std::string &xmlContent, const std::string &packageName)`
+- `bool parseAssets(const std::string &jsonContent, const std::string &packageName)`
 
-  **Summary:** Parses the assets section from XML content and registers assets with the registry.
+  **Summary:** Parses the assets section from JSON content and registers assets with the registry.
 
-- `bool parseConfigurations(const std::string &xmlContent, const std::string &packageName)`
+- `bool parseConfigurations(const std::string &jsonContent, const std::string &packageName)`
 
-  **Summary:** Parses the configurations section from XML content, including scene configurations.
+  **Summary:** Parses the configurations section from JSON content, including scene configurations.
 
-- `std::unique_ptr<FontAsset> parseFontAsset(const std::string &xmlNode)`
+- `std::unique_ptr<FontAsset> parseFontAsset(const std::string &jsonNode)`
 
-  **Summary:** Parses a font asset from an XML node, extracting path, size, and antialiasing properties.
+  **Summary:** Parses a font asset from a JSON node, extracting path, size, and antialiasing properties.
 
-- `std::unique_ptr<TextureAsset> parseTextureAsset(const std::string &xmlNode)`
+- `std::unique_ptr<TextureAsset> parseTextureAsset(const std::string &jsonNode)`
 
-  **Summary:** Parses a texture asset from an XML node, extracting path, format, mipmaps, and filter properties.
+  **Summary:** Parses a texture asset from a JSON node, extracting path, format, mipmaps, and filter properties.
 
-- `std::unique_ptr<MaterialAsset> parseMaterialAsset(const std::string &xmlNode)`
+- `std::unique_ptr<MaterialAsset> parseMaterialAsset(const std::string &jsonNode)`
 
-  **Summary:** Parses a material asset from an XML node, extracting shader ID and parameters.
+  **Summary:** Parses a material asset from a JSON node, extracting shader ID and parameters.
 
-- `std::unique_ptr<MeshRecipeAsset> parseMeshRecipeAsset(const std::string &xmlNode)`
+- `std::unique_ptr<MeshRecipeAsset> parseMeshRecipeAsset(const std::string &jsonNode)`
 
-  **Summary:** Parses a mesh recipe asset from an XML node, extracting generator and parameters.
+  **Summary:** Parses a mesh recipe asset from a JSON node, extracting generator and parameters.

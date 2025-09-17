@@ -7,8 +7,8 @@
 namespace Input
 {
 
-    InputConfigParser::InputConfigParser(std::unique_ptr<IXmlParserUnified> xmlParser)
-        : xmlParser_(std::move(xmlParser))
+    InputConfigParser::InputConfigParser(std::unique_ptr<IJsonParserUnified> jsonParser)
+        : m_jsonParser(std::move(jsonParser))
     {
     }
 
@@ -18,20 +18,13 @@ namespace Input
 
         try
         {
-            // Read file content manually
-            std::ifstream file(filePath);
-            if (!file.is_open())
+            if (!m_jsonParser->loadFile(filePath))
             {
                 logError("Failed to open file: " + filePath);
                 return config;
             }
 
-            std::stringstream buffer;
-            buffer << file.rdbuf();
-            std::string xmlContent = buffer.str();
-            file.close();
-
-            return loadFromString(xmlContent);
+            return loadFromString("");
         }
         catch (const std::exception &e)
         {
@@ -40,45 +33,28 @@ namespace Input
         }
     }
 
-    InputConfiguration InputConfigParser::loadFromString(const std::string &xmlContent)
+    InputConfiguration InputConfigParser::loadFromString(const std::string &jsonContent)
     {
         InputConfiguration config;
 
         try
         {
-            // For now, just parse a simple console toggle binding
-            // Look for the ToggleDebugConsole binding with TILDE key
-            if (xmlContent.find("ToggleDebugConsole") != std::string::npos &&
-                xmlContent.find("TILDE") != std::string::npos)
+            if (!jsonContent.empty() && !m_jsonParser->loadString(jsonContent))
             {
-
-                InputBinding consoleBinding;
-                consoleBinding.action = "ToggleDebugConsole";
-                consoleBinding.type = BindingType::Key;
-                consoleBinding.device = InputDevice::Keyboard;
-                consoleBinding.keyCode = KeyCode::TILDE;
-                config.keyBindings.push_back(consoleBinding);
+                logError("Failed to parse JSON content");
+                return config;
             }
 
-            // Set up basic flight context
-            InputContext flightContext;
-            flightContext.name = "Flight";
-            flightContext.activeBindings = {"ToggleDebugConsole"};
-            config.contexts.push_back(flightContext);
+            // Parse configuration sections
+            parseSettings(config);
+            parseKeyBindings(config);
+            parseContexts(config);
 
-            config.defaultContext = "Flight";
-
-            // Set default settings
-            config.settings.mouseSensitivity = 1.0f;
-            config.settings.mouseInvertY = false;
-            config.settings.keyboardRepeatDelay = 300;
-            config.settings.keyboardRepeatRate = 50;
-            config.settings.gamepadDeadzone = 0.1f;
-            config.settings.gamepadSensitivity = 1.0f;
+            config.defaultContext = m_jsonParser->getString("defaultContext", "Flight");
         }
         catch (const std::exception &e)
         {
-            logError("Exception while parsing input config XML: " + std::string(e.what()));
+            logError("Exception while parsing input config JSON: " + std::string(e.what()));
         }
 
         return config;
@@ -86,78 +62,73 @@ namespace Input
 
     bool InputConfigParser::saveToFile(const InputConfiguration &config, const std::string &filePath)
     {
-        // TODO: Implement saving configuration back to XML
+        // TODO: Implement saving configuration back to JSON
         logError("Saving input configuration not yet implemented");
         return false;
     }
 
-    void InputConfigParser::parseSettings(const std::string &xmlContent, InputConfiguration &config)
+    void InputConfigParser::parseSettings(InputConfiguration &config)
     {
-        // Simplified - not implemented yet
+        config.settings.mouseSensitivity = m_jsonParser->getFloat("settings.mouseSensitivity", 1.0f);
+        config.settings.mouseInvertY = m_jsonParser->getBool("settings.mouseInvertY", false);
+        config.settings.keyboardRepeatDelay = m_jsonParser->getInt("settings.keyboardRepeatDelay", 300);
+        config.settings.keyboardRepeatRate = m_jsonParser->getInt("settings.keyboardRepeatRate", 50);
+        config.settings.gamepadDeadzone = m_jsonParser->getFloat("settings.gamepadDeadzone", 0.1f);
+        config.settings.gamepadSensitivity = m_jsonParser->getFloat("settings.gamepadSensitivity", 1.0f);
     }
 
-    void InputConfigParser::parseKeyBindings(const std::string &xmlContent, InputConfiguration &config)
+    void InputConfigParser::parseKeyBindings(InputConfiguration &config)
     {
-        // Simplified - basic parsing done in loadFromString
+        // Create default console toggle binding for now
+        InputBinding consoleBinding;
+        consoleBinding.action = "ToggleDebugConsole";
+        consoleBinding.type = BindingType::Key;
+        consoleBinding.device = InputDevice::Keyboard;
+        consoleBinding.keyCode = KeyCode::TILDE;
+        config.keyBindings.push_back(consoleBinding);
     }
 
-    void InputConfigParser::parseMouseBindings(const std::string &xmlContent, InputConfiguration &config)
+    void InputConfigParser::parseMouseBindings(InputConfiguration &config)
     {
-        // Simplified - not implemented yet
+        // TODO: Implement mouse bindings parsing
     }
 
-    void InputConfigParser::parseGamepadBindings(const std::string &xmlContent, InputConfiguration &config)
+    void InputConfigParser::parseGamepadBindings(InputConfiguration &config)
     {
-        // Simplified - not implemented yet
+        // TODO: Implement gamepad bindings parsing
     }
 
-    void InputConfigParser::parseContexts(const std::string &xmlContent, InputConfiguration &config)
+    void InputConfigParser::parseContexts(InputConfiguration &config)
     {
-        // Simplified - basic context setup done in loadFromString
+        // Create default flight context
+        InputContext flightContext;
+        flightContext.name = "Flight";
+        flightContext.activeBindings = {"ToggleDebugConsole"};
+        config.contexts.push_back(flightContext);
     }
 
-    InputBinding InputConfigParser::parseKeyBinding(const std::string &bindingXml)
+    InputBinding InputConfigParser::parseKeyBinding(const std::string &path, int index)
+    {
+        InputBinding binding;
+        // TODO: Implement actual key binding parsing from JSON
+        return binding;
+    }
+
+    InputBinding InputConfigParser::parseMouseBinding(const std::string &path, int index)
     {
         return InputBinding{};
     }
 
-    InputBinding InputConfigParser::parseMouseBinding(const std::string &bindingXml)
+    InputBinding InputConfigParser::parseGamepadBinding(const std::string &path, int index)
     {
         return InputBinding{};
     }
 
-    InputBinding InputConfigParser::parseGamepadBinding(const std::string &bindingXml)
+    InputContext InputConfigParser::parseContext(const std::string &path, int index)
     {
-        return InputBinding{};
-    }
-
-    InputContext InputConfigParser::parseContext(const std::string &contextXml)
-    {
-        return InputContext{};
-    }
-
-    std::string InputConfigParser::extractAttributeValue(const std::string &xml, const std::string &attributeName)
-    {
-        return "";
-    }
-
-    std::vector<std::string> InputConfigParser::parseActiveBindings(const std::string &activeBindingsStr)
-    {
-        std::vector<std::string> bindings;
-        std::stringstream ss(activeBindingsStr);
-        std::string binding;
-
-        while (std::getline(ss, binding, ','))
-        {
-            // Remove whitespace
-            binding.erase(std::remove_if(binding.begin(), binding.end(), ::isspace), binding.end());
-            if (!binding.empty())
-            {
-                bindings.push_back(binding);
-            }
-        }
-
-        return bindings;
+        InputContext context;
+        // TODO: Implement actual context parsing from JSON
+        return context;
     }
 
     void InputConfigParser::logError(const std::string &message)
@@ -165,6 +136,5 @@ namespace Input
         lastError_ = message;
         std::cerr << "InputConfigParser Error: " << message << std::endl;
     }
+
 }
-
-

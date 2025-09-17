@@ -64,7 +64,7 @@ public:
     /**
      * @brief Automatically discover and watch all packages in the packages directory.
      *
-     * Scans the packages directory for package.xml files and automatically
+     * Scans the packages directory for package.json files and automatically
      * adds them to the watch list. This makes the engine package-agnostic.
      *
      * @param packagesDirectory Path to the packages directory (default: "assets/packages")
@@ -154,4 +154,3 @@ private:
 };
 
 #endif
-

@@ -1,0 +1,108 @@
+{
+    "metadata": {
+        "id": "dev.test",
+        "name": "Test Package",
+        "version": "1.0.0",
+        "description": "Test package for JSON transition",
+        "author": "Developer"
+    },
+    "dependencies": [
+        {
+            "id": "core.engine",
+            "version": "1.0.0",
+            "required": true
+        }
+    ],
+    "assets": {
+        "textures": [
+            {
+                "id": "test_texture",
+                "path": "textures/test.png",
+                "generateMipmaps": true,
+                "compressionFormat": "auto"
+            }
+        ],
+        "materials": [
+            {
+                "id": "test_material",
+                "shader": "basic_shader",
+                "textures": {
+                    "diffuse": "test_texture"
+                },
+                "properties": {
+                    "color": "1.0,1.0,1.0,1.0",
+                    "metallic": 0.0,
+                    "roughness": 0.5
+                }
+            }
+        ],
+        "meshes": [
+            {
+                "id": "test_cube",
+                "path": "meshes/cube.obj",
+                "optimize": true,
+                "generateTangents": false
+            }
+        ],
+        "shaders": [
+            {
+                "id": "basic_shader",
+                "vertex": "shaders/basic.vert",
+                "fragment": "shaders/basic.frag",
+                "defines": [
+                    "USE_LIGHTING"
+                ]
+            }
+        ]
+    },
+    "scenes": [
+        {
+            "id": "test_scene",
+            "name": "Test Scene",
+            "entities": [
+                {
+                    "id": "test_cube_entity",
+                    "name": "Test Cube",
+                    "transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "components": {
+                        "mesh": {
+                            "asset": "test_cube"
+                        },
+                        "material": {
+                            "asset": "test_material"
+                        },
+                        "renderable": {
+                            "visible": true,
+                            "castShadows": true,
+                            "receiveShadows": true
+                        }
+                    },
+                    "behavior": {
+                        "type": "SpinBehavior",
+                        "parameters": {
+                            "speed": 1.0,
+                            "axis": "y"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
