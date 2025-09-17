@@ -65,6 +65,16 @@ public:
         cube3.rotationSpeedZ = 30.0f;
         objects_.push_back(cube3);
         
+        // Create red cube (rotating in the opposite direction)
+        RenderObject redCube;
+        redCube.meshId = "mesh.cube";
+        redCube.materialId = "material.red";
+        redCube.transform.position = {0.0f, 1.5f, 0.0f};
+        redCube.transform.scale = {1.0f, 1.0f, 1.0f};
+        redCube.rotationSpeedX = -15.0f;
+        redCube.rotationSpeedY = -45.0f;  // Negative value for opposite rotation
+        objects_.push_back(redCube);
+        
         return true;
     }
 
@@ -121,8 +131,14 @@ public:
             // Apply scale
             glScalef(obj.transform.scale.x, obj.transform.scale.y, obj.transform.scale.z);
             
-            // Set material color (green)
-            glColor3f(0.0f, 1.0f, 0.0f); // Green color
+            // Set material color based on material ID
+            if (obj.materialId == "material.red") {
+                glColor3f(1.0f, 0.0f, 0.0f); // Red color
+            } else if (obj.materialId == "material.green") {
+                glColor3f(0.0f, 1.0f, 0.0f); // Green color
+            } else {
+                glColor3f(0.7f, 0.7f, 0.7f); // Default gray color
+            }
             
             // Draw cube
             renderCube();
@@ -131,6 +147,11 @@ public:
         }
 
         SwapBuffers(hdc);
+    }
+
+    // For testing
+    const std::vector<RenderObject>& getObjects() const {
+        return objects_;
     }
 
 private:

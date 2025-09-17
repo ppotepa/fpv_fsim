@@ -45,8 +45,8 @@ TEST_F(SceneRendererTest, UpdateChangesRotation) {
     }
 }
 
-// Test we have 3 cubes in the scene
-TEST_F(SceneRendererTest, HasThreeGreenCubes) {
+// Test we have 4 cubes in the scene (3 green and 1 red)
+TEST_F(SceneRendererTest, HasFourCubes) {
     // Initialize the renderer
     sceneRenderer.initialize("scene.green_cubes", assetManager);
     
@@ -55,13 +55,50 @@ TEST_F(SceneRendererTest, HasThreeGreenCubes) {
         reinterpret_cast<char*>(&sceneRenderer) + offsetof(SceneRenderer, objects_)
     );
     
-    // Check we have exactly 3 objects
-    EXPECT_EQ(objects.size(), 3);
+    // Check we have exactly 4 objects
+    EXPECT_EQ(objects.size(), 4);
     
-    // Check they all use the green material
+    // Count green and red cubes
+    int greenCount = 0;
+    int redCount = 0;
+    
     for (const auto& obj : objects) {
-        EXPECT_EQ(obj.materialId, "material.green");
+        if (obj.materialId == "material.green") {
+            greenCount++;
+        } else if (obj.materialId == "material.red") {
+            redCount++;
+        }
     }
+    
+    // Check we have 3 green cubes and 1 red cube
+    EXPECT_EQ(greenCount, 3);
+    EXPECT_EQ(redCount, 1);
+}
+
+// Test the red cube rotates in the opposite direction
+TEST_F(SceneRendererTest, RedCubeRotatesOpposite) {
+    // Initialize the renderer
+    sceneRenderer.initialize("scene.green_cubes", assetManager);
+    
+    // Get access to the private members for testing
+    auto& objects = *reinterpret_cast<std::vector<SceneRenderer::RenderObject>*>(
+        reinterpret_cast<char*>(&sceneRenderer) + offsetof(SceneRenderer, objects_)
+    );
+    
+    // Find the red cube
+    const SceneRenderer::RenderObject* redCube = nullptr;
+    for (const auto& obj : objects) {
+        if (obj.materialId == "material.red") {
+            redCube = &obj;
+            break;
+        }
+    }
+    
+    // Make sure we found the red cube
+    ASSERT_NE(redCube, nullptr);
+    
+    // Check that its rotation speed is negative (opposite direction)
+    EXPECT_LT(redCube->rotationSpeedY, 0.0f);
 }
 
 // Test the objects have different positions

@@ -37,6 +37,9 @@
   <asset id="material.green" type="material">
     <path>core/materials/green_material.xml</path>
   </asset>
+  <asset id="material.red" type="material">
+    <path>core/materials/red_material.xml</path>
+  </asset>
   
   <!-- Core meshes -->
   <asset id="mesh.cube" type="mesh">
