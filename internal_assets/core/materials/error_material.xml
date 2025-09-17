@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<material id="error_material" name="Error Material">
+  <shader>shader.error</shader>
+  <params>
+    <param name="albedo" type="color" r="1.0" g="0.0" b="1.0" a="1.0" /> <!-- Hot pink color -->
+    <param name="pulse_speed" type="float" value="2.0" /> <!-- For animated error effect -->
+  </params>
+  <textures>
+    <texture name="albedoMap" path="error.png" />
+  </textures>
+</material>

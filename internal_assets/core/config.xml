@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<internal_config version="1.0">
+  <asset_paths>
+    <path type="internal" location="internal_assets" />
+    <path type="user" location="assets" />
+    <path type="runtime" location="runtime/data" />
+  </asset_paths>
+  
+  <core_assets>
+    <asset type="texture" id="default_texture" path="core/textures/default.png" />
+    <asset type="font" id="default_font" path="core/fonts/default.ttf" />
+    <asset type="audio" id="default_sound" path="core/audio/default.wav" />
+    <asset type="material" id="default_material" path="core/materials/default_material.xml" />
+    <asset type="mesh" id="default_cube" path="core/meshes/cube.obj" />
+    <asset type="mesh" id="default_sphere" path="core/meshes/sphere.obj" />
+    <asset type="mesh" id="default_plane" path="core/meshes/plane.obj" />
+  </core_assets>
+  
+  <fallback_assets>
+    <asset type="texture" id="error_texture" path="error.png" />
+    <asset type="font" id="error_font" path="error.ttf" />
+    <asset type="audio" id="error_sound" path="error.wav" />
+  </fallback_assets>
+</internal_config>

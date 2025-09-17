@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<internal_assets version="1.0">
+  <!-- 
+    Internal Assets Configuration
+    This file defines the core internal assets required by the engine.
+    These assets are used when user assets are not available.
+  -->
+  
+  <!-- Core textures -->
+  <asset id="texture.default" type="texture">
+    <path>core/textures/default.png</path>
+  </asset>
+  <asset id="texture.default_normal" type="texture">
+    <path>core/textures/default_normal.png</path>
+  </asset>
+  <asset id="texture.default_roughness" type="texture">
+    <path>core/textures/default_roughness.png</path>
+  </asset>
+  <asset id="texture.default_metallic" type="texture">
+    <path>core/textures/default_metallic.png</path>
+  </asset>
+  
+  <!-- Core fonts -->
+  <asset id="font.default" type="font">
+    <path>core/fonts/default.ttf</path>
+  </asset>
+  
+  <!-- Core audio -->
+  <asset id="audio.default" type="audio">
+    <path>core/audio/default.wav</path>
+  </asset>
+  
+  <!-- Core materials -->
+  <asset id="material.default" type="material">
+    <path>core/materials/default_material.xml</path>
+  </asset>
+  
+  <!-- Core meshes -->
+  <asset id="mesh.cube" type="mesh">
+    <path>core/meshes/cube.obj</path>
+  </asset>
+  <asset id="mesh.sphere" type="mesh">
+    <path>core/meshes/sphere.obj</path>
+  </asset>
+  <asset id="mesh.plane" type="mesh">
+    <path>core/meshes/plane.obj</path>
+  </asset>
+  
+  <!-- Core shaders -->
+  <asset id="shader.default" type="shader">
+    <path>core/shaders/default_shader.glsl</path>
+  </asset>
+  
+  <!-- Fallback assets for error conditions -->
+  <fallbacks>
+    <fallback type="texture" asset_id="texture.error" path="error.png" />
+    <fallback type="font" asset_id="font.error" path="error.ttf" />
+    <fallback type="audio" asset_id="audio.error" path="error.wav" />
+    <fallback type="material" asset_id="material.error" path="core/materials/error_material.xml" />
+    <fallback type="mesh" asset_id="mesh.error" path="core/meshes/cube.obj" />
+    <fallback type="shader" asset_id="shader.error" path="core/shaders/error_shader.glsl" />
+  </fallbacks>
+</internal_assets>
