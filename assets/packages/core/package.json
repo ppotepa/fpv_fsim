@@ -78,23 +78,6 @@
                 "shininess": 64.0
             },
             {
-                "id": "yellowTriangleMaterial",
-                "name": "Yellow Triangle Material",
-                "diffuseColor": {
-                    "r": 1.0,
-                    "g": 0.9,
-                    "b": 0.2,
-                    "a": 1.0
-                },
-                "specularColor": {
-                    "r": 1.0,
-                    "g": 1.0,
-                    "b": 0.4,
-                    "a": 1.0
-                },
-                "shininess": 16.0
-            },
-            {
                 "id": "earthOceanMaterial",
                 "name": "Earth Ocean Material",
                 "diffuseColor": {
@@ -155,16 +138,6 @@
                         "horizontal": 16,
                         "vertical": 12
                     },
-                    "uvMapping": true
-                }
-            },
-            {
-                "id": "triangleMesh",
-                "name": "Triangle Mesh",
-                "type": "procedural",
-                "primitive": {
-                    "type": "triangle",
-                    "size": 0.8,
                     "uvMapping": true
                 }
             },
@@ -416,120 +389,6 @@
                                 "x": 1.0,
                                 "y": 1.0,
                                 "z": 0.0
-                            }
-                        }
-                    }
-                },
-                {
-                    "id": "yellowTriangle1",
-                    "name": "Yellow Triangle 1",
-                    "transform": {
-                        "position": {
-                            "x": 1.0,
-                            "y": -1.5,
-                            "z": 0.0
-                        },
-                        "rotation": {
-                            "x": 0.0,
-                            "y": 0.0,
-                            "z": 0.0,
-                            "w": 1.0
-                        },
-                        "scale": {
-                            "x": 0.8,
-                            "y": 0.8,
-                            "z": 0.8
-                        }
-                    },
-                    "renderable": {
-                        "mesh": "triangleMesh",
-                        "material": "yellowTriangleMaterial",
-                        "visible": true
-                    },
-                    "behavior": {
-                        "codeBehind": "core.SpinBehavior",
-                        "parameters": {
-                            "rotationSpeed": 90.0,
-                            "axis": {
-                                "x": 0.0,
-                                "y": 1.0,
-                                "z": 0.0
-                            }
-                        }
-                    }
-                },
-                {
-                    "id": "yellowTriangle2",
-                    "name": "Yellow Triangle 2",
-                    "transform": {
-                        "position": {
-                            "x": -1.0,
-                            "y": -1.5,
-                            "z": 0.0
-                        },
-                        "rotation": {
-                            "x": 0.0,
-                            "y": 0.0,
-                            "z": 120.0,
-                            "w": 1.0
-                        },
-                        "scale": {
-                            "x": 0.8,
-                            "y": 0.8,
-                            "z": 0.8
-                        }
-                    },
-                    "renderable": {
-                        "mesh": "triangleMesh",
-                        "material": "yellowTriangleMaterial",
-                        "visible": true
-                    },
-                    "behavior": {
-                        "codeBehind": "core.SpinBehavior",
-                        "parameters": {
-                            "rotationSpeed": 75.0,
-                            "axis": {
-                                "x": 1.0,
-                                "y": 0.0,
-                                "z": 1.0
-                            }
-                        }
-                    }
-                },
-                {
-                    "id": "yellowTriangle3",
-                    "name": "Yellow Triangle 3",
-                    "transform": {
-                        "position": {
-                            "x": 0.0,
-                            "y": -1.5,
-                            "z": 1.0
-                        },
-                        "rotation": {
-                            "x": 0.0,
-                            "y": 0.0,
-                            "z": 240.0,
-                            "w": 1.0
-                        },
-                        "scale": {
-                            "x": 0.8,
-                            "y": 0.8,
-                            "z": 0.8
-                        }
-                    },
-                    "renderable": {
-                        "mesh": "triangleMesh",
-                        "material": "yellowTriangleMaterial",
-                        "visible": true
-                    },
-                    "behavior": {
-                        "codeBehind": "core.SpinBehavior",
-                        "parameters": {
-                            "rotationSpeed": 105.0,
-                            "axis": {
-                                "x": 0.0,
-                                "y": 1.0,
-                                "z": 1.0
                             }
                         }
                     }
