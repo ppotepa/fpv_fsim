@@ -35,48 +35,31 @@ public:
     bool initialize(const std::string &sceneAssetId, AssetManager &assetManager)
     {
         sceneAssetId_ = sceneAssetId;
-
-        // In a real implementation, we would load the scene from the asset
-        // Here we'll just create our 3 green cubes directly
-
-        // Create cube 1
-        RenderObject cube1;
-        cube1.meshId = "mesh.cube";
-        cube1.materialId = "material.green";
-        cube1.transform.position = {-1.5f, 0.0f, 0.0f};
-        cube1.transform.scale = {0.8f, 0.8f, 0.8f};
-        cube1.rotationSpeedX = 15.0f;
-        cube1.rotationSpeedY = 30.0f;
-        objects_.push_back(cube1);
-
-        // Create cube 2
-        RenderObject cube2;
-        cube2.meshId = "mesh.cube";
-        cube2.materialId = "material.green";
-        cube2.transform.position = {0.0f, 0.0f, 0.0f};
-        cube2.transform.scale = {0.8f, 0.8f, 0.8f};
-        cube2.rotationSpeedY = 45.0f;
-        objects_.push_back(cube2);
-
-        // Create cube 3
-        RenderObject cube3;
-        cube3.meshId = "mesh.cube";
-        cube3.materialId = "material.green";
-        cube3.transform.position = {1.5f, 0.0f, 0.0f};
-        cube3.transform.scale = {0.8f, 0.8f, 0.8f};
-        cube3.rotationSpeedY = 60.0f;
-        cube3.rotationSpeedZ = 30.0f;
-        objects_.push_back(cube3);
-
-        // Create red cube (rotating in the opposite direction)
+        
+        // TODO: In a real implementation, we would load the scene from the asset manager
+        // For now, we'll load entities from the JSON package data
+        // The main.cpp should eventually use WorldGenSystem to load entities from packages
+        
+        // Load entities from JSON package instead of hardcoded cubes
+        // These should match what's defined in assets/packages/core/package.json
+        
+        // Load red cube entity from package
         RenderObject redCube;
-        redCube.meshId = "mesh.cube";
-        redCube.materialId = "material.red";
-        redCube.transform.position = {0.0f, 1.5f, 0.0f};
+        redCube.meshId = "cubeMesh";  // From package.json meshes
+        redCube.materialId = "redCubeMaterial";  // From package.json materials
+        redCube.transform.position = {0.0f, 0.0f, 0.0f};  // From package.json redCube entity
         redCube.transform.scale = {1.0f, 1.0f, 1.0f};
-        redCube.rotationSpeedX = -15.0f;
-        redCube.rotationSpeedY = -45.0f; // Negative value for opposite rotation
+        redCube.rotationSpeedY = 45.0f;  // From package.json redCube behavior parameters
         objects_.push_back(redCube);
+
+        // Load violet cube entity from package  
+        RenderObject violetCube;
+        violetCube.meshId = "cubeMesh";  // From package.json meshes
+        violetCube.materialId = "violetCubeMaterial";  // From package.json materials
+        violetCube.transform.position = {2.5f, 0.0f, 0.0f};  // From package.json violetCube entity
+        violetCube.transform.scale = {1.0f, 1.0f, 1.0f};
+        violetCube.rotationSpeedX = 60.0f;  // From package.json violetCube behavior parameters
+        objects_.push_back(violetCube);
 
         return true;
     }

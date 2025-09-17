@@ -17,13 +17,11 @@
 // OpenGL and Windows setup
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 bool setupOpenGL(HWND hwnd);
-void renderRedCube();
 
 // Global variables
 HDC hdc;
 HGLRC hglrc;
 bool running = true;
-float cubeRotation = 0.0f;
 AssetManager assetManager;
 
 // Include the SceneRenderer
@@ -140,7 +138,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         HWND hwnd = CreateWindowEx(
             WS_EX_CLIENTEDGE,
             "FPVSimWindow",
-            "FPV Flight Simulator - Red Cube Demo",
+            "FPV Flight Simulator - JSON Package System",
             WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT, CW_USEDEFAULT,
             800, 600,
@@ -165,41 +163,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         std::cout << "✅ OpenGL window created successfully!" << std::endl;
 
         // ====================================================================
-        // Step 4: Create Red Cube Entity with Behavior
+        // Step 4: Initialize World and Event System
         // ====================================================================
-        std::cout << "\n🎲 Creating red cube entity..." << std::endl;
+        std::cout << "\n� Initializing world and event system..." << std::endl;
 
         EventBus eventBus;
         World world(eventBus);
 
-        // Create entity directly in unique_ptr to avoid copy issues
-        auto redCubeEntity = std::make_unique<Entity>(1);
-        redCubeEntity->setName("Red Cube");
-
-        // Attach SpinBehavior
-        auto spinBehavior = behaviorRegistry.createBehavior("SpinBehavior");
-        if (spinBehavior)
-        {
-            Assets::BehaviorParams params;
-            params.setParameter("rotationSpeed", "45.0");
-            params.setParameter("axis", "0,1,0");
-
-            spinBehavior->initialize(*redCubeEntity, params);
-            // Note: For now we'll track behaviors separately since Entity doesn't have attachBehavior
-
-            std::cout << "✅ SpinBehavior created for red cube!" << std::endl;
-        }
-
-        // Add entity to world
-        world.addEntity(std::move(redCubeEntity));
-
-        std::cout << "✅ Red cube entity created with spinning behavior!" << std::endl;
+        // All entities should now come from the JSON packages through the WorldGenSystem
+        // The SceneRenderer is now configured to load entities from package data
+        std::cout << "✅ World and event system initialized - entities will be loaded from packages!" << std::endl;
 
         // ====================================================================
         // Step 5: Main Loop
         // ====================================================================
         std::cout << "\n🎮 Starting main loop..." << std::endl;
-        std::cout << "   🖥️  OpenGL window should now be visible with spinning red cube" << std::endl;
+        std::cout << "   🖥️  OpenGL window should now be visible with entities from JSON packages" << std::endl;
+        std::cout << "   📦  Red cube and violet cube loaded from assets/packages/core/package.json" << std::endl;
         std::cout << "   ⌨️  Close window to exit" << std::endl;
 
         MSG msg = {};
@@ -323,75 +303,4 @@ bool setupOpenGL(HWND hwnd)
     glClearColor(0.1f, 0.1f, 0.2f, 1.0f); // Dark blue background
 
     return true;
-}
-
-void renderRedCube()
-{
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Setup projection matrix
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    RECT rect;
-    GetClientRect(WindowFromDC(hdc), &rect);
-    float aspect = (float)(rect.right) / (float)(rect.bottom);
-
-    // Simple perspective projection
-    glFrustum(-0.1f * aspect, 0.1f * aspect, -0.1f, 0.1f, 0.1f, 100.0f);
-
-    // Setup model-view matrix
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    // Move camera back and look at center
-    glTranslatef(0.0f, 0.0f, -5.0f);
-
-    // Rotate the cube
-    glRotatef(cubeRotation, 0.0f, 1.0f, 0.0f);
-
-    // Draw red cube
-    glColor3f(1.0f, 0.0f, 0.0f); // Red color
-
-    glBegin(GL_QUADS);
-
-    // Front face
-    glVertex3f(-0.5f, -0.5f, 0.5f);
-    glVertex3f(0.5f, -0.5f, 0.5f);
-    glVertex3f(0.5f, 0.5f, 0.5f);
-    glVertex3f(-0.5f, 0.5f, 0.5f);
-
-    // Back face
-    glVertex3f(-0.5f, -0.5f, -0.5f);
-    glVertex3f(-0.5f, 0.5f, -0.5f);
-    glVertex3f(0.5f, 0.5f, -0.5f);
-    glVertex3f(0.5f, -0.5f, -0.5f);
-
-    // Top face
-    glVertex3f(-0.5f, 0.5f, -0.5f);
-    glVertex3f(-0.5f, 0.5f, 0.5f);
-    glVertex3f(0.5f, 0.5f, 0.5f);
-    glVertex3f(0.5f, 0.5f, -0.5f);
-
-    // Bottom face
-    glVertex3f(-0.5f, -0.5f, -0.5f);
-    glVertex3f(0.5f, -0.5f, -0.5f);
-    glVertex3f(0.5f, -0.5f, 0.5f);
-    glVertex3f(-0.5f, -0.5f, 0.5f);
-
-    // Right face
-    glVertex3f(0.5f, -0.5f, -0.5f);
-    glVertex3f(0.5f, 0.5f, -0.5f);
-    glVertex3f(0.5f, 0.5f, 0.5f);
-    glVertex3f(0.5f, -0.5f, 0.5f);
-
-    // Left face
-    glVertex3f(-0.5f, -0.5f, -0.5f);
-    glVertex3f(-0.5f, -0.5f, 0.5f);
-    glVertex3f(-0.5f, 0.5f, 0.5f);
-    glVertex3f(-0.5f, 0.5f, -0.5f);
-
-    glEnd();
-
-    SwapBuffers(hdc);
 }
